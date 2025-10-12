@@ -1,0 +1,156 @@
+datasource db {
+    provider = "postgresql"
+    url      = env("POSTGRES_URL")
+}
+
+generator client {
+    provider = "prisma-client"
+    output   = "../src/generated/client"
+}
+
+enum Role {
+    USER
+    ADMIN
+}
+
+model User {
+    userid            String         @id @default(cuid())
+    username          String         @unique
+    email             String         @unique
+    password          String
+    fullname          String?
+    role              Role           @default(USER)
+    bestCPM           Int            @default(0)
+    avgCPM            Int            @default(0)
+    bestWPM           Int            @default(0)
+    avgWPM            Int            @default(0)
+    preferredTheme    String?
+    preferredFont     String?
+    preferredLanguage String?
+    createdAt         DateTime       @default(now())
+    updatedAt         DateTime       @updatedAt
+    userLessons       UserLesson[]
+    userPractices     UserPractice[]
+    refreshTokens     RefreshToken[]
+
+    @@map("users")
+}
+
+model Language {
+    languageid   String      @id @default(cuid())
+    languageName String      @unique
+    paragraphs   Paragraph[]
+    words        Word[]
+    lessons      Lesson[]
+
+    @@map("languages")
+}
+
+enum LengthType {
+    SHORT
+    MEDIUM
+    LONG
+}
+
+model Paragraph {
+    paragraphid      String     @id @default(cuid())
+    lengthType       LengthType
+    paragraphContent String
+    language         Language   @relation(fields: [languageid], references: [languageid])
+    languageid       String
+
+    @@map("paragraphs")
+}
+
+model Word {
+    wordid      String     @id @default(cuid())
+    lengthType  LengthType
+    NormalForm  String     @unique
+    CapitalForm String?    @unique
+    language    Language   @relation(fields: [languageid], references: [languageid])
+    languageid  String
+
+    @@map("words")
+}
+
+model Number {
+    numberid String @id @default(cuid())
+    minValue Int
+    maxValue Int
+
+    @@map("numbers")
+}
+
+model Punctuation {
+    punctuationid     String @id @default(cuid())
+    punctuationSymbol String @unique
+
+    @@map("punctuations")
+}
+
+enum RowType {
+    HOME
+    TOP
+    BOTTOM
+}
+
+model Lesson {
+    lessonid      String           @id @default(cuid())
+    title         String
+    orderNumber   Int
+    rowType       RowType
+    lessonContent String
+    language      Language         @relation(fields: [languageid], references: [languageid])
+    languageid    String
+    practices     LessonPractice[]
+    UserLesson    UserLesson[]
+
+    @@map("lessons")
+}
+
+enum PracticeType {
+    ONE_HANDED
+    BOTH_HANDS
+}
+
+model LessonPractice {
+    practiceid      String         @id @default(cuid())
+    practiceType    PracticeType
+    heldKey         String?
+    practiceContent String
+    lesson          Lesson         @relation(fields: [lessonid], references: [lessonid])
+    lessonid        String
+    UserPractice    UserPractice[]
+
+    @@map("lesson_practices")
+}
+
+model UserLesson {
+    userid   String
+    user     User   @relation(fields: [userid], references: [userid])
+    lessonid String
+    lesson   Lesson @relation(fields: [lessonid], references: [lessonid])
+
+    @@id([userid, lessonid])
+    @@map("user_lessons")
+}
+
+model UserPractice {
+    userid     String
+    user       User           @relation(fields: [userid], references: [userid])
+    practiceid String
+    practice   LessonPractice @relation(fields: [practiceid], references: [practiceid])
+
+    @@id([userid, practiceid])
+    @@map("user_practices")
+}
+
+model RefreshToken {
+    token     String   @id
+    revoked   Boolean  @default(false)
+    userid    String
+    user      User     @relation(fields: [userid], references: [userid])
+    expiresAt DateTime
+
+    @@map("refresh_tokens")
+}
