@@ -20,10 +20,10 @@ model User {
     password          String
     fullname          String?
     role              Role           @default(USER)
-    bestCPM           Int            @default(0)
-    avgCPM            Int            @default(0)
-    bestWPM           Int            @default(0)
-    avgWPM            Int            @default(0)
+    bestCPM           Decimal        @default(0)
+    avgCPM            Decimal        @default(0)
+    bestWPM           Decimal        @default(0)
+    avgWPM            Decimal        @default(0)
     preferredTheme    String?
     preferredFont     String?
     preferredLanguage String?
