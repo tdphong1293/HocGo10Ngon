@@ -2,6 +2,7 @@
 
 import React, { createContext, useContext, useEffect, useState, useRef } from 'react';
 
+// Các loại theme và font được hỗ trợ
 export type Theme = 'light' | 'dark' | 'ocean' | 'forest' | 'sunset' | 'lavender' | 'crimson';
 export type Font = 'geist' | 'inter' | 'roboto' | 'poppins' | 'openSans' | 'sourceCodePro';
 
@@ -15,6 +16,7 @@ interface ThemeContextType {
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
+// Tránh việc sử dụng context bên ngoài provider
 export const useTheme = () => {
     const context = useContext(ThemeContext);
     if (context === undefined) {
@@ -37,7 +39,6 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
         // Load saved preferences from localStorage and current DOM state
         const savedTheme = localStorage.getItem('theme') as Theme;
         const savedFont = localStorage.getItem('font') as Font;
-        const currentDOMFont = document.documentElement.getAttribute('data-font') as Font;
 
         // Set the theme
         if (savedTheme && ['light', 'dark', 'ocean', 'forest', 'sunset', 'lavender', 'crimson'].includes(savedTheme)) {
@@ -49,22 +50,18 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
         }
 
         // Set the font - prioritize localStorage, then DOM, then default
-        let fontToSet: Font = 'geist';
         if (savedFont && ['geist', 'inter', 'roboto', 'poppins', 'openSans', 'sourceCodePro'].includes(savedFont)) {
-            fontToSet = savedFont;
-        } else if (currentDOMFont && ['geist', 'inter', 'roboto', 'poppins', 'openSans', 'sourceCodePro'].includes(currentDOMFont)) {
-            fontToSet = currentDOMFont;
+            setFont(savedFont);
         }
 
-        setFont(fontToSet);
 
         // Set DOM immediately before marking as loaded
         document.documentElement.setAttribute('data-theme', theme);
-        document.documentElement.setAttribute('data-font', fontToSet);
+        document.documentElement.setAttribute('data-font', font);
         localStorage.setItem('theme', theme);
-        localStorage.setItem('font', fontToSet);
+        localStorage.setItem('font', font);
 
-        previousFontRef.current = fontToSet;
+        previousFontRef.current = font;
         setIsLoaded(true);
     }, []);
     
@@ -79,7 +76,6 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
         // Check if font actually changed
         if (previousFontRef.current === font) return;
 
-        // Apply font to document (only on actual font changes)
         document.documentElement.setAttribute('data-font', font);
         localStorage.setItem('font', font);
 

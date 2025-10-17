@@ -1,7 +1,8 @@
 'use client';
 
 import React, { useState } from 'react';
-import { useTheme, Theme, Font } from '@/contexts/ThemeContext';
+import { Theme, Font } from '@/contexts/ThemeContext';
+import { useTheme } from '@/hooks/useTheme';
 import { ThemePreview } from './ThemePreview';
 
 const themes: { value: Theme; label: string; description: string }[] = [

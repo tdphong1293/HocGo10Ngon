@@ -1,6 +1,6 @@
 'use client';
 
-import { useTheme } from '@/contexts/ThemeContext';
+import { useTheme } from '@/hooks/useTheme';
 import { TypingTestDemo } from '@/components/TypingTestDemo';
 import { ToastColorDemo } from '@/components/ToastSystem';
 import { FontTestDemo } from '@/components/FontTestDemo';
