@@ -4,6 +4,7 @@ import { useTheme } from '@/hooks/useTheme';
 import { TypingTestDemo } from '@/components/TypingTestDemo';
 import { ToastColorDemo } from '@/components/ToastSystem';
 import { FontTestDemo } from '@/components/FontTestDemo';
+import Keyboard from '@/components/Keyboard';
 
 export default function Home() {
 	const { theme, font } = useTheme();
@@ -61,7 +62,7 @@ export default function Home() {
 					<div className="bg-card p-6 rounded-lg border border-border hover:border-border-hover transition-colors">
 						<h3 className="text-xl font-semibold text-card-foreground mb-3">Optimized Fonts</h3>
 						<p className="text-muted-foreground mb-4">
-							6 carefully selected fonts for optimal typing experience, including monospace options.
+							12 carefully selected fonts for optimal typing experience, including monospace options.
 						</p>
 						<div className="text-primary font-medium">The quick brown fox</div>
 					</div>
@@ -175,6 +176,7 @@ export default function Home() {
 						</div>
 					</div>
 				</div>
+				<Keyboard activeKeys={['LShift', 'A']} onKeyPress={() => {}} />
 
 				<footer className="text-center text-muted-foreground">
 					<p>Click the customize button in the top right to change themes and fonts!</p>

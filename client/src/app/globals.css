@@ -356,7 +356,35 @@
 	font-family: var(--font-sourceCodePro), "Courier New", monospace;
 }
 
-/* Tailwind CSS v4 Theme Configuration */
+[data-font="comfortaa"] * {
+	font-family: var(--font-comfortaa), cursive, sans-serif;
+}
+
+[data-font="patrickHand"] * {
+	font-family: var(--font-patrickHand), cursive, sans-serif;
+}
+
+[data-font="spaceMono"] * {
+	font-family: var(--font-spaceMono), monospace;
+}
+
+[data-font="paytoneOne"] * {
+	font-family: var(--font-paytoneOne), cursive, sans-serif;
+}
+
+[data-font="righteous"] * {
+	font-family: var(--font-righteous), cursive, sans-serif;
+}
+
+[data-font="monoton"] * {
+	font-family: var(--font-monoton), cursive, sans-serif;
+}
+
+.keyboard-fixed-font,
+.keyboard-fixed-font * {
+	font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif !important;
+}
+
 @theme inline {
 	--color-background: var(--background);
 	--color-foreground: var(--foreground);

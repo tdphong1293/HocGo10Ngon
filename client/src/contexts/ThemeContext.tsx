@@ -4,7 +4,7 @@ import React, { createContext, useContext, useEffect, useState, useRef } from 'r
 
 // Các loại theme và font được hỗ trợ
 export type Theme = 'light' | 'dark' | 'ocean' | 'forest' | 'sunset' | 'lavender' | 'crimson';
-export type Font = 'geist' | 'inter' | 'roboto' | 'poppins' | 'openSans' | 'sourceCodePro';
+export type Font = 'geist' | 'inter' | 'roboto' | 'poppins' | 'openSans' | 'sourceCodePro' | 'comfortaa' | 'patrickHand' | 'spaceMono' | 'paytoneOne' | 'righteous' | 'monoton';
 
 interface ThemeContextType {
     theme: Theme;
@@ -50,7 +50,7 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
         }
 
         // Set the font - prioritize localStorage, then DOM, then default
-        if (savedFont && ['geist', 'inter', 'roboto', 'poppins', 'openSans', 'sourceCodePro'].includes(savedFont)) {
+        if (savedFont && ['geist', 'inter', 'roboto', 'poppins', 'openSans', 'sourceCodePro', 'comfortaa', 'patrickHand', 'spaceMono', 'paytoneOne', 'righteous', 'monoton'].includes(savedFont)) {
             setFont(savedFont);
         }
 
@@ -64,7 +64,7 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
         previousFontRef.current = font;
         setIsLoaded(true);
     }, []);
-    
+
     useEffect(() => {
         document.documentElement.setAttribute('data-theme', theme);
         localStorage.setItem('theme', theme);

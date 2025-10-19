@@ -22,6 +22,12 @@ const fonts: { value: Font; label: string; description: string; sample: string }
     { value: 'poppins', label: 'Poppins', description: 'Rounded and approachable', sample: 'The quick brown fox' },
     { value: 'openSans', label: 'Open Sans', description: 'Humanist sans-serif', sample: 'The quick brown fox' },
     { value: 'sourceCodePro', label: 'Source Code Pro', description: 'Monospace elegance', sample: 'const theme = {}' },
+    { value: 'comfortaa', label: 'Comfortaa', description: 'Rounded and friendly', sample: 'The quick brown fox' },
+    { value: 'patrickHand', label: 'Patrick Hand', description: 'Handwritten style', sample: 'The quick brown fox' },
+    { value: 'spaceMono', label: 'Space Mono', description: 'Futuristic monospace', sample: 'const theme = {}' },
+    { value: 'paytoneOne', label: 'Paytone One', description: 'Bold display font', sample: 'The quick brown fox' },
+    { value: 'righteous', label: 'Righteous', description: 'Strong and geometric', sample: 'The quick brown fox' },
+    { value: 'monoton', label: 'Monoton', description: 'Decorative outline', sample: 'The quick brown fox' },
 ];
 
 export const ThemeSelector: React.FC = () => {
@@ -92,7 +98,9 @@ export const ThemeSelector: React.FC = () => {
                                     <div className="text-xs text-muted-foreground mb-2">{fontOption.description}</div>
                                     <div
                                         className="text-sm text-foreground"
-                                        style={{ fontFamily: `var(--font-${fontOption.value})` }}
+                                        style={{
+                                            fontFamily: `var(--font-${fontOption.value})`
+                                        }}
                                     >
                                         {fontOption.sample}
                                     </div>
