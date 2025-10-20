@@ -1,0 +1,47 @@
+[data-font="geist"] * {
+	font-family: var(--font-geist), system-ui, sans-serif;
+}
+
+[data-font="inter"] * {
+	font-family: var(--font-inter), system-ui, sans-serif;
+}
+
+[data-font="roboto"] * {
+	font-family: var(--font-roboto), system-ui, sans-serif;
+}
+
+[data-font="poppins"] * {
+	font-family: var(--font-poppins), system-ui, sans-serif;
+}
+
+[data-font="openSans"] * {
+	font-family: var(--font-openSans), system-ui, sans-serif;
+}
+
+[data-font="sourceCodePro"] * {
+	font-family: var(--font-sourceCodePro), "Courier New", monospace;
+}
+
+[data-font="comfortaa"] * {
+	font-family: var(--font-comfortaa), cursive, sans-serif;
+}
+
+[data-font="patrickHand"] * {
+	font-family: var(--font-patrickHand), cursive, sans-serif;
+}
+
+[data-font="spaceMono"] * {
+	font-family: var(--font-spaceMono), monospace;
+}
+
+[data-font="paytoneOne"] * {
+	font-family: var(--font-paytoneOne), cursive, sans-serif;
+}
+
+[data-font="righteous"] * {
+	font-family: var(--font-righteous), cursive, sans-serif;
+}
+
+[data-font="monoton"] * {
+	font-family: var(--font-monoton), cursive, sans-serif;
+}

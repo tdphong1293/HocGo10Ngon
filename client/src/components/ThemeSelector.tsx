@@ -35,7 +35,7 @@ export const ThemeSelector: React.FC = () => {
     const [isOpen, setIsOpen] = useState(false);
 
     return (
-        <div className="fixed top-4 right-4 z-50">
+        <div className="fixed bottom-4 right-4 z-50">
             <button
                 onClick={() => setIsOpen(!isOpen)}
                 className="flex items-center gap-2 px-4 py-2 bg-background border border-border rounded-lg shadow-lg hover:bg-accent transition-colors"
@@ -48,7 +48,7 @@ export const ThemeSelector: React.FC = () => {
             </button>
 
             {isOpen && (
-                <div className="absolute top-full right-0 mt-2 w-96 bg-background border border-border rounded-lg shadow-xl overflow-hidden">
+                <div className="absolute bottom-full right-0 mt-2 w-96 bg-background border border-border rounded-lg shadow-xl overflow-hidden">
                     <div className="p-4 border-b border-border">
                         <h3 className="text-lg font-semibold text-foreground">Appearance Settings</h3>
                         <p className="text-sm text-muted-foreground">Customize your visual experience</p>

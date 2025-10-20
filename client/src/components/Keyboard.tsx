@@ -23,8 +23,17 @@ export const twoCharacterKey = (keys: string[], activeKeys: string[], extraClass
 
 export const functionKey = (key: string, activeKeys: string[], extraClass: string = "") => {
     let displayKey = key;
-    if (key === 'LShift' || key === 'RShift') {
+    if (key.toLowerCase() === 'lshift' || key.toLowerCase() === 'rshift') {
         displayKey = 'Shift';
+    }
+    else if (key.toLowerCase() === 'lctrl' || key.toLowerCase() === 'rctrl') {
+        displayKey = 'Ctrl';
+    }
+    else if (key.toLowerCase() === 'lwin' || key.toLowerCase() === 'rwin') {
+        displayKey = 'Win';
+    }
+    else if (key.toLowerCase() === 'lalt' || key.toLowerCase() === 'ralt') {
+        displayKey = 'Alt';
     }
     const isActive = activeKeys.some(activeKey => activeKey.toLowerCase() === key.toLowerCase());
     const baseClasses = "flex justify-start items-end border-1 border-border rounded-md px-1 py-1 min-h-14 transition-colors";
@@ -98,7 +107,7 @@ const Keyboard: React.FC<KeyboardProps> = ({
                 {functionKey('RShift', activeKeys, 'min-w-35 w-full')}
             </div>
             <div className="flex gap-1">
-                {functionKey('Tab', activeKeys, 'min-w-16 w-full')}
+                {functionKey('Ctrl', activeKeys, 'min-w-16 w-full')}
                 {functionKey('Win', activeKeys, 'min-w-16 w-full')}
                 {functionKey('Alt', activeKeys, 'min-w-16 w-full')}
                 {functionKey('Space', activeKeys, 'min-w-90 w-full')}

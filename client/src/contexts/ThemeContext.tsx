@@ -33,54 +33,48 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
     const [theme, setTheme] = useState<Theme>('light');
     const [font, setFont] = useState<Font>('geist');
     const [isLoaded, setIsLoaded] = useState(false);
-    const previousFontRef = useRef<Font | null>(null);
 
     useEffect(() => {
-        // Load saved preferences from localStorage and current DOM state
         const savedTheme = localStorage.getItem('theme') as Theme;
         const savedFont = localStorage.getItem('font') as Font;
 
-        // Set the theme
+        let actualTheme: Theme = 'light';
         if (savedTheme && ['light', 'dark', 'ocean', 'forest', 'sunset', 'lavender', 'crimson'].includes(savedTheme)) {
-            setTheme(savedTheme);
+            actualTheme = savedTheme;
         } else {
-            // Check system preference
             const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-            setTheme(prefersDark ? 'dark' : 'light');
+            actualTheme = prefersDark ? 'dark' : 'light';
         }
 
-        // Set the font - prioritize localStorage, then DOM, then default
+        let actualFont: Font = 'geist';
         if (savedFont && ['geist', 'inter', 'roboto', 'poppins', 'openSans', 'sourceCodePro', 'comfortaa', 'patrickHand', 'spaceMono', 'paytoneOne', 'righteous', 'monoton'].includes(savedFont)) {
-            setFont(savedFont);
+            actualFont = savedFont;
         }
 
+        document.documentElement.setAttribute('data-theme', actualTheme);
+        document.documentElement.setAttribute('data-font', actualFont);
 
-        // Set DOM immediately before marking as loaded
-        document.documentElement.setAttribute('data-theme', theme);
-        document.documentElement.setAttribute('data-font', font);
-        localStorage.setItem('theme', theme);
-        localStorage.setItem('font', font);
+        setTheme(actualTheme);
+        setFont(actualFont);
 
-        previousFontRef.current = font;
+        localStorage.setItem('theme', actualTheme);
+        localStorage.setItem('font', actualFont);
+
         setIsLoaded(true);
     }, []);
 
     useEffect(() => {
-        document.documentElement.setAttribute('data-theme', theme);
-        localStorage.setItem('theme', theme);
-    }, [theme]);
+        if (isLoaded) {
+            document.documentElement.setAttribute('data-theme', theme);
+            localStorage.setItem('theme', theme);
+        }
+    }, [theme, isLoaded]);
 
     useEffect(() => {
-        if (!isLoaded) return;
-
-        // Check if font actually changed
-        if (previousFontRef.current === font) return;
-
-        document.documentElement.setAttribute('data-font', font);
-        localStorage.setItem('font', font);
-
-        // Update ref after processing
-        previousFontRef.current = font;
+        if (isLoaded) {
+            document.documentElement.setAttribute('data-font', font);
+            localStorage.setItem('font', font);
+        }
     }, [font, isLoaded]);
 
     const value = {
