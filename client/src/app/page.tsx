@@ -5,9 +5,12 @@ import { TypingTestDemo } from '@/components/TypingTestDemo';
 import { ToastColorDemo } from '@/components/ToastSystem';
 import { FontTestDemo } from '@/components/FontTestDemo';
 import Keyboard from '@/components/Keyboard';
+import Input from '@/components/Input';
+import { useState } from 'react';
 
 export default function Home() {
 	const { theme, font } = useTheme();
+	const [inputValue, setInputValue] = useState('');
 
 	return (
 		<div className="min-h-screen p-8 pb-20 gap-16 sm:p-20">
@@ -177,6 +180,16 @@ export default function Home() {
 					</div>
 				</div>
 				<Keyboard activeKeys={['LShift', 'A']} onKeyPress={() => {}} />
+				<div className="w-full max-w-4xl bg-card p-6 rounded-lg border border-border">
+					<div className="text-lg font-semibold mb-4 text-card-foreground">Input demo</div>
+					<Input
+						value={inputValue}
+						onChange={(val) => setInputValue(val)}
+						placeholder="Type here..."
+						className=""
+						label="Test label"
+					/>
+				</div>
 
 				<footer className="text-center text-muted-foreground">
 					<p>Click the customize button in the top right to change themes and fonts!</p>

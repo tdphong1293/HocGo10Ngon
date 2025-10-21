@@ -3,6 +3,7 @@ import Link from "next/link"
 import { Icon } from "@iconify/react";
 import Logo from "./Logo";
 import LogoV3 from "./LogoV3";
+import Button from "./Button";
 
 interface NavbarProps {
     menuConfig?: typeof menuConfig;
@@ -27,10 +28,11 @@ const Navbar: React.FC<NavbarProps> = ({ menuConfig }) => {
                 <span className="text-xl">Blanker1293</span>
             </div>
             <Link
-                className="p-2 text-xl bg-accent text-accent-foreground rounded-lg border-2 border-border hover:cursor-pointer hover:bg-primary/50 hover:text-primary-foreground transition-colors"
-                href="/login"
+                href="/authenticate"
             >
-                Đăng nhập
+                <Button variant="primary-outline">
+                    Đăng nhập
+                </Button>
             </Link>
         </div>
     );

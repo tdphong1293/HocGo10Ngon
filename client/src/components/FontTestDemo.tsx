@@ -19,15 +19,6 @@ export const FontTestDemo: React.FC = () => {
 
                 const dataFont = htmlElement.getAttribute('data-font') || 'not set';
                 setDataFontAttr(dataFont);
-
-                // Debug font changes
-                console.log('FontTestDemo Update (after delay):', {
-                    contextFont: font,
-                    domDataFont: dataFont,
-                    bodyFontFamily: window.getComputedStyle(document.body).fontFamily,
-                    mismatch: font !== dataFont,
-                    isLoaded
-                });
             }, 1);
 
             return () => clearTimeout(timeoutId);

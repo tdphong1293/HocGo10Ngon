@@ -121,12 +121,14 @@ export default function RootLayout({
     return (
         <html lang="en">
             <body
-                className={`${geistSans.variable} ${geistMono.variable} ${inter.variable} ${roboto.variable} ${poppins.variable} ${openSans.variable} ${sourceCodePro.variable} ${comfortaa.variable} ${patrickHand.variable} ${spaceMono.variable} ${paytoneOne.variable} ${righteous.variable} ${monoton.variable} antialiased`}
+                className={`${geistSans.variable} ${geistMono.variable} ${inter.variable} ${roboto.variable} ${poppins.variable} ${openSans.variable} ${sourceCodePro.variable} ${comfortaa.variable} ${patrickHand.variable} ${spaceMono.variable} ${paytoneOne.variable} ${righteous.variable} ${monoton.variable} antialiased min-h-screen grid grid-rows-[auto_1fr]`}
             >
                 <ThemeProvider>
                     <Navbar menuConfig={menuConfig} />
-                    <ThemeSelector />
-                    {children}
+                    <main className="overflow-auto">
+                        <ThemeSelector />
+                        {children}
+                    </main>
                 </ThemeProvider>
             </body>
         </html>
