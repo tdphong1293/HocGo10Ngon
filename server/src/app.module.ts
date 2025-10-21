@@ -12,6 +12,7 @@ import { AppService } from './app.service';
 	imports: [
 		ConfigModule.forRoot({
 			isGlobal: true,
+			expandVariables: true,
 		}),
 		MongooseModule.forRootAsync({
 			useFactory: (configService: ConfigService) => ({
