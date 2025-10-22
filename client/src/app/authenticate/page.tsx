@@ -6,7 +6,7 @@ import Input from "@/components/Input";
 import LogoV3 from "@/components/LogoV3";
 import Button from "@/components/Button";
 import Link from "next/dist/client/link";
-import { clear } from "console";
+import { useAuth } from "@/hooks/useAuth";
 
 const AuthenticatePage = () => {
     const [signinUsername, setSigninUsername] = useState("");
@@ -24,6 +24,8 @@ const AuthenticatePage = () => {
         signupPassword: "",
         repassword: ""
     });
+
+    const { signIn } = useAuth();
 
     const clearAllInputs = () => {
         setSigninUsername("");
@@ -102,7 +104,7 @@ const AuthenticatePage = () => {
         const isValid = validateSigninForm();
         if (!isValid) return;
         clearAllErrors();
-        console.log('Sign In:', { username: signinUsername, password: signinPassword });
+        signIn(signinUsername, signinPassword);
     };
 
     const handleSignupSubmit = (e: React.FormEvent) => {

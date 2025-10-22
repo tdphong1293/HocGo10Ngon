@@ -42,14 +42,14 @@
 	--color-cursor-text: var(--cursor-text);
 
 	/* Toast Colors */
-	--color-toast-success: var(--toast-success);
-	--color-toast-success-bg: var(--toast-success-bg);
-	--color-toast-error: var(--toast-error);
-	--color-toast-error-bg: var(--toast-error-bg);
-	--color-toast-warning: var(--toast-warning);
-	--color-toast-warning-bg: var(--toast-warning-bg);
-	--color-toast-info: var(--toast-info);
-	--color-toast-info-bg: var(--toast-info-bg);
+	--color-toast-success: var(--toastify-text-color-success);
+	--color-toast-success-bg: var(--toastify-color-success);
+	--color-toast-error: var(--toastify-text-color-error);
+	--color-toast-error-bg: var(--toastify-color-error);
+	--color-toast-warning: var(--toastify-text-color-warning);
+	--color-toast-warning-bg: var(--toastify-color-warning);
+	--color-toast-info: var(--toastify-text-color-info);
+	--color-toast-info-bg: var(--toastify-color-info);
 
 	--radius: var(--radius);
 	--font-sans: var(--font-family, var(--font-geist));

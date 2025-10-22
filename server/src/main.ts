@@ -8,6 +8,13 @@ async function bootstrap() {
 	const app = await NestFactory.create(AppModule);
 	const configService = app.get(ConfigService);
 	app.use(cookieParser());
+	app.enableCors({
+		origin: configService.get<string>('CLIENT_URL') || 'http://localhost:3000',
+		credentials: true,
+		methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
+		allowedHeaders: ['Content-Type', 'Authorization', 'Cookie'],
+	});
+	app.setGlobalPrefix('api/v1', { exclude: [''] });
 
 	const config = new DocumentBuilder()
 		.setTitle('HocGo10Ngon API')

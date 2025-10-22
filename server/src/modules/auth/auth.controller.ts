@@ -1,10 +1,13 @@
 import { Controller, Get, Post, Put, Patch, Delete, Body, Param, Res, Req, UnauthorizedException } from '@nestjs/common';
+import { ApiTags, ApiOperation, ApiResponse, ApiBody } from '@nestjs/swagger';
 import type { Response, Request } from 'express';
 import { AuthService } from './auth.service';
 import { SignupUserDto } from './dto/signup-user.dto';
 import { SigninUserDto } from './dto/signin-user.dto';
 import { Public } from './auth.guard';
 import { ConfigService } from '@nestjs/config';
+
+@ApiTags('Authentication')
 @Controller('auth')
 @Public()
 export class AuthController {
@@ -19,7 +22,7 @@ export class AuthController {
     }
 
     @Post('signin')
-    async signIn(@Body() signinUserDto: SigninUserDto, @Res({passthrough: true}) response: Response) {
+    async signIn(@Body() signinUserDto: SigninUserDto, @Res({ passthrough: true }) response: Response) {
         const result = await this.authService.signIn(signinUserDto);
 
         // Store refresh token as HttpOnly cookie
@@ -38,7 +41,7 @@ export class AuthController {
     }
 
     @Post('refresh')
-    async refreshTokens(@Req() request: Request, @Res({passthrough: true}) response: Response) {
+    async refreshTokens(@Req() request: Request, @Res({ passthrough: true }) response: Response) {
         const refreshToken = request.cookies['refresh_token'];
 
         if (!refreshToken) {
@@ -46,14 +49,6 @@ export class AuthController {
         }
 
         const result = await this.authService.refreshTokens(refreshToken);
-
-        // Set new refresh token cookie
-        response.cookie('refresh_token', result.refresh_token, {
-            httpOnly: true,
-            secure: this.configService.get('NODE_ENV') === 'production',
-            sameSite: 'strict',
-            maxAge: (this.configService.get<number>('JWT_REFRESH_EXPIRES_IN_MS') || 7) * 24 * 60 * 60 * 1000
-        });
 
         return {
             access_token: result.access_token

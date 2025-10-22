@@ -7,6 +7,8 @@ import { CacheModule } from '@nestjs/cache-manager';
 import KeyvRedis from '@keyv/redis';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
+import { AuthModule } from './modules/auth/auth.module';
+import { UserModule } from './modules/user/user.module';
 
 @Module({
 	imports: [
@@ -33,6 +35,8 @@ import { AppService } from './app.service';
 		}),
 		PrismaModule,
 		DatabaseModule,
+		AuthModule,
+		UserModule,
 	],
 	controllers: [AppController],
 	providers: [AppService],

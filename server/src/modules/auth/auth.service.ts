@@ -6,7 +6,7 @@ import { JwtService } from '@nestjs/jwt';
 import { PrismaService } from '../prisma/prisma.service';
 import { ConfigService } from '@nestjs/config';
 import * as crypto from 'crypto';
-import { matches } from 'class-validator';
+import bcrypt from 'bcryptjs';
 
 @Injectable()
 export class AuthService {
@@ -23,7 +23,7 @@ export class AuthService {
 
     async signIn(signinUserDto: SigninUserDto) {
         const user = await this.userService.findOneByUsername(signinUserDto.username);
-        if (user && user.password === signinUserDto.password) {
+        if (user && await bcrypt.compare(signinUserDto.password, user.password)) {
             const payload = {
                 sub: user.userid,
                 username: user.username,
@@ -58,7 +58,7 @@ export class AuthService {
             throw new UnauthorizedException('Refresh token không hợp lệ hoặc đã hết hạn');
         }
 
-        // Generate new tokens
+        // Generate new access token
         const payload = {
             sub: storedToken.user.userid,
             username: storedToken.user.username,
@@ -68,16 +68,8 @@ export class AuthService {
 
         const access_token = await this.jwtService.signAsync(payload);
 
-        const new_refresh_token = await this.generateRefreshToken(storedToken.user.userid);
-
-        await this.prisma.refreshToken.update({
-            where: { token: refreshToken },
-            data: { revoked: true }
-        });
-
         return {
-            access_token,
-            refresh_token: new_refresh_token
+            access_token
         };
     }
 

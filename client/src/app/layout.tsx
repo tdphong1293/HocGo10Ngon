@@ -19,6 +19,8 @@ import { ThemeProvider } from "@/contexts/ThemeContext";
 import { ThemeSelector } from "@/components/ThemeSelector";
 import { menuConfig } from "@/config/menuConfig";
 import Navbar from "@/components/Navbar";
+import { AuthProvider } from "@/contexts/AuthContext";
+import { Bounce, ToastContainer } from "react-toastify";
 
 const geistSans = Geist({
     variable: "--font-geist",
@@ -123,13 +125,28 @@ export default function RootLayout({
             <body
                 className={`${geistSans.variable} ${geistMono.variable} ${inter.variable} ${roboto.variable} ${poppins.variable} ${openSans.variable} ${sourceCodePro.variable} ${comfortaa.variable} ${patrickHand.variable} ${spaceMono.variable} ${paytoneOne.variable} ${righteous.variable} ${monoton.variable} antialiased min-h-screen grid grid-rows-[auto_1fr]`}
             >
-                <ThemeProvider>
-                    <Navbar menuConfig={menuConfig} />
-                    <main className="overflow-auto">
-                        <ThemeSelector />
-                        {children}
-                    </main>
-                </ThemeProvider>
+                <AuthProvider>
+                    <ThemeProvider>
+                        <Navbar menuConfig={menuConfig} />
+                        <main className="overflow-auto">
+                            <ThemeSelector />
+                            {children}
+                        </main>
+                        <ToastContainer
+                            position="top-right"
+                            autoClose={5000}
+                            hideProgressBar={false}
+                            newestOnTop={false}
+                            closeOnClick
+                            rtl={false}
+                            pauseOnFocusLoss
+                            draggable
+                            pauseOnHover
+                            theme="colored"
+                            transition={Bounce}
+                        />
+                    </ThemeProvider>
+                </AuthProvider>
             </body>
         </html>
     );
