@@ -1,34 +1,29 @@
 import { ApiResponse } from "@/lib/ApiResponse";
 import { NextRequest } from 'next/server';
-import { cookies } from 'next/headers'
 
 const API_URL = `http://${process.env.SERVER_HOST || 'localhost'}:${process.env.SERVER_PORT || '8080'}`;
 
-export async function POST() {
+export async function PUT(request: NextRequest) {
     try {
-        const cookieStore = await cookies();
-        const refreshToken = cookieStore.get('refresh_token')?.value;
+        const access_token = request.headers.get('Authorization')?.split(' ')[1];
+        const body = await request.json();
 
-        if (!refreshToken) {
-            return ApiResponse.success('Đăng xuất thành công');
-        }
-
-        const response = await fetch(`${API_URL}/api/v1/auth/signout`, {
-            method: 'POST',
+        const response = await fetch(`${API_URL}/api/v1/users/preferred-font`, {
+            method: 'PUT',
             headers: {
                 'Content-Type': 'application/json',
-                'Cookie': `refresh_token=${refreshToken}`,
+                ...(access_token && { 'Authorization': `Bearer ${access_token}` }),
             },
+            body: JSON.stringify(body),
         });
 
         if (response.ok) {
             const data = await response.json();
-            return ApiResponse.created(data);
+            return ApiResponse.success(data);
         } else {
             const errorData = await response.json();
-            return ApiResponse.error(errorData.message);
+            return ApiResponse.notFound(errorData.message);
         }
-
     } catch (error: unknown) {
         const errorMessage = error instanceof Error ? error.message : 'Internal server error';
         return ApiResponse.error(errorMessage, 500);

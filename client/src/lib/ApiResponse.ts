@@ -8,6 +8,13 @@ export class ApiResponse {
         }, { status: HttpStatus.OK });
     }
 
+    static created(data: unknown, message = HttpMessages[HttpStatus.CREATED]) {
+        return NextResponse.json({
+            message,
+            data
+        }, { status: HttpStatus.CREATED });
+    }
+
     static error(message = HttpMessages[HttpStatus.INTERNAL_SERVER_ERROR], statusCode = HttpStatus.INTERNAL_SERVER_ERROR) {
         return NextResponse.json({
             message
@@ -43,13 +50,6 @@ export class ApiResponse {
             message
         }, { status: HttpStatus.FORBIDDEN });
     }
-
-    static created(data: unknown, message = HttpMessages[HttpStatus.CREATED]) {
-        return NextResponse.json({
-            message,
-            data
-        }, { status: HttpStatus.CREATED });
-    }
 }
 
 const HttpStatus = {
@@ -62,7 +62,7 @@ const HttpStatus = {
     NOT_FOUND: 404,
     CONFLICT: 409,
     INTERNAL_SERVER_ERROR: 500,
-} as const;
+};
 
 const HttpMessages = {
     [HttpStatus.OK]: 'OK',

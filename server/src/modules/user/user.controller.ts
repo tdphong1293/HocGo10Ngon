@@ -1,32 +1,42 @@
-import { Controller, Get, Post, Put, Patch, Delete, Body, Param } from '@nestjs/common';
+import { Controller, Get, Post, Put, Patch, Delete, Body, Param, Req, Res } from '@nestjs/common';
+import type { AuthenticatedRequest } from '../auth/auth.guard';
+import { SignupUserDto } from '../auth/dto/signup-user.dto';
 import { UserService } from './user.service';
+import { AuthService } from '../auth/auth.service';
 
 @Controller('users')
 export class UserController {
-    constructor(private readonly userService: UserService) {}
+    constructor(
+        private readonly userService: UserService,
+        private readonly authService: AuthService,
+    ) {}
 
-    // @Post()
-    // create(@Body() createUserDto: CreateUserDto) {
-    //     return this.userService.create(createUserDto);
-    // }
+
+    @Post()
+    async create(@Body() createUserDto: SignupUserDto) {
+        const { username, email, password } = createUserDto;
+        return await this.userService.create(username, email, password);
+    }
 
     @Get()
-    findAll() {
-        return this.userService.findAll();
+    async findAll() {
+        return await this.userService.findAll();
     }
 
-    @Get(':id')
-    findOneByUsername(@Body('username') username: string) {
-        return this.userService.findOneByUsername(username);
+    @Get(':username')
+    async findOneByUsername(@Param('username') username: string) {
+        return await this.userService.findOneByUsername(username);
     }
 
-    // @Put(':id')
-    // update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
-    //     return this.userService.update(id, updateUserDto);
-    // }
+    @Put('preferred-font')
+    async updatePreferredFont(@Req() request: AuthenticatedRequest, @Res({ passthrough: true }) response: Response, @Body('font') font: string) {
+        const { sub } = request.user;
+        return await this.userService.updatePreferredFont(sub, font);
+    }
 
-    // @Delete(':id')
-    // remove(@Param('id') id: string) {
-    //     return this.userService.remove(id);
-    // }
+    @Put('preferred-theme')
+    async updatePreferredTheme(@Req() request: AuthenticatedRequest, @Body('theme') theme: string) {
+        const { sub } = request.user;
+        return await this.userService.updatePreferredTheme(sub, theme);
+    }
 }

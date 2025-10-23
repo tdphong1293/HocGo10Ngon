@@ -14,6 +14,19 @@ import { Reflector } from '@nestjs/core';
 export const IS_PUBLIC_KEY = 'isPublic';
 export const Public = () => SetMetadata(IS_PUBLIC_KEY, true);
 
+export interface AuthenticatedRequest extends Request {
+    user: {
+        sub: string;
+        username: string;
+        email: string;
+        role: string;
+        font?: string;
+        theme?: string;
+        iat: number;
+        exp: number;
+    };
+}
+
 @Injectable()
 export class AuthGuard implements CanActivate {
     constructor(

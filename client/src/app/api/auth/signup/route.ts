@@ -1,32 +1,27 @@
 import { ApiResponse } from "@/lib/ApiResponse";
 import { NextRequest } from 'next/server';
-import { cookies } from 'next/headers'
 
 const API_URL = `http://${process.env.SERVER_HOST || 'localhost'}:${process.env.SERVER_PORT || '8080'}`;
 
-export async function POST() {
+export async function POST(request: NextRequest) {
     try {
-        const cookieStore = await cookies();
-        const refreshToken = cookieStore.get('refresh_token')?.value;
+        const body = await request.json();
 
-        if (!refreshToken) {
-            return ApiResponse.success('Đăng xuất thành công');
-        }
-
-        const response = await fetch(`${API_URL}/api/v1/auth/signout`, {
+        const response = await fetch(`${API_URL}/api/v1/auth/signup`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'Cookie': `refresh_token=${refreshToken}`,
             },
+            body: JSON.stringify(body),
         });
 
         if (response.ok) {
             const data = await response.json();
+
             return ApiResponse.created(data);
         } else {
             const errorData = await response.json();
-            return ApiResponse.error(errorData.message);
+            return ApiResponse.error(errorData.message, response.status);
         }
 
     } catch (error: unknown) {

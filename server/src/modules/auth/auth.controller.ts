@@ -27,8 +27,8 @@ export class AuthController {
 
         // Store refresh token as HttpOnly cookie
         response.cookie('refresh_token', result.refresh_token, {
-            httpOnly: true,    // Cannot be accessed by JavaScript
-            secure: this.configService.get('NODE_ENV') === 'production', // HTTPS in production
+            httpOnly: true,  // Cannot be accessed by JavaScript
+            secure: this.configService.get('NODE_ENV') === 'production',
             sameSite: 'strict', // CSRF protection
             maxAge: (this.configService.get<number>('JWT_REFRESH_EXPIRES_IN_MS') || 7) * 24 * 60 * 60 * 1000 // 7 days
         });
@@ -51,19 +51,23 @@ export class AuthController {
         const result = await this.authService.refreshTokens(refreshToken);
 
         return {
-            access_token: result.access_token
+            access_token: result.access_token,
+            message: result.message
         };
     }
 
     @Post('signout')
     async signOut(@Req() request: Request, @Res({ passthrough: true }) response: Response) {
         const refreshToken = request.cookies['refresh_token'];
-
+        
         if (refreshToken) {
-            // Clear the refresh token cookie
             response.clearCookie('refresh_token');
             return await this.authService.signOut(refreshToken);
         }
+
+        return {
+            message: 'Đăng xuất thành công'
+        };
     }
 
     @Post('send-otp')

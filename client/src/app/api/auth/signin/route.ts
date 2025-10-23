@@ -29,7 +29,7 @@ export async function POST(request: NextRequest) {
             const data = await response.json();
             const cookieHeader = response.headers.get('set-cookie');
 
-            const nextResponse = ApiResponse.created(data.data, data.message);
+            const nextResponse = ApiResponse.created(data);
 
             if (cookieHeader) {
                 nextResponse.headers.set('Set-Cookie', cookieHeader);

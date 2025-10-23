@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Module, forwardRef } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { AuthController } from './auth.controller';
 import { PrismaModule } from '../prisma/prisma.module';
@@ -13,7 +13,7 @@ import { APP_GUARD } from '@nestjs/core';
 @Module({
     imports: [
         PrismaModule,
-        UserModule,
+        forwardRef(() => UserModule),
         JwtModule.registerAsync({
             useFactory: (configService: ConfigService) => ({
                 global: true,

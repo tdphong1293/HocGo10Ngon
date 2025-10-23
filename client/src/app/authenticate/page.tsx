@@ -1,12 +1,14 @@
 'use client'
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Input from "@/components/Input";
 import LogoV3 from "@/components/LogoV3";
 import Button from "@/components/Button";
 import Link from "next/dist/client/link";
 import { useAuth } from "@/hooks/useAuth";
+import { useRouter } from "next/navigation";
+import { toast } from "react-toastify";
 
 const AuthenticatePage = () => {
     const [signinUsername, setSigninUsername] = useState("");
@@ -25,7 +27,9 @@ const AuthenticatePage = () => {
         repassword: ""
     });
 
-    const { signIn } = useAuth();
+    const { isAuthenticated, accessToken, user, signIn, signUp, signOut } = useAuth();
+    const [signedInPerformed, setSignedInPerformed] = useState(false);
+    const router = useRouter();
 
     const clearAllInputs = () => {
         setSigninUsername("");
@@ -99,26 +103,45 @@ const AuthenticatePage = () => {
         return isValid;
     }
 
-    const handleSigninSubmit = (e: React.FormEvent) => {
+    const handleSigninSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         const isValid = validateSigninForm();
         if (!isValid) return;
         clearAllErrors();
-        signIn(signinUsername, signinPassword);
+        if (isAuthenticated && user && accessToken) {
+            await signOut();
+        }
+        const signInSuccess = await signIn(signinUsername, signinPassword);
+        if (signInSuccess) {
+            // Chặn thông báo đã đăng nhập
+            setSignedInPerformed(false);
+        }
     };
 
-    const handleSignupSubmit = (e: React.FormEvent) => {
+    const handleSignupSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         const isValid = validateSignupForm();
         if (!isValid) return;
         clearAllErrors();
-        console.log('Sign Up:', {
-            username: signupUsername,
-            email,
-            password: signupPassword,
-            repassword
-        });
+        const signUpSuccess = await signUp(signupUsername, signupPassword, email);
+        if (signUpSuccess) {
+            clearAllInputs();
+            setIsSigninTab(true);
+        }
     };
+
+    useEffect(() => {
+        if (isAuthenticated && accessToken && user) {
+            setSignedInPerformed(true);
+        }
+    }, [isAuthenticated, accessToken, user]);
+
+    useEffect(() => {
+        if (signedInPerformed) {
+            router.push('/');
+            toast.success("Bạn đã đăng nhập rồi mà!");
+        }
+    }, [signedInPerformed]);
 
     const slideVariants = {
         enter: (direction: number) => ({

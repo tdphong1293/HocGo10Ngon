@@ -1,6 +1,7 @@
 'use client';
 
 import React, { createContext, useContext, useEffect, useState } from 'react';
+import { useAuth } from '@/hooks/useAuth';
 
 // Các loại theme và font được hỗ trợ
 export type Theme = 'light' | 'dark' | 'ocean' | 'forest' | 'sunset' | 'lavender' | 'crimson';
@@ -33,22 +34,29 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
     const [theme, setTheme] = useState<Theme>('light');
     const [font, setFont] = useState<Font>('geist');
     const [isLoaded, setIsLoaded] = useState(false);
+    const { isAuthenticated, user, accessToken } = useAuth();
 
     useEffect(() => {
         const savedTheme = localStorage.getItem('theme') as Theme;
         const savedFont = localStorage.getItem('font') as Font;
 
         let actualTheme: Theme = 'light';
-        if (savedTheme && ['light', 'dark', 'ocean', 'forest', 'sunset', 'lavender', 'crimson'].includes(savedTheme)) {
-            actualTheme = savedTheme;
-        } else {
-            const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-            actualTheme = prefersDark ? 'dark' : 'light';
-        }
-
         let actualFont: Font = 'geist';
-        if (savedFont && ['geist', 'inter', 'roboto', 'poppins', 'openSans', 'sourceCodePro', 'comfortaa', 'patrickHand', 'spaceMono', 'paytoneOne', 'righteous', 'monoton'].includes(savedFont)) {
-            actualFont = savedFont;
+        if (isAuthenticated && user && accessToken) {
+            actualTheme = (user.theme as Theme) || actualTheme;
+            actualFont = (user.font as Font) || actualFont;
+            console.log('Loaded theme and font from authenticated user:', actualTheme, actualFont);
+        } else {
+            if (savedTheme && ['light', 'dark', 'ocean', 'forest', 'sunset', 'lavender', 'crimson'].includes(savedTheme)) {
+                actualTheme = savedTheme;
+            } else {
+                const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+                actualTheme = prefersDark ? 'dark' : 'light';
+            }
+
+            if (savedFont && ['geist', 'inter', 'roboto', 'poppins', 'openSans', 'sourceCodePro', 'comfortaa', 'patrickHand', 'spaceMono', 'paytoneOne', 'righteous', 'monoton'].includes(savedFont)) {
+                actualFont = savedFont;
+            }
         }
 
         document.documentElement.setAttribute('data-theme', actualTheme);
@@ -67,15 +75,17 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
         if (isLoaded) {
             document.documentElement.setAttribute('data-theme', theme);
             localStorage.setItem('theme', theme);
-        }
-    }, [theme, isLoaded]);
-
-    useEffect(() => {
-        if (isLoaded) {
             document.documentElement.setAttribute('data-font', font);
             localStorage.setItem('font', font);
         }
-    }, [font, isLoaded]);
+    }, [theme, font, isLoaded]);
+
+    useEffect(() => {
+        if (isLoaded && isAuthenticated && user && accessToken) {
+            setTheme(user.theme as Theme);
+            setFont(user.font as Font);
+        }
+    }, [isLoaded, isAuthenticated, user, accessToken, theme, font]);
 
     const value = {
         theme,

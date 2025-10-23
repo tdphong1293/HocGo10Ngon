@@ -26,7 +26,7 @@ const Navbar: React.FC<NavbarProps> = ({ menuConfig }) => {
                     </Link>
                 ))}
             </div>
-            {isAuthenticated && accessToken ? (
+            {isAuthenticated && accessToken && user ? (
                 <div className="flex gap-2 items-center">
                     <div className="border-2 border-border rounded-full p-2 bg-primary">
                         <Icon icon="mingcute:user-2-fill" width={30} height={30} className="text-primary-foreground" />

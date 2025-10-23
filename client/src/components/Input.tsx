@@ -1,5 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { Icon } from '@iconify/react';
+import { toast } from 'react-toastify';
 
 interface InputProps {
     label: string;
@@ -11,6 +13,7 @@ interface InputProps {
     id?: string;
     className?: string;
     disablePaste?: boolean;
+    disablePasteWithWarning?: boolean;
     trimPaste?: boolean;
     error?: string;
 }
@@ -25,18 +28,38 @@ const Input: React.FC<InputProps> = ({
     id,
     className,
     disablePaste = false,
+    disablePasteWithWarning = false,
     trimPaste = false,
     error,
 }) => {
     const [isFocused, setIsFocused] = useState(false);
+    const [passwordVisible, setPasswordVisible] = useState(false);
+    const [subType, setSubType] = useState(type);
 
     // Floating nếu đang focus hoặc có giá trị
     const isFloating = isFocused || value.length > 0;
+
+    const handleShowHidePassword = (e: React.MouseEvent) => {
+        e.preventDefault();
+        e.stopPropagation();
+
+        if (subType === 'password') {
+            setSubType('text');
+            setPasswordVisible(true);
+        }
+        else {
+            setSubType('password');
+            setPasswordVisible(false);
+        }
+    };
 
     // Handle paste events
     const handlePaste = (e: React.ClipboardEvent<HTMLInputElement>) => {
         if (disablePaste) {
             e.preventDefault();
+            if (disablePasteWithWarning) {
+                toast.warning('Không được phép dán nội dung vào trường này');
+            }
             return;
         }
 
@@ -66,11 +89,11 @@ const Input: React.FC<InputProps> = ({
                 <input
                     id={id}
                     name={name}
-                    type={type}
+                    type={subType}
                     value={value}
                     onChange={(e) => onChange(e.target.value)}
                     onFocus={() => setIsFocused(true)}
-                    onBlur={() => setIsFocused(false)}
+                    onBlur={() =>  setIsFocused(false)}
                     onPaste={handlePaste}
                     placeholder={isFocused ? placeholder : ''}
                     className={`
@@ -81,9 +104,21 @@ const Input: React.FC<InputProps> = ({
                             ? 'border-ring'
                             : 'border-border hover:border-border-hover'
                         }
+                        ${
+                            (isFocused || passwordVisible)
+                            ? 'pl-4 pr-7'
+                            : '' 
+                        }
                         ${error ? 'border-destructive' : ''}
                     `}
                 />
+                {(isFocused || passwordVisible) && type === 'password' && (
+                    <Icon
+                        icon={`${passwordVisible ? 'fluent:eye-off-24-filled' : 'fluent:eye-24-filled'}`}
+                        onMouseDown={handleShowHidePassword}
+                        className="absolute right-2 top-1/2 -translate-y-1/2 cursor-pointer text-foreground text-xl"
+                    />
+                )}
             </div>
             <AnimatePresence>
                 {error && (

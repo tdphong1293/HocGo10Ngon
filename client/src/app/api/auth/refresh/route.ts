@@ -22,10 +22,9 @@ export async function POST() {
         });
 
         if (response.ok) {
-            const { access_token } = await response.json();
+            const data = await response.json();
 
-            // Return just the access token (refresh token stays the same)
-            return ApiResponse.created(access_token);
+            return ApiResponse.created(data);
         } else {
             const errorData = await response.json();
             return ApiResponse.unauthorized(errorData.message);

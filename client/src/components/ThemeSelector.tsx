@@ -4,6 +4,8 @@ import React, { useState } from 'react';
 import { Theme, Font } from '@/contexts/ThemeContext';
 import { useTheme } from '@/hooks/useTheme';
 import { ThemePreview } from './ThemePreview';
+import { updatePreferredFont, updatePreferredTheme } from '@/services/user.services';
+import { useAuth } from '@/hooks/useAuth';
 
 const themes: { value: Theme; label: string; description: string }[] = [
     { value: 'light', label: 'Light', description: 'Clean and bright' },
@@ -33,6 +35,31 @@ const fonts: { value: Font; label: string; description: string; sample: string }
 export const ThemeSelector: React.FC = () => {
     const { theme, font, setTheme, setFont } = useTheme();
     const [isOpen, setIsOpen] = useState(false);
+    const { accessToken, isAuthenticated, user, refreshToken } = useAuth();
+
+    const handleThemeChange = async (newTheme: Theme) => {
+        if (!isAuthenticated || !user || !accessToken) {
+            setTheme(newTheme);
+            return;
+        }
+
+        const response = await updatePreferredTheme(accessToken, newTheme);
+        if (response.ok) {
+            refreshToken();
+        }
+    }
+
+    const handleFontChange = async (newFont: Font) => {
+        if (!isAuthenticated || !user || !accessToken) {
+            setFont(newFont);
+            return;
+        }
+
+        const response = await updatePreferredFont(accessToken, newFont);
+        if (response.ok) {
+            refreshToken();
+        }
+    }
 
     return (
         <div className="fixed bottom-4 right-4 z-50">
@@ -63,7 +90,7 @@ export const ThemeSelector: React.FC = () => {
                                     <ThemePreview
                                         theme={themeOption.value}
                                         isActive={theme === themeOption.value}
-                                        onClick={() => setTheme(themeOption.value)}
+                                        onClick={() => handleThemeChange(themeOption.value)}
                                     />
                                     <div className="text-center">
                                         <div className="text-xs font-medium text-foreground">{themeOption.label}</div>
@@ -81,7 +108,7 @@ export const ThemeSelector: React.FC = () => {
                             {fonts.map((fontOption) => (
                                 <button
                                     key={fontOption.value}
-                                    onClick={() => setFont(fontOption.value)}
+                                    onClick={() => handleFontChange(fontOption.value)}
                                     className={`w-full p-3 rounded-lg border text-left transition-all hover:scale-[1.02] ${font === fontOption.value
                                         ? 'border-primary bg-primary/10 text-primary'
                                         : 'border-border hover:border-border-hover hover:bg-accent'

@@ -18,7 +18,23 @@ export class AuthService {
     ) { }
 
     async signUp(signupUserDto: SignupUserDto) {
-        // return this.userService.create(signupUserDto);
+        const { username, email, password } = signupUserDto;
+
+        const existUsername = await this.userService.findOneByUsername(username);
+        if (existUsername) {
+            throw new UnauthorizedException('Tên đăng nhập đã tồn tại');
+        }
+
+        const existEmail = await this.userService.findOneByEmail(email);
+        if (existEmail) {
+            throw new UnauthorizedException('Email đã được sử dụng');
+        }
+
+        const hashedPassword = await bcrypt.hash(password, 10);
+
+        await this.userService.create(username, email, hashedPassword);
+
+        return { message: 'Đăng ký tài khoản thành công' };
     }
 
     async signIn(signinUserDto: SigninUserDto) {
@@ -28,7 +44,9 @@ export class AuthService {
                 sub: user.userid,
                 username: user.username,
                 email: user.email,
-                role: user.role
+                role: user.role,
+                theme: user.preferredTheme,
+                font: user.preferredFont,
             };
 
             // Generate access token (short-lived)
@@ -38,7 +56,7 @@ export class AuthService {
             const refresh_token = await this.generateRefreshToken(user.userid);
 
             return {
-                message: 'Đăng nhập thành công',
+                message: 'Đăng nhập thành công!',
                 access_token,
                 refresh_token
             };
@@ -63,13 +81,16 @@ export class AuthService {
             sub: storedToken.user.userid,
             username: storedToken.user.username,
             email: storedToken.user.email,
-            role: storedToken.user.role
+            role: storedToken.user.role,
+            theme: storedToken.user.preferredTheme,
+            font: storedToken.user.preferredFont,
         };
 
         const access_token = await this.jwtService.signAsync(payload);
 
         return {
-            access_token
+            access_token,
+            message: 'Làm mới token thành công'
         };
     }
 

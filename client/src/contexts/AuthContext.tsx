@@ -9,6 +9,8 @@ interface AuthUser {
     username: string;
     email: string;
     role: 'USER' | 'ADMIN';
+    theme?: string;
+    font?: string;
 }
 
 interface AuthContextType {
@@ -22,7 +24,8 @@ interface AuthContextType {
     setLoading: (value: boolean) => void;
     refreshToken: (silentFail?: boolean) => Promise<boolean>;
     signOut: () => Promise<void>;
-    signIn: (username: string, password: string) => Promise<void>;
+    signIn: (username: string, password: string) => Promise<boolean>;
+    signUp: (username: string, password: string, email: string) => Promise<boolean>;
     requireAuth: () => Promise<boolean>;
 }
 
@@ -58,9 +61,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
             if (response.ok) {
                 setIsAuthenticated(true);
-                const { data, message } = await response.json();
-                setAccessToken(data);
-                const user = decodeJWT(data);
+                const { data: { access_token } } = await response.json();
+                setAccessToken(access_token);
+                const user = decodeJWT(access_token);
                 setUser(user);
                 return true;
             } else if (response.status === 401) {
@@ -114,7 +117,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
                 router.refresh();
             }
         } catch (error) {
-
+            const errorMessage = error instanceof Error ? error.message : 'Lỗi đăng xuất, vui lòng thử lại sau ít phút';
+            toast.error(errorMessage);
         } finally {
             setLoading(false);
         }
@@ -132,25 +136,64 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
                 credentials: 'include', // Gửi kèm cookie
             });
             if (response.ok) {
-                const { data, message } = await response.json();
-                const user = decodeJWT(data);
+                const { data: { access_token, message } } = await response.json();
+                const decoded_user = decodeJWT(access_token);
 
                 setIsAuthenticated(true);
-                setAccessToken(data);
-                setUser(user);
+                setAccessToken(access_token);
+                setUser(decoded_user);
 
-                window.location.href = '/';
+                toast.success(message || "Đăng nhập thành công!");
+                router.push('/');
+                return true;
             } else if (response.status === 401) {
                 setIsAuthenticated(false);
                 setAccessToken(null);
                 setUser(null);
                 const errorData = await response.json();
                 toast.error(errorData.message || "Sai tên đăng nhập hoặc mật khẩu");
+                return false;
+            } else {
+                return false;
             }
         } catch (error: unknown) {
             setIsAuthenticated(false);
             setAccessToken(null);
             setUser(null);
+            const errorMessage = error instanceof Error ? error.message : 'Lỗi dăng nhập, vui lòng thử lại sau ít phút';
+            toast.error(errorMessage);
+            return false;
+        } finally {
+            setLoading(false);
+        }
+    }
+
+    const signUp = async (username: string, password: string, email: string) => {
+        try {
+            setLoading(true);
+            const response = await fetch('/api/auth/signup', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                credentials: 'include',
+                body: JSON.stringify({ username, password, email }),
+            });
+
+            if (response.ok) {
+                toast.success("Đăng ký tài khoản thành công!");
+                return true;
+            } else {
+                const errorData = await response.json();
+                toast.error(errorData.message || "Lỗi đăng ký tài khoản, vui lòng thử lại sau ít phút");
+                return false;
+            }
+        }
+        catch (error: unknown) {
+            setIsAuthenticated(false);
+            setAccessToken(null);
+            setUser(null);
+            return false;
         } finally {
             setLoading(false);
         }
@@ -174,6 +217,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         refreshToken,
         signOut,
         signIn,
+        signUp,
         requireAuth,
     }
 
@@ -198,7 +242,9 @@ const decodeJWT = (token: string): AuthUser | null => {
             userid: parsed.sub,
             username: parsed.username,
             email: parsed.email,
-            role: parsed.role
+            role: parsed.role,
+            theme: parsed.theme,
+            font: parsed.font,
         } as AuthUser;
     }
     catch (error) {
