@@ -15,6 +15,13 @@ export class ApiResponse {
         }, { status: HttpStatus.CREATED });
     }
 
+    static tooManyRequests(data: unknown, message = HttpMessages[HttpStatus.TOO_MANY_REQUESTS]) {
+        return NextResponse.json({
+            message,
+            data
+        }, { status: HttpStatus.TOO_MANY_REQUESTS });
+    }
+
     static error(message = HttpMessages[HttpStatus.INTERNAL_SERVER_ERROR], statusCode = HttpStatus.INTERNAL_SERVER_ERROR) {
         return NextResponse.json({
             message
@@ -62,6 +69,7 @@ const HttpStatus = {
     NOT_FOUND: 404,
     CONFLICT: 409,
     INTERNAL_SERVER_ERROR: 500,
+    TOO_MANY_REQUESTS: 429,
 };
 
 const HttpMessages = {
@@ -74,4 +82,5 @@ const HttpMessages = {
     [HttpStatus.NOT_FOUND]: 'Not Found',
     [HttpStatus.CONFLICT]: 'Conflict occurred',
     [HttpStatus.INTERNAL_SERVER_ERROR]: 'Internal Server Error',
+    [HttpStatus.TOO_MANY_REQUESTS]: 'Too Many Requests',
 };

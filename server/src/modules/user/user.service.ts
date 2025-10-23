@@ -1,16 +1,19 @@
 import { Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
+import * as bcrypt from 'bcryptjs';
 
 @Injectable()
 export class UserService {
     constructor(private readonly prisma: PrismaService) { }
 
     async create(username: string, email: string, password: string) {
+        const hashedPassword = await bcrypt.hash(password, 10);
+
         return this.prisma.user.create({
             data: {
                 username,
                 email,
-                password
+                password: hashedPassword,
             }
         });
     }
@@ -79,6 +82,31 @@ export class UserService {
         }
         catch (error) {
             throw new InternalServerErrorException('Cập nhật font không thành công');
+        }
+    }
+
+    async updatePassword(userid: string, newPassword: string) {
+        try {
+            const hashedPassword = await bcrypt.hash(newPassword, 10);
+            
+            const updatedUser = await this.prisma.user.update({
+                where: {
+                    userid
+                },
+                data: {
+                    password: hashedPassword
+                }
+            });
+
+            if (!updatedUser) {
+                throw new NotFoundException('Không tìm thấy người dùng');
+            }
+
+            return {
+                message: 'Cập nhật mật khẩu thành công',
+            }
+        } catch (error) {
+            throw new InternalServerErrorException('Cập nhật mật khẩu không thành công');
         }
     }
 }

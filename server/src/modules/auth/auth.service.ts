@@ -1,4 +1,4 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { Injectable, UnauthorizedException, Inject, NotFoundException, HttpException, HttpStatus } from '@nestjs/common';
 import { SignupUserDto } from './dto/signup-user.dto';
 import { SigninUserDto } from './dto/signin-user.dto';
 import { UserService } from '../user/user.service';
@@ -7,6 +7,9 @@ import { PrismaService } from '../prisma/prisma.service';
 import { ConfigService } from '@nestjs/config';
 import * as crypto from 'crypto';
 import bcrypt from 'bcryptjs';
+import { NodemailerService } from '../nodemailer/nodemailer.service';
+import { CacheService } from '../cache/cache.service';
+import { ResetPasswordDto } from './dto/reset-password.dto';
 
 @Injectable()
 export class AuthService {
@@ -14,7 +17,9 @@ export class AuthService {
         private readonly userService: UserService,
         private readonly jwtService: JwtService,
         private readonly prisma: PrismaService,
-        private readonly configService: ConfigService
+        private readonly configService: ConfigService,
+        private readonly nodemailerService: NodemailerService,
+        private readonly cacheService: CacheService,
     ) { }
 
     async signUp(signupUserDto: SignupUserDto) {
@@ -30,9 +35,7 @@ export class AuthService {
             throw new UnauthorizedException('Email đã được sử dụng');
         }
 
-        const hashedPassword = await bcrypt.hash(password, 10);
-
-        await this.userService.create(username, email, hashedPassword);
+        await this.userService.create(username, email, password);
 
         return { message: 'Đăng ký tài khoản thành công' };
     }
@@ -122,15 +125,85 @@ export class AuthService {
         return token;
     }
 
+    private generateOTP(length: number = 6): string {
+        const digits = '0123456789';
+        let otp = '';
+        for (let i = 0; i < length; i++) {
+            otp += digits[Math.floor(Math.random() * 10)];
+        }
+        return otp;
+    }
+
     async sendOTP(email: string) {
-        // OTP sending logic here
+        const user = await this.userService.findOneByEmail(email);
+        if (!user) {
+            throw new NotFoundException('Không tìm thấy tài khoản với email này');
+        }
+
+        const cachedOtp = await this.cacheService.ttl(`${user.userid}:${email}:otp`);
+
+        // Không cho phép gửi lại mã OTP trước 2 phút còn lại (chưa qua 1 phút) 
+        if (cachedOtp && cachedOtp - Date.now() > 120000) {
+            const remainingSeconds = Math.ceil((cachedOtp - Date.now()) / 1000) - 120;
+            throw new HttpException({
+                message: 'Một yêu cầu OTP đã được gửi đến email này, vui lòng chờ vài giây trước khi gửi lại',
+                retryAfter: remainingSeconds
+            }, HttpStatus.TOO_MANY_REQUESTS);
+        }
+
+        // Trường hợp TTL của OTP còn ít hơn 2 phút, xóa OTP cũ, gửi OTP mới
+        await this.cacheService.del(`${user.userid}:${email}:otp`);
+
+        const otpCode = this.generateOTP(6);
+        await this.nodemailerService.sendOTPEmail(email, user.username, otpCode, 3);
+        await this.cacheService.set(`${user.userid}:${email}:otp`, otpCode, 3 * 60 * 1000); // Lưu OTP trong 3 phút
+
+        return { message: 'Đã gửi mã OTP đến email của bạn, nếu không có hãy kiểm tra hộp thư rác hoặc spam' };
     }
 
     async verifyOTP(email: string, otp: string) {
+        const user = await this.userService.findOneByEmail(email);
+        if (!user) {
+            throw new NotFoundException('Không tìm thấy tài khoản với email này');
+        }
 
+        const cachedOtp = await this.cacheService.get(`${user.userid}:${email}:otp`);
+        if (!cachedOtp || cachedOtp !== otp) {
+            throw new NotFoundException('Mã OTP không hợp lệ hoặc đã hết hạn');
+        }
+
+
+        await this.cacheService.del(`${user.userid}:${email}:otp`);
+        const resetToken = await this.generateResetToken();
+        // Tạo token reset password và lưu vào cache với TTL 10 phút
+        await this.cacheService.set(`${user.userid}:${email}:${otp}:reset`, resetToken, 10 * 60 * 1000);
+        return { 
+            reset_token: resetToken,
+            message: 'Xác thực mã OTP thành công!' 
+        };
     }
 
-    async resetPassword(email: string, newPassword: string) {
+    private async generateResetToken(): Promise<string> {
+        const token = crypto.randomBytes(64).toString('hex');
+        return token;
+    }
 
+    async resetPassword(resetPasswordDto: ResetPasswordDto) {
+        const { resetToken, otp, email, newPassword } = resetPasswordDto;
+
+        const user = await this.userService.findOneByEmail(email);
+        if (!user) {
+            throw new NotFoundException('Không tìm thấy tài khoản với email này');
+        }
+
+        const cachedResetToken = await this.cacheService.get(`${user.userid}:${email}:${otp}:reset`);
+        if (!cachedResetToken || cachedResetToken !== resetToken) {
+            throw new NotFoundException('Phiên khôi phục mật khẩu không hợp lệ hoặc đã hết hạn');
+        }
+
+        await this.cacheService.del(`${user.userid}:${email}:${otp}:reset`);
+        await this.userService.updatePassword(user.userid, newPassword);
+
+        return { message: 'Khôi phục mật khẩu thành công!' };
     }
 }

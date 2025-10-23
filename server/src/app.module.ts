@@ -3,8 +3,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { MongooseModule } from '@nestjs/mongoose';
 import { PrismaModule } from './modules/prisma/prisma.module';
 import { DatabaseModule } from './modules/mongoose/database.module';
-import { CacheModule } from '@nestjs/cache-manager';
-import KeyvRedis from '@keyv/redis';
+import { CacheModule } from './modules/cache/cache.module';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { AuthModule } from './modules/auth/auth.module';
@@ -22,19 +21,9 @@ import { UserModule } from './modules/user/user.module';
 			}),
 			inject: [ConfigService],
 		}),
-		CacheModule.registerAsync({
-			isGlobal: true,
-			useFactory: async (configService: ConfigService) => {
-				return {
-					stores: [
-						new KeyvRedis(configService.get<string>('REDIS_URL')),
-					],
-				};
-			},
-			inject: [ConfigService],
-		}),
 		PrismaModule,
 		DatabaseModule,
+		CacheModule,
 		AuthModule,
 		UserModule,
 	],

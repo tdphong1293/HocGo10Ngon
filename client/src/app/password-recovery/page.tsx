@@ -4,6 +4,9 @@ import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Input from "@/components/Input";
 import Button from "@/components/Button";
+import { sendOTP, verifyOTP, resetPassword } from "@/services/user.services";
+import { toast } from "react-toastify";
+import { useRouter } from "next/navigation";
 
 const PasswordRecoveryPage = () => {
     const [email, setEmail] = useState("");
@@ -17,6 +20,8 @@ const PasswordRecoveryPage = () => {
         repassword: ""
     });
     const [resendTime, setResendTime] = useState(0);
+    const [resetToken, setResetToken] = useState("");
+    const router = useRouter();
 
     useEffect(() => {
         let resendTimeoutRef: NodeJS.Timeout | null = null;
@@ -46,7 +51,7 @@ const PasswordRecoveryPage = () => {
     const validateEmail = () => {
         let isValid = true;
         if (!email) {
-            setErrors((prev) => ({ ...prev, email: "Email không được để trống" }));
+            setErrors((prev) => ({ ...prev, email: "Email không được để trống (Cần nhập chung với mã OTP)" }));
             isValid = false;
         }
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -60,15 +65,15 @@ const PasswordRecoveryPage = () => {
     const validateOTPForm = () => {
         let isValid = true;
         if (!otpCode) {
-            setErrors((prev) => ({ ...prev, otpCode: "Vui lòng nhập mã OTP đã được gửi đến email của bạn" }));
+            setErrors((prev) => ({ ...prev, otpCode: "Vui lòng nhập mã OTP để lấy lại mật khẩu" }));
             isValid = false;
         }
-        const otpRegex = /^\d{6}$/;
+        const otpRegex = /^\d+$/;
         if (otpCode && !otpRegex.test(otpCode)) {
-            setErrors((prev) => ({ ...prev, otpCode: "Mã OTP không hợp lệ" }));
+            setErrors((prev) => ({ ...prev, otpCode: "Định dạng mã OTP không hợp lệ" }));
             isValid = false;
         }
-        return isValid;
+        return isValid && validateEmail();
     }
 
     const validatePasswordResetForm = () => {
@@ -89,34 +94,69 @@ const PasswordRecoveryPage = () => {
         return isValid;
     }
 
-    const handleEmailSend = () => {
+    const handleEmailSend = async () => {
         const isValid = validateEmail();
         if (!isValid) return;
+
         clearAllErrors();
-        console.log('Email:', email);
-        setResendTime(60);
+
+        const response = await sendOTP(email);
+        
+        if (response.ok) {
+            const { data } = await response.json();
+            toast.success(data.message || "Đã gửi mã OTP đến email của bạn!");
+            setResendTime(60);
+        }
+        else if (response.status === 429) {
+            const { data } = await response.json();
+            const retryAfter = data.retryAfter || 60;
+            setResendTime(retryAfter);
+            toast.warn(data.message || `Mã OTP đã được gửi trước đó. Vui lòng thử lại sau.`);
+        }
+        else {
+            const data = await response.json();
+            toast.error(data.message || "Gửi mã OTP thất bại, vui lòng thử lại sau ít phút.");
+        }
     }
 
-    const handleOTPSubmit = (e: React.FormEvent) => {
+    const handleOTPSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        setIsOTPTab(false);
-        // const isValid = validateOTPForm();
-        // if (!isValid) return;
-        // clearAllErrors();
-        // console.log('OTP:', { otpCode });
+
+        const isValid = validateOTPForm();
+        if (!isValid) return;
+
+        clearAllErrors();
+
+        const response = await verifyOTP(email, otpCode);
+        if (response.ok) {
+            const { data } = await response.json();
+            setResetToken(data.reset_token || "");
+            setIsOTPTab(false);
+        } else {
+            const data = await response.json();
+            toast.error(data.message || "Xác thực mã OTP thất bại!");
+        }
     };
 
-    const handlePasswordResetSubmit = (e: React.FormEvent) => {
+    const handlePasswordResetSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        setIsOTPTab(true);
-        // const isValid = validatePasswordResetForm();
-        // if (!isValid) return;
-        // clearAllErrors();
-        // console.log('Password Reset:', {
-        //     email,
-        //     password,
-        //     repassword
-        // });
+
+        const isValid = validatePasswordResetForm();
+        if (!isValid) return;
+        
+        clearAllErrors();
+
+        const response = await resetPassword(resetToken, otpCode, email, password);        
+        if (response.ok) {
+            const { data } = await response.json();
+            toast.success(data.message || "Khôi phục mật khẩu thành công!");
+            router.push('/authenticate');
+        } else {
+            const data = await response.json();
+            toast.error(data.message || "Khôi phục mật khẩu thất bại!");
+            setIsOTPTab(true);
+            clearAllInputs();
+        }
     };
 
     const slideVariants = {
