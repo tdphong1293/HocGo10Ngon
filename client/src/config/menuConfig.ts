@@ -5,11 +5,13 @@ export interface MenuItem {
 }
 
 export const enum Role {
+    BLANK = 'BLANK',
     USER = 'USER',
     ADMIN = 'ADMIN',
 }
 
 export const menuConfig: Record<Role, MenuItem[]> = {
+    [Role.BLANK]: [],
     [Role.USER]: [
         { title: 'Luyện tập', href: '/practice' },
         { title: 'Bài học', href: '/lessons' },

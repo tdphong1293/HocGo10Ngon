@@ -67,8 +67,13 @@ const Input: React.FC<InputProps> = ({
             e.preventDefault();
             const pastedText = e.clipboardData.getData('text');
             const cleanedText = pastedText.replace(/\s+/g, '');
+            const target = e.currentTarget as HTMLInputElement;
+            const start = target.selectionStart || 0;
+            const end = target.selectionEnd || 0;
+            const value = target.value;
+            const newValue = value.slice(0, start) + cleanedText + value.slice(end);
 
-            onChange(value + cleanedText);
+            onChange(newValue);
         }
     };
 

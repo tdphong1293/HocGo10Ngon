@@ -24,7 +24,7 @@ const Navbar: React.FC<NavbarProps> = ({
             <Logo width={100} height={100} className="text-accent-foreground -mt-9.5" href="/" />
             {/* <LogoV3 width={100} height={100} className="-my-5" href="/" textColor="var(--accent-foreground)" bgColor="var(--accent)" /> */}
             <div className={`flex gap-20`}>
-                {(menuConfig?.[user?.role || Role.USER] || []).map((item: MenuItem) => (
+                {(menuConfig?.[user?.role || Role.BLANK] || []).map((item: MenuItem) => (
                     <Link key={`menu-${item.title}`} href={item.href} className="text-2xl">
                         {item.title}
                     </Link>

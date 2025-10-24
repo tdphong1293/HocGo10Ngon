@@ -205,7 +205,7 @@ const AuthenticatePage = () => {
                                     placeholder="Nhập tên đăng nhập..."
                                     value={signinUsername}
                                     trimPaste={true}
-                                    onChange={(val) => setSigninUsername(val.trim())}
+                                    onChange={(val) => setSigninUsername(val)}
                                     error={errors.signinUsername}
                                 />
                             </motion.div>
@@ -223,7 +223,7 @@ const AuthenticatePage = () => {
                                     type="password"
                                     value={signinPassword}
                                     disablePaste={true}
-                                    onChange={(val) => setSigninPassword(val.trim())}
+                                    onChange={(val) => setSigninPassword(val)}
                                     error={errors.signinPassword}
                                 />
                             </motion.div>
@@ -300,7 +300,7 @@ const AuthenticatePage = () => {
                                     placeholder="Nhập tên đăng nhập..."
                                     value={signupUsername}
                                     trimPaste={true}
-                                    onChange={(val) => setSignupUsername(val.trim())}
+                                    onChange={(val) => setSignupUsername(val)}
                                     error={errors.signupUsername}
                                 />
                             </motion.div>
@@ -317,7 +317,7 @@ const AuthenticatePage = () => {
                                     placeholder="Nhập email..."
                                     value={email}
                                     trimPaste={true}
-                                    onChange={(val) => setEmail(val.trim())}
+                                    onChange={(val) => setEmail(val)}
                                     error={errors.email}
                                 />
                             </motion.div>
@@ -335,7 +335,7 @@ const AuthenticatePage = () => {
                                     type="password"
                                     value={signupPassword}
                                     disablePaste={true}
-                                    onChange={(val) => setSignupPassword(val.trim())}
+                                    onChange={(val) => setSignupPassword(val)}
                                     error={errors.signupPassword}
                                 />
                             </motion.div>
@@ -353,7 +353,7 @@ const AuthenticatePage = () => {
                                     type="password"
                                     value={repassword}
                                     disablePaste={true}
-                                    onChange={(val) => setRepassword(val.trim())}
+                                    onChange={(val) => setRepassword(val)}
                                     error={errors.repassword}
                                 />
                             </motion.div>

@@ -37,55 +37,31 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
     const { isAuthenticated, user, accessToken } = useAuth();
 
     useEffect(() => {
-        const savedTheme = localStorage.getItem('theme') as Theme;
-        const savedFont = localStorage.getItem('font') as Font;
-
-        let actualTheme: Theme = 'light';
-        let actualFont: Font = 'geist';
         if (isAuthenticated && user && accessToken) {
-            actualTheme = (user.theme as Theme) || actualTheme;
-            actualFont = (user.font as Font) || actualFont;
-            console.log('Loaded theme and font from authenticated user:', actualTheme, actualFont);
-        } else {
-            if (savedTheme && ['light', 'dark', 'ocean', 'forest', 'sunset', 'lavender', 'crimson', 'midnight', 'sage', 'solar', 'peach', 'berry', 'charcoal'].includes(savedTheme)) {
-                actualTheme = savedTheme;
-            } else {
-                const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-                actualTheme = prefersDark ? 'dark' : 'light';
-            }
-
-            if (savedFont && ['geist', 'inter', 'roboto', 'poppins', 'openSans', 'sourceCodePro', 'comfortaa', 'patrickHand', 'spaceMono', 'paytoneOne', 'righteous', 'lato', 'merriweather', 'nunito', 'ubuntu', 'playfairDisplay', 'workSans', 'monoton'].includes(savedFont)) {
-                actualFont = savedFont;
-            }
+            setTheme(user.theme as Theme || 'light');
+            setFont(user.font as Font || 'geist');
         }
-
-        document.documentElement.setAttribute('data-theme', actualTheme);
-        document.documentElement.setAttribute('data-font', actualFont);
-
-        setTheme(actualTheme);
-        setFont(actualFont);
-
-        localStorage.setItem('theme', actualTheme);
-        localStorage.setItem('font', actualFont);
 
         setIsLoaded(true);
     }, []);
 
     useEffect(() => {
         if (isLoaded) {
+            console.log("Setting theme and font in document element and cookies:", theme, font);
             document.documentElement.setAttribute('data-theme', theme);
-            localStorage.setItem('theme', theme);
             document.documentElement.setAttribute('data-font', font);
-            localStorage.setItem('font', font);
+            document.cookie = `theme=${encodeURIComponent(theme)}; Path=/; Max-Age=${60 * 60 * 24 * 365}; SameSite=Lax`;
+            document.cookie = `font=${encodeURIComponent(font)}; Path=/; Max-Age=${60 * 60 * 24 * 365}; SameSite=Lax`;
         }
-    }, [theme, font, isLoaded]);
+    }, [theme, font]);
 
     useEffect(() => {
         if (isLoaded && isAuthenticated && user && accessToken) {
             setTheme(user.theme as Theme);
             setFont(user.font as Font);
+            console.log("Updating theme and font from user preferences");
         }
-    }, [isLoaded, isAuthenticated, user, accessToken, theme, font]);
+    }, [isAuthenticated, user, accessToken, theme, font]);
 
     const value = {
         theme,

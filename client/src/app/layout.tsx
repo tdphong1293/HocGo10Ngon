@@ -26,6 +26,7 @@ import { menuConfig } from "@/config/menuConfig";
 import Navbar from "@/components/Navbar";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { Bounce, ToastContainer } from "react-toastify";
+import Script from "next/script";
 
 const geistSans = Geist({
     variable: "--font-geist",
@@ -156,6 +157,24 @@ export default function RootLayout({
 }>) {
     return (
         <html lang="en">
+            <head>
+                <Script id="theme-script" strategy="beforeInteractive">{`
+                    (function() {
+                       try {
+                           var theme = document.cookie.split('; ').find(row => row.startsWith('theme=')).split('=')[1];
+                           var font = document.cookie.split('; ').find(row => row.startsWith('font=')).split('=')[1];
+                            if (theme) {
+                                document.documentElement.setAttribute('data-theme', decodeURIComponent(theme));
+                            }
+                            if (font) {
+                                document.documentElement.setAttribute('data-font', decodeURIComponent(font));
+                            }
+                       } catch (error) {
+                           console.error('Error reading cookies:', error);
+                       }
+                    })();
+                `}</Script>
+            </head>
             <body
                 className={`${geistSans.variable} ${geistMono.variable} ${inter.variable} ${roboto.variable} ${poppins.variable} ${openSans.variable} ${sourceCodePro.variable} ${comfortaa.variable} ${patrickHand.variable} ${spaceMono.variable} ${paytoneOne.variable} ${righteous.variable} ${lato.variable} ${merriweather.variable} ${nunito.variable} ${ubuntu.variable} ${playfairDisplay.variable} ${workSans.variable} antialiased min-h-screen grid grid-rows-[auto_1fr]`}
             >

@@ -221,7 +221,7 @@ const PasswordRecoveryPage = () => {
                                     placeholder="Nhập email..."
                                     value={email}
                                     trimPaste={true}
-                                    onChange={(val) => setEmail(val.trim())}
+                                    onChange={(val) => setEmail(val)}
                                     error={errors.email}
                                     className="flex-1"
                                 />
@@ -248,7 +248,7 @@ const PasswordRecoveryPage = () => {
                                     placeholder="Nhập mã OTP..."
                                     value={otpCode}
                                     trimPaste={true}
-                                    onChange={(val) => setOtpCode(val.trim())}
+                                    onChange={(val) => setOtpCode(val)}
                                     error={errors.otpCode}
                                 />
                             </motion.div>
@@ -295,7 +295,7 @@ const PasswordRecoveryPage = () => {
                                     value={password}
                                     type="password"
                                     disablePaste={true}
-                                    onChange={(val) => setPassword(val.trim())}
+                                    onChange={(val) => setPassword(val)}
                                     error={errors.password}
                                 />
                             </motion.div>
@@ -312,7 +312,7 @@ const PasswordRecoveryPage = () => {
                                     value={repassword}
                                     type="password"
                                     disablePaste={true}
-                                    onChange={(val) => setRepassword(val.trim())}
+                                    onChange={(val) => setRepassword(val)}
                                     error={errors.repassword}
                                 />
                             </motion.div>
