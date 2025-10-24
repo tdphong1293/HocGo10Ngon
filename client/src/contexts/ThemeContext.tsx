@@ -4,8 +4,8 @@ import React, { createContext, useContext, useEffect, useState } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 
 // Các loại theme và font được hỗ trợ
-export type Theme = 'light' | 'dark' | 'ocean' | 'forest' | 'sunset' | 'lavender' | 'crimson';
-export type Font = 'geist' | 'inter' | 'roboto' | 'poppins' | 'openSans' | 'sourceCodePro' | 'comfortaa' | 'patrickHand' | 'spaceMono' | 'paytoneOne' | 'righteous' | 'monoton';
+export type Theme = 'light' | 'dark' | 'ocean' | 'forest' | 'sunset' | 'lavender' | 'crimson' | 'midnight' | 'sage' | 'solar' | 'peach' | 'berry' | 'charcoal';
+export type Font = 'geist' | 'inter' | 'roboto' | 'poppins' | 'openSans' | 'sourceCodePro' | 'comfortaa' | 'patrickHand' | 'spaceMono' | 'paytoneOne' | 'righteous' | 'lato' | 'merriweather' | 'nunito' | 'ubuntu' | 'playfairDisplay' | 'workSans' | 'monoton';
 
 interface ThemeContextType {
     theme: Theme;
@@ -47,14 +47,14 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
             actualFont = (user.font as Font) || actualFont;
             console.log('Loaded theme and font from authenticated user:', actualTheme, actualFont);
         } else {
-            if (savedTheme && ['light', 'dark', 'ocean', 'forest', 'sunset', 'lavender', 'crimson'].includes(savedTheme)) {
+            if (savedTheme && ['light', 'dark', 'ocean', 'forest', 'sunset', 'lavender', 'crimson', 'midnight', 'sage', 'solar', 'peach', 'berry', 'charcoal'].includes(savedTheme)) {
                 actualTheme = savedTheme;
             } else {
                 const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
                 actualTheme = prefersDark ? 'dark' : 'light';
             }
 
-            if (savedFont && ['geist', 'inter', 'roboto', 'poppins', 'openSans', 'sourceCodePro', 'comfortaa', 'patrickHand', 'spaceMono', 'paytoneOne', 'righteous', 'monoton'].includes(savedFont)) {
+            if (savedFont && ['geist', 'inter', 'roboto', 'poppins', 'openSans', 'sourceCodePro', 'comfortaa', 'patrickHand', 'spaceMono', 'paytoneOne', 'righteous', 'lato', 'merriweather', 'nunito', 'ubuntu', 'playfairDisplay', 'workSans', 'monoton'].includes(savedFont)) {
                 actualFont = savedFont;
             }
         }

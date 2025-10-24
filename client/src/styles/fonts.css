@@ -42,6 +42,30 @@
 	font-family: var(--font-righteous), cursive, sans-serif;
 }
 
+[data-font="lato"] * {
+	font-family: var(--font-lato), system-ui, sans-serif;
+}
+
+[data-font="merriweather"] * {
+	font-family: var(--font-merriweather), serif;
+}
+
+[data-font="nunito"] * {
+	font-family: var(--font-nunito), system-ui, sans-serif;
+}
+
+[data-font="ubuntu"] * {
+	font-family: var(--font-ubuntu), system-ui, sans-serif;
+}
+
+[data-font="playfairDisplay"] * {
+	font-family: var(--font-playfairDisplay), serif;
+}
+
+[data-font="workSans"] * {
+	font-family: var(--font-workSans), system-ui, sans-serif;
+}
+
 [data-font="monoton"] * {
 	font-family: var(--font-monoton), cursive, sans-serif;
 }

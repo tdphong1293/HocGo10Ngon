@@ -12,7 +12,12 @@ import {
     Space_Mono,
     Paytone_One,
     Righteous,
-    Monoton
+    Lato,
+    Merriweather,
+    Nunito,
+    Ubuntu,
+    Playfair_Display,
+    Work_Sans
 } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/contexts/ThemeContext";
@@ -88,10 +93,39 @@ const righteous = Righteous({
     weight: ["400"],
     subsets: ["latin"],
 });
+const lato = Lato({
+    variable: "--font-lato",
+    weight: ["300", "400", "700"],
+    subsets: ["latin"],
+});
 
-const monoton = Monoton({
-    variable: "--font-monoton",
-    weight: ["400"],
+const merriweather = Merriweather({
+    variable: "--font-merriweather",
+    weight: ["300", "400", "700"],
+    subsets: ["latin"],
+});
+
+const nunito = Nunito({
+    variable: "--font-nunito",
+    weight: ["300", "400", "700"],
+    subsets: ["latin"],
+});
+
+const ubuntu = Ubuntu({
+    variable: "--font-ubuntu",
+    weight: ["300", "400", "500", "700"],
+    subsets: ["latin"],
+});
+
+const playfairDisplay = Playfair_Display({
+    variable: "--font-playfairDisplay",
+    weight: ["400", "700"],
+    subsets: ["latin"],
+});
+
+const workSans = Work_Sans({
+    variable: "--font-workSans",
+    weight: ["300", "400", "500", "700"],
     subsets: ["latin"],
 });
 
@@ -123,11 +157,13 @@ export default function RootLayout({
     return (
         <html lang="en">
             <body
-                className={`${geistSans.variable} ${geistMono.variable} ${inter.variable} ${roboto.variable} ${poppins.variable} ${openSans.variable} ${sourceCodePro.variable} ${comfortaa.variable} ${patrickHand.variable} ${spaceMono.variable} ${paytoneOne.variable} ${righteous.variable} ${monoton.variable} antialiased min-h-screen grid grid-rows-[auto_1fr]`}
+                className={`${geistSans.variable} ${geistMono.variable} ${inter.variable} ${roboto.variable} ${poppins.variable} ${openSans.variable} ${sourceCodePro.variable} ${comfortaa.variable} ${patrickHand.variable} ${spaceMono.variable} ${paytoneOne.variable} ${righteous.variable} ${lato.variable} ${merriweather.variable} ${nunito.variable} ${ubuntu.variable} ${playfairDisplay.variable} ${workSans.variable} antialiased min-h-screen grid grid-rows-[auto_1fr]`}
             >
                 <AuthProvider>
                     <ThemeProvider>
-                        <Navbar menuConfig={menuConfig} />
+                        <Navbar
+                            menuConfig={menuConfig}
+                        />
                         <main className="overflow-auto">
                             <ThemeSelector />
                             {children}

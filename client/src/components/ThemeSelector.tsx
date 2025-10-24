@@ -15,6 +15,12 @@ const themes: { value: Theme; label: string; description: string }[] = [
     { value: 'sunset', label: 'Sunset', description: 'Warm oranges' },
     { value: 'lavender', label: 'Lavender', description: 'Purple elegance' },
     { value: 'crimson', label: 'Crimson', description: 'Bold reds' },
+    { value: 'midnight', label: 'Midnight', description: 'Deep blue night' },
+    { value: 'sage', label: 'Sage', description: 'Soft green calm' },
+    { value: 'solar', label: 'Solar', description: 'Warm daylight' },
+    { value: 'peach', label: 'Peach', description: 'Soft warm peach' },
+    { value: 'berry', label: 'Berry', description: 'Vibrant berry tones' },
+    { value: 'charcoal', label: 'Charcoal', description: 'Dark neutral slate' },
 ];
 
 const fonts: { value: Font; label: string; description: string; sample: string }[] = [
@@ -29,7 +35,12 @@ const fonts: { value: Font; label: string; description: string; sample: string }
     { value: 'spaceMono', label: 'Space Mono', description: 'Futuristic monospace', sample: 'const theme = {}' },
     { value: 'paytoneOne', label: 'Paytone One', description: 'Bold display font', sample: 'The quick brown fox' },
     { value: 'righteous', label: 'Righteous', description: 'Strong and geometric', sample: 'The quick brown fox' },
-    { value: 'monoton', label: 'Monoton', description: 'Decorative outline', sample: 'The quick brown fox' },
+    { value: 'lato', label: 'Lato', description: 'Neutral and versatile', sample: 'The quick brown fox' },
+    { value: 'merriweather', label: 'Merriweather', description: 'Readable serif', sample: 'The quick brown fox' },
+    { value: 'nunito', label: 'Nunito', description: 'Rounded friendly sans', sample: 'The quick brown fox' },
+    { value: 'ubuntu', label: 'Ubuntu', description: 'Humanist sans-serif', sample: 'The quick brown fox' },
+    { value: 'playfairDisplay', label: 'Playfair Display', description: 'Elegant serif display', sample: 'The quick brown fox' },
+    { value: 'workSans', label: 'Work Sans', description: 'Clean geometric sans', sample: 'The quick brown fox' },
 ];
 
 export const ThemeSelector: React.FC = () => {

@@ -3,12 +3,13 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'react-toastify';
+import { Role } from '../config/menuConfig';
 
 interface AuthUser {
     userid: string;
     username: string;
     email: string;
-    role: 'USER' | 'ADMIN';
+    role: Role;
     theme?: string;
     font?: string;
 }
