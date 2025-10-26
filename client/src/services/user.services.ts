@@ -53,3 +53,15 @@ export const resetPassword = async (resetToken: string, otp: string, email: stri
         body: JSON.stringify({ resetToken, otp, email, newPassword }),
     })
 }
+
+export const changePassword = async (access_token: string, currentPassword: string, newPassword: string) => {
+    return await fetch('/api/users/change-password', {
+        method: 'PUT',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${access_token}`,
+        },
+        credentials: 'include',
+        body: JSON.stringify({ currentPassword, newPassword }),
+    })
+}

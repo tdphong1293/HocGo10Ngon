@@ -39,4 +39,10 @@ export class UserController {
         const { sub } = request.user;
         return await this.userService.updatePreferredTheme(sub, theme);
     }
+
+    @Put('change-password')
+    async changePassword(@Req() request: AuthenticatedRequest, @Body('currentPassword') currentPassword: string, @Body('newPassword') newPassword: string) {
+        const { sub } = request.user;
+        return await this.userService.changePassword(sub, currentPassword, newPassword);
+    }
 }

@@ -15,10 +15,11 @@ export const menuConfig: Record<Role, MenuItem[]> = {
     [Role.USER]: [
         { title: 'Luyện tập', href: '/practice' },
         { title: 'Bài học', href: '/lessons' },
-        { title: 'Cài đặt', href: '/settings' },
+        { title: 'Tùy chỉnh giao diện', href: '/preferences' },
     ],
     [Role.ADMIN]: [
         { title: 'Luyện tập', href: '/practice' },
+        { title: 'Tùy chỉnh giao diện', href: '/preferences' },
         { title: 'Tùy chỉnh', href: '/admin-settings' },
     ]
 }

@@ -21,7 +21,6 @@ import {
 } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/contexts/ThemeContext";
-import { ThemeSelector } from "@/components/ThemeSelector";
 import { menuConfig } from "@/config/menuConfig";
 import Navbar from "@/components/Navbar";
 import { AuthProvider } from "@/contexts/AuthContext";
@@ -156,7 +155,10 @@ export default function RootLayout({
     children: React.ReactNode;
 }>) {
     return (
-        <html lang="en">
+        <html
+            lang="en"
+            className={`${geistSans.variable} ${geistMono.variable} ${inter.variable} ${roboto.variable} ${poppins.variable} ${openSans.variable} ${sourceCodePro.variable} ${comfortaa.variable} ${patrickHand.variable} ${spaceMono.variable} ${paytoneOne.variable} ${righteous.variable} ${lato.variable} ${merriweather.variable} ${nunito.variable} ${ubuntu.variable} ${playfairDisplay.variable} ${workSans.variable}`}
+        >
             <head>
                 <Script id="theme-script" strategy="beforeInteractive">{`
                     (function() {
@@ -176,7 +178,7 @@ export default function RootLayout({
                 `}</Script>
             </head>
             <body
-                className={`${geistSans.variable} ${geistMono.variable} ${inter.variable} ${roboto.variable} ${poppins.variable} ${openSans.variable} ${sourceCodePro.variable} ${comfortaa.variable} ${patrickHand.variable} ${spaceMono.variable} ${paytoneOne.variable} ${righteous.variable} ${lato.variable} ${merriweather.variable} ${nunito.variable} ${ubuntu.variable} ${playfairDisplay.variable} ${workSans.variable} antialiased min-h-screen grid grid-rows-[auto_1fr]`}
+                className={`antialiased min-h-screen grid grid-rows-[auto_1fr]`}
             >
                 <AuthProvider>
                     <ThemeProvider>
@@ -184,7 +186,6 @@ export default function RootLayout({
                             menuConfig={menuConfig}
                         />
                         <main className="overflow-auto">
-                            <ThemeSelector />
                             {children}
                         </main>
                         <ToastContainer

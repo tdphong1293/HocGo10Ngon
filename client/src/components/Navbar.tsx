@@ -8,6 +8,7 @@ import Logo from "./Logo";
 import LogoV3 from "./LogoV3";
 import { useAuth } from "@/hooks/useAuth";
 import { useState } from "react";
+import { AnimatePresence, motion } from 'framer-motion';
 
 interface NavbarProps {
     menuConfig?: typeof menuConfig;
@@ -20,12 +21,16 @@ const Navbar: React.FC<NavbarProps> = ({
     const [isHovered, setIsHovered] = useState<boolean>(false);
 
     return (
-        <div className="w-full sticky top-0 flex justify-between items-center p-4 text-accent-foreground bg-accent">
+        <div className="w-full sticky top-0 flex justify-between items-center p-4 text-accent-foreground bg-accent z-50">
             <Logo width={100} height={100} className="text-accent-foreground -mt-9.5" href="/" />
             {/* <LogoV3 width={100} height={100} className="-my-5" href="/" textColor="var(--accent-foreground)" bgColor="var(--accent)" /> */}
             <div className={`flex gap-20`}>
-                {(menuConfig?.[user?.role || Role.BLANK] || []).map((item: MenuItem) => (
-                    <Link key={`menu-${item.title}`} href={item.href} className="text-2xl">
+                {(menuConfig?.[user?.role || Role.USER] || []).map((item: MenuItem) => (
+                    <Link
+                        key={`menu-${item.title}`}
+                        href={item.href}
+                        className="text-2xl hover:text-primary hover:scale-102 transition-all"
+                    >
                         {item.title}
                     </Link>
                 ))}
@@ -44,49 +49,47 @@ const Navbar: React.FC<NavbarProps> = ({
                         />
                     </div>
                     <span className="text-xl">{user?.username}</span>
-                    {isHovered && (
-                        <div className="absolute top-full right-0 bg-accent border-2 border-border rounded-lg shadow-lg z-10 flex flex-col text-accent-foreground w-48">
-                            <div
-                                className={`px-2 py-1 flex gap-2 hover:text-primary cursor-pointer hover:bg-primary-foreground rounded-md items-center`}
+                    <AnimatePresence>
+                        {isHovered && (
+                            <motion.div
+                                className="absolute top-full right-0 bg-accent border-2 border-border rounded-lg shadow-lg z-100 flex flex-col text-accent-foreground w-48"
+                                initial={{ opacity: 0, height: 0 }}
+                                animate={{ opacity: 1, height: 'auto' }}
+                                exit={{ opacity: 0, height: 0 }}
+                                transition={{ duration: 0.2, ease: 'easeInOut' }}
                             >
-                                <Icon
-                                    icon="material-symbols:settings-rounded"
-                                    className="text-md"
-                                />
-                                <Link
-                                    href="/account-settings"
-                                >
-                                    Cài đặt tài khoản
-                                </Link>
-                            </div>
-                            <div
-                                className={`px-2 py-1 flex gap-1 hover:text-primary cursor-pointer hover:bg-primary-foreground rounded-md items-center`}
-                            >
-                                <Icon
-                                    icon="material-symbols:logout-rounded"
-                                    className="text-md"
-                                />
                                 <div
-                                    className=""
-                                    onClick={
-                                        async () => {
-                                            await signOut();
-                                            setIsHovered(false);
-                                        }
-                                    }
+                                    className={`px-2 py-1 flex gap-2 hover:text-primary cursor-pointer hover:bg-primary-foreground rounded-md items-center`}
                                 >
-                                    Đăng xuất
+                                    <Icon
+                                        icon="material-symbols:settings-rounded"
+                                        className="text-md"
+                                    />
+                                    <Link
+                                        href="/account-settings"
+                                    >
+                                        Cài đặt tài khoản
+                                    </Link>
                                 </div>
-                            </div>
-                        </div>
-                    )}
-                    {/* <Button
-                        variant="primary-outline"
-                        size="small"
-                        onClick={async () => await signOut()}
-                    >
-                        Đăng xuất
-                    </Button> */}
+                                <div
+                                    className={`px-2 py-1 flex gap-1 hover:text-primary cursor-pointer hover:bg-primary-foreground rounded-md items-center`}
+                                >
+                                    <Icon
+                                        icon="material-symbols:logout-rounded"
+                                        className="text-md"
+                                    />
+                                    <div
+                                        className=""
+                                        onClick={async () => {
+                                            await signOut();
+                                        }}
+                                    >
+                                        Đăng xuất
+                                    </div>
+                                </div>
+                            </motion.div>
+                        )}
+                    </AnimatePresence>
                 </div>
             ) : (
                 <Link
@@ -96,8 +99,9 @@ const Navbar: React.FC<NavbarProps> = ({
                         Đăng nhập
                     </Button>
                 </Link>
-            )}
-        </div>
+            )
+            }
+        </div >
     );
 }
 

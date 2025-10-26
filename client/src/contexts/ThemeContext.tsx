@@ -37,17 +37,17 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
     const { isAuthenticated, user, accessToken } = useAuth();
 
     useEffect(() => {
-        if (isAuthenticated && user && accessToken) {
-            setTheme(user.theme as Theme || 'light');
-            setFont(user.font as Font || 'geist');
-        }
+        const savedTheme = document.cookie.split('; ').find(row => row.startsWith('theme='))?.split('=')[1];
+        const savedFont = document.cookie.split('; ').find(row => row.startsWith('font='))?.split('=')[1];
+
+        setTheme(savedTheme as Theme || 'light');
+        setFont(savedFont as Font || 'geist');
 
         setIsLoaded(true);
     }, []);
 
     useEffect(() => {
         if (isLoaded) {
-            console.log("Setting theme and font in document element and cookies:", theme, font);
             document.documentElement.setAttribute('data-theme', theme);
             document.documentElement.setAttribute('data-font', font);
             document.cookie = `theme=${encodeURIComponent(theme)}; Path=/; Max-Age=${60 * 60 * 24 * 365}; SameSite=Lax`;
@@ -59,9 +59,8 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
         if (isLoaded && isAuthenticated && user && accessToken) {
             setTheme(user.theme as Theme);
             setFont(user.font as Font);
-            console.log("Updating theme and font from user preferences");
         }
-    }, [isAuthenticated, user, accessToken, theme, font]);
+    }, [isLoaded, isAuthenticated, user, accessToken, theme, font]);
 
     const value = {
         theme,

@@ -4,11 +4,10 @@
 
 /* Base CSS Custom Properties */
 :root {
-	--radius: 0.5rem;
+
 }
 
-.keyboard-fixed-font,
-.keyboard-fixed-font * {
+.keyboard-fixed-font {
 	font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif !important;
 }
 

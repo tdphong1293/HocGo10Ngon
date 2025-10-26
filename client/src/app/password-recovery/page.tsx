@@ -63,6 +63,7 @@ const PasswordRecoveryPage = () => {
     }
 
     const validateOTPForm = () => {
+        clearAllErrors();
         let isValid = true;
         if (!otpCode) {
             setErrors((prev) => ({ ...prev, otpCode: "Vui lòng nhập mã OTP để lấy lại mật khẩu" }));
@@ -73,10 +74,14 @@ const PasswordRecoveryPage = () => {
             setErrors((prev) => ({ ...prev, otpCode: "Định dạng mã OTP không hợp lệ" }));
             isValid = false;
         }
-        return isValid && validateEmail();
+        if (!validateEmail()) {
+            isValid = false;
+        }
+        return isValid;
     }
 
     const validatePasswordResetForm = () => {
+        clearAllErrors();
         let isValid = true;
         if (!password) {
             setErrors((prev) => ({ ...prev, password: "Mật khẩu không được để trống" }));
@@ -98,7 +103,7 @@ const PasswordRecoveryPage = () => {
         const isValid = validateEmail();
         if (!isValid) return;
 
-        clearAllErrors();
+        setErrors((prev) => ({ ...prev, email: "" }));
 
         const response = await sendOTP(email);
         
@@ -125,8 +130,6 @@ const PasswordRecoveryPage = () => {
         const isValid = validateOTPForm();
         if (!isValid) return;
 
-        clearAllErrors();
-
         const response = await verifyOTP(email, otpCode);
         if (response.ok) {
             const { data } = await response.json();
@@ -140,11 +143,8 @@ const PasswordRecoveryPage = () => {
 
     const handlePasswordResetSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-
         const isValid = validatePasswordResetForm();
         if (!isValid) return;
-        
-        clearAllErrors();
 
         const response = await resetPassword(resetToken, otpCode, email, password);        
         if (response.ok) {

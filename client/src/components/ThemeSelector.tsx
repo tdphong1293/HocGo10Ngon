@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import { Theme, Font } from '@/contexts/ThemeContext';
 import { useTheme } from '@/hooks/useTheme';
-import { ThemePreview } from './ThemePreview';
+import ThemePreview from './ThemePreview';
 import { updatePreferredFont, updatePreferredTheme } from '@/services/user.services';
 import { useAuth } from '@/hooks/useAuth';
 

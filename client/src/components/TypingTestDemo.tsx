@@ -68,7 +68,7 @@ export const TypingTestDemo: React.FC<TypingTestDemoProps> = ({
                 {/* Typing Area */}
                 <div className="mb-4">
                     <div
-                        className="text-lg leading-relaxed font-mono p-4 bg-muted rounded-lg min-h-32 cursor-text"
+                        className="text-lg leading-relaxed font-mono p-4 bg-muted rounded-lg cursor-text flex flex-wrap"
                         onClick={() => document.getElementById('typing-input')?.focus()}
                     >
                         {text.split('').map((char, index) => renderCharacter(char, index))}

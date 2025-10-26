@@ -45,6 +45,7 @@ const AuthenticatePage = () => {
     }
 
     const validateSigninForm = () => {
+        clearAllErrors();
         let isValid = true;
         if (!signinUsername) {
             setErrors((prev) => ({ ...prev, signinUsername: "Tên đăng nhập không được để trống" }));
@@ -68,6 +69,7 @@ const AuthenticatePage = () => {
     }
 
     const validateSignupForm = () => {
+        clearAllErrors();
         let isValid = true;
         if (!signupUsername) {
             setErrors((prev) => ({ ...prev, signupUsername: "Tên đăng nhập không được để trống" }));
@@ -105,9 +107,10 @@ const AuthenticatePage = () => {
 
     const handleSigninSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+
         const isValid = validateSigninForm();
         if (!isValid) return;
-        clearAllErrors();
+
         if (isAuthenticated && user && accessToken) {
             await signOut();
         }
@@ -120,9 +123,10 @@ const AuthenticatePage = () => {
 
     const handleSignupSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+
         const isValid = validateSignupForm();
         if (!isValid) return;
-        clearAllErrors();
+        
         const signUpSuccess = await signUp(signupUsername, signupPassword, email);
         if (signUpSuccess) {
             clearAllInputs();
