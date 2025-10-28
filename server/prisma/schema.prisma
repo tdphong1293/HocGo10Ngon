@@ -54,7 +54,7 @@ enum LengthType {
 
 model Paragraph {
     paragraphid      String     @id @default(cuid())
-    lengthType       LengthType
+    lengthType       LengthType?
     paragraphContent String
     language         Language   @relation(fields: [languageid], references: [languageid])
     languageid       String
@@ -64,9 +64,10 @@ model Paragraph {
 
 model Word {
     wordid      String     @id @default(cuid())
-    lengthType  LengthType
-    NormalForm  String     @unique
-    CapitalForm String?    @unique
+    lengthType  LengthType?
+    rowType     RowType?
+    normalForm  String     @unique
+    capitalForm String?    
     language    Language   @relation(fields: [languageid], references: [languageid])
     languageid  String
 
@@ -92,6 +93,10 @@ enum RowType {
     HOME
     TOP
     BOTTOM
+    HOME_TOP
+    HOME_BOTTOM
+    TOP_BOTTOM
+    ALL
 }
 
 model Lesson {

@@ -2,20 +2,20 @@ export const sessionModeData = [
     {
         modeName: 'time',
         config: { timeLimit: [30, 60, 90, 120] },
-        subConfig: { number: true, punctuation: true, capitalization: true }
+        subConfig: { number: {}, punctuation: {}, capitalization: {} }
     },
     {
         modeName: 'words',
         config: { wordCount: [15, 25, 50, 100] },
-        subConfig: { number: true, punctuation: true, capitalization: true }
+        subConfig: { number: {}, punctuation: {}, capitalization: {} }
     },
     {
         modeName: 'paragraphs',
-        config: { paragraphLength: ['short', 'medium', 'long'] },
+        config: { paragraphLength: ['all', 'short', 'medium', 'long'] },
     },
     {
         modeName: 'row-based',
-        config: { rows: ['home', 'top', 'bottom', 'home-top', 'home-bottom', 'top-bottom'] },
+        config: { rows: ['all', 'home', 'top', 'bottom', 'home-top', 'home-bottom', 'top-bottom'] },
         subConfig: { wordCount: [15, 25, 50, 100] }
     }
 ]

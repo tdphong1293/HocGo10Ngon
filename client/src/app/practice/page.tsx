@@ -4,6 +4,7 @@ import { JSX, useState, useRef, useEffect } from "react";
 import Keyboard from "@/components/Keyboard";
 import type { keyboardSizes } from "@/components/Keyboard";
 import { Icon } from "@iconify/react";
+import TypingMenu from "./TypingMenu"
 
 const sampleText = `The quick brown fox jumps over the lazy dog.\n\tThis is a sample typing test to demonstrate the theme colors.\nThis is a long test paragraph to check how the typing practice application handles larger blocks of text. It includes multiple lines, punctuation, and various characters to ensure comprehensive testing. Happy typing!. An even longer sentence to test the scrolling functionality of the typing area. Let's add more text to make sure we have enough content to scroll through while typing. This should be sufficient for testing purposes. Enjoy your typing practice! longer sentence to test the scrolling functionality of the typing area. Let's add more text to make sure we have enough content to scroll through while typing. This should be sufficient for testing purposes. Enjoy your typing practice! longer sentence to test the  scrolling functionality of the typing area. Let's add more text to make sure we have enough content to scroll through while typing. This should be sufficient for testing purposes. Enjoy your typing practice! longer sentence to test the scrolling functionality of the typing area. Let's add more text to make sure we have enough content to scroll through while typing. This should be sufficient for testing purposes. Enjoy your typing practice! longer sentence to test the scrolling functionality of the typing area. Let's add more text to make sure we have enough content to scroll through while typing. This should be sufficient for testing purposes. Enjoy your typing practice! longer sentence to test the scrolling functionality of the typing area. Let's add more text to make sure we have enough content to scroll through while typing. This should be sufficient for testing purposes. Enjoy your typing practice!`;
 
@@ -59,7 +60,7 @@ const PracticePage = ({
 
         const key = e.key;
         // Trước e.preventDefault để cho phép các phím đặc biệt hoạt động bình thường
-        if (e.metaKey ||  e.ctrlKey || key === "F12" || key === "F5" || key === "Escape") {
+        if (e.metaKey || e.ctrlKey || key === "F12" || key === "F5" || key === "Escape") {
             return;
         }
 
@@ -255,7 +256,7 @@ const PracticePage = ({
 
     return (
         <div className="w-full h-full flex flex-col gap-5 p-4 items-center">
-            <div className="w-full">menu</div>
+            <TypingMenu />
             <div className="w-full">metrics</div>
             <div className="flex flex-col gap-5 items-center h-fit">
                 <div className="w-full bg-background px-10">
