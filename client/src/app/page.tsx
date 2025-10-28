@@ -179,7 +179,7 @@ export default function Home() {
 						</div>
 					</div>
 				</div>
-				<Keyboard activeKeys={['LShift', 'A']} onKeyPress={() => {}} />
+				<Keyboard activeKeys={['LShift', 'A']} />
 				<div className="w-full max-w-4xl bg-card p-6 rounded-lg border border-border">
 					<div className="text-lg font-semibold mb-4 text-card-foreground">Input demo</div>
 					<Input

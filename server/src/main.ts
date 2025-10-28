@@ -3,6 +3,8 @@ import { AppModule } from './app.module';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { ConfigService } from '@nestjs/config';
 import cookieParser from 'cookie-parser';
+import { DatabaseService } from './modules/mongoose/database.service';
+import { sessionModeData } from '../mongoose/seed';
 
 async function bootstrap() {
 	const app = await NestFactory.create(AppModule);
@@ -24,6 +26,11 @@ async function bootstrap() {
 		.build();
 	const document = SwaggerModule.createDocument(app, config);
 	SwaggerModule.setup('api', app, document);
+
+	if (sessionModeData && sessionModeData.length > 0) {
+		const databaseService = app.get(DatabaseService);
+		await databaseService.seedSessionModes(sessionModeData, true);
+	}
 
 	const port = configService.get<number>('SERVER_PORT') || 8080;
 	await app.listen(port);

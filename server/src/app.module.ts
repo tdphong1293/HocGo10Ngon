@@ -1,6 +1,5 @@
 import { Module } from '@nestjs/common';
-import { ConfigModule, ConfigService } from '@nestjs/config';
-import { MongooseModule } from '@nestjs/mongoose';
+import { ConfigModule } from '@nestjs/config';
 import { PrismaModule } from './modules/prisma/prisma.module';
 import { DatabaseModule } from './modules/mongoose/database.module';
 import { CacheModule } from './modules/cache/cache.module';
@@ -14,12 +13,6 @@ import { UserModule } from './modules/user/user.module';
 		ConfigModule.forRoot({
 			isGlobal: true,
 			expandVariables: true,
-		}),
-		MongooseModule.forRootAsync({
-			useFactory: (configService: ConfigService) => ({
-				uri: configService.get<string>('MONGO_URL'),
-			}),
-			inject: [ConfigService],
 		}),
 		PrismaModule,
 		DatabaseModule,

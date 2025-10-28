@@ -10,6 +10,7 @@
 		"assets": [
 			{
 				"include": "modules/nodemailer/templates/*.html",
+				"outDir": "dist/src/",
 				"watchAssets": true
 			}
 		]

@@ -15,7 +15,7 @@ export class SessionMode {
     config: Record<string, any>;
 
     @Prop({ type: Object, default: {} })
-    subConfig: Record<string, any>;
+    subConfig?: Record<string, any>;
 }
 
 export const SessionModeSchema = SchemaFactory.createForClass(SessionMode);

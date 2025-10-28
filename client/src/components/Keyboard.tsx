@@ -117,7 +117,7 @@ const BottomRowKeys = ['Z', 'X', 'C', 'V', 'B', 'N', 'M'];
 
 const Keyboard: React.FC<KeyboardProps> = ({
     activeKeys = [],
-    size = 'large',
+    size = 'normal',
 }) => {
     const containerWidthMap: Record<keyboardSizes, string> = {
         small: 'max-w-xl',
