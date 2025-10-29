@@ -1,5 +1,7 @@
 import { useState, useEffect } from "react";
 import { AnimatePresence, motion } from "framer-motion";
+import { getSessionModes, getPracticeTypingText } from '@/services/session.services';
+import { toast } from "react-toastify";
 
 interface TypingMode {
     modeName: string;
@@ -8,62 +10,84 @@ interface TypingMode {
 }
 
 interface TypingMenuProps {
-    onModeChange?: (mode: TypingMode) => void;
+    setTypingText: (text: string) => void;
 }
 
-const createDefaultState = (mode: TypingMode) => {
+const createDefaultState = (mode: TypingMode | null) => {
     const configState: Record<string, any> = {};
     const subConfigState: Record<string, any> = {};
 
+    if (!mode) return null;
+
     // pick first/default values
     for (const [key, value] of Object.entries(mode.config || {})) {
-        configState[key] = Array.isArray(value) ? value[0] : value;
+        configState[key] = Array.isArray(value) && value.length > 0 ? value[0] : false;
     }
 
     // empty objects mean toggles (default false)
     for (const [subKey, subValue] of Object.entries(mode.subConfig || {})) {
-        if (Array.isArray(subValue)) {
-            subConfigState[subKey] = subValue[0];
-        } else {
-            subConfigState[subKey] = false;
-        }
+        subConfigState[subKey] = Array.isArray(subValue) && subValue.length > 0 ? subValue[0] : false;
     }
 
     return { modeName: mode.modeName, config: configState, subConfig: subConfigState };
 };
 
 const TypingMenu: React.FC<TypingMenuProps> = ({
-    onModeChange,
+    setTypingText,
 }) => {
-    const [sessionModeData, setSessionModeData] = useState<TypingMode[]>([
-        {
-            modeName: 'time',
-            config: { timeLimit: [30, 60, 90, 120] },
-            subConfig: { number: {}, punctuation: {}, capitalization: {} }
-        },
-        {
-            modeName: 'words',
-            config: { wordCount: [15, 25, 50, 100] },
-            subConfig: { number: {}, punctuation: {}, capitalization: {} }
-        },
-        {
-            modeName: 'paragraphs',
-            config: { paragraphLength: ['short', 'medium', 'long'] },
-        },
-        {
-            modeName: 'row-based',
-            config: { rows: ['home', 'top', 'bottom', 'home-top', 'home-bottom', 'top-bottom'] },
-            subConfig: { wordCount: [15, 25, 50, 100] }
-        }
-    ]);
+    const [sessionModeData, setSessionModeData] = useState<TypingMode[] | null>(null);
 
-    const [activeMode, setActiveMode] = useState<TypingMode | null>(sessionModeData[0]);
-    const [state, setState] = useState<TypingMode | null>(createDefaultState(sessionModeData[0]));
+    const [activeMode, setActiveMode] = useState<TypingMode | null>(sessionModeData?.[0] || null);
+    const [state, setState] = useState<TypingMode | null>(createDefaultState(sessionModeData?.[0] || null));
+
+    useEffect(() => {
+        const fetchModes = async () => {
+            const response = await getSessionModes();
+            const { data } = await response.json();
+            if (response.ok) {
+                setSessionModeData(data.sessionModes);
+                setActiveMode(data.sessionModes[0]);
+                setState(createDefaultState(data.sessionModes[0]));
+            }
+        };
+        fetchModes();
+    }, []);
+
+    useEffect(() => {
+        const fetchPracticeText = async () => {
+            if (state) {
+                const response = await getPracticeTypingText(state);
+                if (response.ok) {
+                    const { data } = await response.json();
+                    setTypingText && setTypingText(data.text);
+                }
+                else {
+                    const errorData = await response.json();
+                    toast.error(errorData.message || 'Lỗi khi lấy văn bản luyện tập');
+                }
+            }
+        };
+        fetchPracticeText();
+    }, [state]);
 
     const handleModeChange = (mode: TypingMode) => {
         setActiveMode(mode);
         setState(createDefaultState(mode));
     }
+
+    const handleToggleConfig = (key: string) => {
+        setState((prev: TypingMode | null) => {
+            if (!prev) return null;
+            return {
+                modeName: prev.modeName,
+                config: {
+                    ...prev.config,
+                    [key]: !prev.config?.[key],
+                },
+                subConfig: prev.subConfig,
+            };
+        });
+    };
 
     const handleToggleSubConfig = (key: string) => {
         setState((prev: TypingMode | null) => {
@@ -119,7 +143,7 @@ const TypingMenu: React.FC<TypingMenuProps> = ({
                         <>
                             <div className="flex gap-5">
                                 {Object.entries(activeMode.subConfig).map(([subKey, subValue]) => {
-                                    if (Array.isArray(subValue)) {
+                                    if (Array.isArray(subValue) && subValue.length > 0) {
                                         // subconfig with multiple options (like wordCount)
                                         return subValue.map((option: any) => (
                                             <span
@@ -156,7 +180,7 @@ const TypingMenu: React.FC<TypingMenuProps> = ({
                     )}
 
                     <div className="flex gap-5">
-                        {sessionModeData.map((mode) => (
+                        {sessionModeData?.map((mode) => (
                             <span
                                 key={`mode-${mode.modeName}`}
                                 onClick={() => handleModeChange(mode)}
@@ -175,7 +199,7 @@ const TypingMenu: React.FC<TypingMenuProps> = ({
                             <div>|</div>
                             <div className="flex gap-5">
                                 {Object.entries(activeMode.config).map(([key, value]) =>
-                                    Array.isArray(value) ? (
+                                    Array.isArray(value) && value.length > 0 ? (
                                         value.map((option: any) => (
                                             <span
                                                 key={`config-${key}-${option}`}
@@ -191,7 +215,11 @@ const TypingMenu: React.FC<TypingMenuProps> = ({
                                     ) : (
                                         <span
                                             key={`config-${key}`}
-                                            className="hover:text-accent-foreground/50 cursor-pointer"
+                                            onClick={() => handleToggleConfig(key)}
+                                            className={`cursor-pointer ${state?.config?.[key]
+                                                ? "text-primary-foreground"
+                                                : "hover:text-accent-foreground/50"
+                                                }`}
                                         >
                                             {key}
                                         </span>

@@ -29,7 +29,6 @@ async function main() {
 
     await deleteAllData(tableList);
 
-
     const adminExists = await prisma.user.findUnique({
         where: { username: 'admin' },
     });
@@ -74,6 +73,63 @@ async function main() {
         ],
     });
 
+    /*
+    * 
+    *
+    * 
+    */
+
+    const categorizedWordByLength = (word: string) => {
+        if (word.length <= 4) {
+            return 'SHORT';
+        } else if (word.length <= 8) {
+            return 'MEDIUM';
+        } else {
+            return 'LONG';
+        }
+    }
+
+    const homeRowKeys = ['a', 's', 'd', 'f', 'j', 'k', 'l', ';', '\'', ':', '\"'];
+    const topRowKeys = ['q', 'w', 'e', 'r', 't', 'y', 'u', 'i', 'o', 'p', '[', ']', '\\', '{', '}', '|'];
+    const bottomRowKeys = ['z', 'x', 'c', 'v', 'b', 'n', 'm', ',', '.', '/', '<', '>', '?'];
+
+
+    const categorizedWordByRowKey = (word: string) => {
+        const lowerWord = word.toLowerCase();
+        let usesHomeRow = false;
+        let usesTopRow = false;
+        let usesBottomRow = false;
+
+        for (const char of lowerWord) {
+            if (homeRowKeys.includes(char)) {
+                usesHomeRow = true;
+            } else if (topRowKeys.includes(char)) {
+                usesTopRow = true;
+            } else if (bottomRowKeys.includes(char)) {
+                usesBottomRow = true;
+            }
+        }
+
+        switch (true) {
+            case usesHomeRow && !usesTopRow && !usesBottomRow:
+                return 'HOME';
+            case usesTopRow && !usesHomeRow && !usesBottomRow:
+                return 'TOP';
+            case usesBottomRow && !usesHomeRow && !usesTopRow:
+                return 'BOTTOM';
+            case usesHomeRow && usesTopRow && !usesBottomRow:
+                return 'HOME_TOP';
+            case usesHomeRow && usesBottomRow && !usesTopRow:
+                return 'HOME_BOTTOM';
+            case usesTopRow && usesBottomRow && !usesHomeRow:
+                return 'TOP_BOTTOM';
+            case usesHomeRow && usesTopRow && usesBottomRow:
+                return 'ALL';
+            default:
+                return null;
+        }
+    }
+
     const englishLanguage = await prisma.language.findUnique({
         where: { languageName: 'English' },
     })
@@ -95,6 +151,7 @@ async function main() {
     const shortWordList = shortWords.split('\n').map(line => line.trim()).filter(line => line.length > 0);
     await prisma.word.createMany({
         data: shortWordList.map(word => ({
+            rowType: categorizedWordByRowKey(word),
             lengthType: 'SHORT',
             normalForm: word,
             capitalForm: word.charAt(0).toUpperCase() + word.slice(1),
@@ -108,6 +165,7 @@ async function main() {
     const mediumWordList = mediumWords.split('\n').map(line => line.trim()).filter(line => line.length > 0);
     await prisma.word.createMany({
         data: mediumWordList.map(word => ({
+            rowType: categorizedWordByRowKey(word),
             lengthType: 'MEDIUM',
             normalForm: word,
             capitalForm: word.charAt(0).toUpperCase() + word.slice(1),
@@ -121,6 +179,7 @@ async function main() {
     const longWordList = longWords.split('\n').map(line => line.trim()).filter(line => line.length > 0);
     await prisma.word.createMany({
         data: longWordList.map(word => ({
+            rowType: categorizedWordByRowKey(word),
             lengthType: 'LONG',
             normalForm: word,
             capitalForm: word.charAt(0).toUpperCase() + word.slice(1),

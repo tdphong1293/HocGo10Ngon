@@ -26,9 +26,7 @@ const wrongTextClass: { [key: string]: string } = {
     'very-large': 'text-4xl translate-y-8',
 }
 
-const PracticePage = ({
-    text = sampleText
-}) => {
+const PracticePage = ({}) => {
     const [userInput, setUserInput] = useState('');
     const [showKeyboard, setShowKeyboard] = useState(true);
     const [currentIndex, setCurrentIndex] = useState(0);
@@ -38,6 +36,7 @@ const PracticePage = ({
     const inputRef = useRef<HTMLDivElement>(null);
     const scrollRef = useRef<HTMLDivElement>(null);
     const cursorRef = useRef<HTMLSpanElement>(null);
+    const [text, setText] = useState(sampleText);
 
     useEffect(() => {
         const handleBlur = () => {
@@ -256,7 +255,7 @@ const PracticePage = ({
 
     return (
         <div className="w-full h-full flex flex-col gap-5 p-4 items-center">
-            <TypingMenu />
+            <TypingMenu setTypingText={setText} />
             <div className="w-full">metrics</div>
             <div className="flex flex-col gap-5 items-center h-fit">
                 <div className="w-full bg-background px-10">
