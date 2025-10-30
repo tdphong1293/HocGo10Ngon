@@ -89,7 +89,7 @@ async function main() {
         }
     }
 
-    const homeRowKeys = ['a', 's', 'd', 'f', 'j', 'k', 'l', ';', '\'', ':', '\"'];
+    const homeRowKeys = ['a', 's', 'd', 'f', 'g', 'h', 'j', 'k', 'l', ';', '\'', ':', '\"'];
     const topRowKeys = ['q', 'w', 'e', 'r', 't', 'y', 'u', 'i', 'o', 'p', '[', ']', '\\', '{', '}', '|'];
     const bottomRowKeys = ['z', 'x', 'c', 'v', 'b', 'n', 'm', ',', '.', '/', '<', '>', '?'];
 

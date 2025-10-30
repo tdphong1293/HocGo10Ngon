@@ -18,7 +18,7 @@ export class SessionService {
         if (!sessionModes) {
             throw new InternalServerErrorException('Lỗi khi lấy dữ liệu chế độ gõ');
         }
-        
+
         const sessionModesFormatted = sessionModes.map(mode => ({
             modeName: mode.modeName,
             config: mode.config,
@@ -194,23 +194,15 @@ export class SessionService {
                 const rowType = mode.config?.rowType || 'HOME';
                 const wordCount = mode.subConfig?.wordCount || 50;
 
-                if (rowType === 'ALL') {
-                    const words = await this.prismaService.word.findMany({});
-                    const takenWords = words.sort(() => 0.5 - Math.random()).slice(0, wordCount);
-                    const wordList = takenWords.map(w => w.normalForm);
-                    return wordList.join(' ');
-                }
-                else {
-                    const words = await this.prismaService.word.findMany({
-                        where: {
-                            rowType: rowType,
-                        }
-                    });
+                const words = await this.prismaService.word.findMany({
+                    where: {
+                        rowType: rowType,
+                    }
+                });
 
-                    const takenWords = words.sort(() => 0.5 - Math.random()).slice(0, wordCount);
-                    const wordList = takenWords.map(w => w.normalForm);
-                    return wordList.join(' ');
-                }
+                const takenWords = words.sort(() => 0.5 - Math.random()).slice(0, wordCount);
+                const wordList = takenWords.map(w => w.normalForm);
+                return wordList.join(' ');
             }
             else {
                 throw new BadRequestException('Chế độ gõ không hợp lệ');

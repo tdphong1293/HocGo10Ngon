@@ -15,7 +15,7 @@ export const sessionModeData = [
     },
     {
         modeName: 'row-based',
-        config: { rows: ['ALL', 'HOME', 'TOP', 'BOTTOM', 'HOME_TOP', 'HOME_BOTTOM', 'TOP_BOTTOM'] },
+        config: { rowType: ['ALL', 'HOME', 'TOP', 'BOTTOM', 'HOME_TOP', 'HOME_BOTTOM', 'TOP_BOTTOM'] },
         subConfig: { wordCount: [15, 25, 50, 100] }
     }
 ]

@@ -4,11 +4,9 @@ import { JSX, useState, useRef, useEffect } from "react";
 import Keyboard from "@/components/Keyboard";
 import type { keyboardSizes } from "@/components/Keyboard";
 import { Icon } from "@iconify/react";
-import TypingMenu from "./TypingMenu"
+import TypingModeMenu from "./TypingModeMenu"
 
-const sampleText = `The quick brown fox jumps over the lazy dog.\n\tThis is a sample typing test to demonstrate the theme colors.\nThis is a long test paragraph to check how the typing practice application handles larger blocks of text. It includes multiple lines, punctuation, and various characters to ensure comprehensive testing. Happy typing!. An even longer sentence to test the scrolling functionality of the typing area. Let's add more text to make sure we have enough content to scroll through while typing. This should be sufficient for testing purposes. Enjoy your typing practice! longer sentence to test the scrolling functionality of the typing area. Let's add more text to make sure we have enough content to scroll through while typing. This should be sufficient for testing purposes. Enjoy your typing practice! longer sentence to test the  scrolling functionality of the typing area. Let's add more text to make sure we have enough content to scroll through while typing. This should be sufficient for testing purposes. Enjoy your typing practice! longer sentence to test the scrolling functionality of the typing area. Let's add more text to make sure we have enough content to scroll through while typing. This should be sufficient for testing purposes. Enjoy your typing practice! longer sentence to test the scrolling functionality of the typing area. Let's add more text to make sure we have enough content to scroll through while typing. This should be sufficient for testing purposes. Enjoy your typing practice! longer sentence to test the scrolling functionality of the typing area. Let's add more text to make sure we have enough content to scroll through while typing. This should be sufficient for testing purposes. Enjoy your typing practice!`;
-
-// const sampleText = "Short sample text for. \n Another line here.\tAnd a tab.";
+const sampleText = `The quick brown fox jumps over the lazy dog.\n\tThis is a sample typing test to demonstrate the theme colors.\nThis is a long test paragraph to check how the typing practice application handles larger blocks of text. It includes multiple lines, punctuation, and various characters to ensure comprehensive testing. Happy typing!. An even longer sentence to test the scrolling functionality of the typing area. Let's add more text to make sure we have enough content to scroll through while typing. This should be sufficient for testing purposes. Enjoy your typing practice! longer sentence to test the scrolling functionality of the typing area. Let's add more text to make sure we have enough content to scroll through while typing. This should be sufficient for testing purposes. Enjoy your typing practice!`;
 
 type textSizes = 'small' | 'normal' | 'large' | 'very-large';
 
@@ -26,18 +24,72 @@ const wrongTextClass: { [key: string]: string } = {
     'very-large': 'text-4xl translate-y-8',
 }
 
-const PracticePage = ({}) => {
+interface Keystroke {
+    key: string;
+    timestamp: number;
+    correct: boolean;
+    index: number;
+}
+
+const PracticePage = ({ }) => {
     const [userInput, setUserInput] = useState('');
     const [showKeyboard, setShowKeyboard] = useState(true);
     const [currentIndex, setCurrentIndex] = useState(0);
     const [keyboardSize, setKeyboardSize] = useState<keyboardSizes>('small');
     const [textSize, setTextSize] = useState<textSizes>('small');
     const [activeKeys, setActiveKeys] = useState<string[]>([]);
+
     const inputRef = useRef<HTMLDivElement>(null);
     const scrollRef = useRef<HTMLDivElement>(null);
     const cursorRef = useRef<HTMLSpanElement>(null);
+
     const [text, setText] = useState(sampleText);
 
+    // Typing metrics
+    const [startTime, setStartTime] = useState<number | null>(null);
+    const [elapsedTime, setElapsedTime] = useState(0); // seconds
+    const [errorCount, setErrorCount] = useState(0);
+    const [correctCount, setCorrectCount] = useState(0);
+    const [timerRunning, setTimerRunning] = useState(false);
+    const [keystrokeLog, setKeystrokeLog] = useState<Array<Keystroke>>([]);
+
+    // Time limit or word count mode
+    const [timeLimit, setTimeLimit] = useState<number | null>(null);
+    const [wordLimit, setWordLimit] = useState<number | null>(null);
+
+    const wordCount = (input: string) => input.trim().split(/\s+/).length;
+
+    useEffect(() => {
+        setUserInput('');
+        setCurrentIndex(0);
+        setStartTime(null);
+        setElapsedTime(0);
+        setErrorCount(0);
+        setCorrectCount(0);
+        setTimerRunning(false);
+        setKeystrokeLog([]);
+    }, [text]);
+
+    useEffect(() => {
+        if (!timerRunning) return;
+
+        const interval = setInterval(() => {
+            setElapsedTime((prev) => prev + 1);
+        }, 1000);
+
+        return () => clearInterval(interval);
+    }, [timerRunning]);
+
+    // Hàm phát âm thanh khi gõ đúng/sai (không sử dụng Ref 
+    // để có âm thanh kể cả khi giữ phím)
+    const playSound = (type: 'correct' | 'incorrect') => {
+        const soundPath = type === 'correct' ? '/sounds/correct.mp3' : '/sounds/incorrect.mp3';
+        const audio = new Audio(soundPath);
+        audio.volume = 0.5;
+        audio.play();
+    }
+
+    // Xóa tất cả phím đang active khi cửa sổ mất focus
     useEffect(() => {
         const handleBlur = () => {
             setActiveKeys([]);
@@ -75,22 +127,77 @@ const PracticePage = ({}) => {
                 const newValue = userInput.slice(0, -1);
                 setUserInput(newValue);
                 setCurrentIndex(newValue.length);
+                playSound('correct');
+                setKeystrokeLog((prev) => [...prev, { key: 'Backspace', timestamp: Date.now() - (startTime ?? 0), correct: true, index: newValue.length }]);
             }
         }
         else if (key === "Enter") {
+            if (!timerRunning) {
+                setTimerRunning(true);
+                setStartTime(Date.now());
+            }
+
             const newValue = userInput + "\n";
             setUserInput(newValue);
             setCurrentIndex(newValue.length);
+
+            const expectedChar = text[newValue.length - 1];
+            if (expectedChar === '\n') {
+                playSound('correct');
+                setCorrectCount((prev) => prev + 1);
+                setKeystrokeLog(
+                    (prev) => [...prev, { key: 'Enter', timestamp: Date.now() - (startTime ?? 0), correct: true, index: newValue.length - 1 }]
+                );
+            } else {
+                playSound('incorrect');
+                setErrorCount((prev) => prev + 1);
+                setKeystrokeLog((prev) => [...prev, { key: 'Enter', timestamp: Date.now() - (startTime ?? 0), correct: false, index: newValue.length - 1 }]);
+            }
         }
         else if (key === "Tab") {
+            if (!timerRunning) {
+                setTimerRunning(true);
+                setStartTime(Date.now());
+            }
+
             const newValue = userInput + "\t";
             setUserInput(newValue);
             setCurrentIndex(newValue.length);
+
+            const expectedChar = text[newValue.length - 1];
+            if (expectedChar === '\t') {
+                playSound('correct');
+                setCorrectCount((prev) => prev + 1);
+                setKeystrokeLog((prev) => [...prev, { key: 'Tab', timestamp: Date.now() - (startTime ?? 0), correct: true, index: newValue.length - 1 }]);
+            } else {
+                playSound('incorrect');
+                setErrorCount((prev) => prev + 1);
+                setKeystrokeLog((prev) => [...prev, { key: 'Tab', timestamp: Date.now() - (startTime ?? 0), correct: false, index: newValue.length - 1 }]);
+            }
         }
         else if (key.length === 1) {
+            if (!timerRunning) {
+                setTimerRunning(true);
+                setStartTime(Date.now());
+            }
+
+            // Chặn giữ phím cho các phím chữ, số và ký tự đặc biệt
+            if (e.repeat) return;
+
             const newValue = userInput + key;
             setUserInput(newValue);
             setCurrentIndex(newValue.length);
+
+            const expectedChar = text[newValue.length - 1];
+            if (key === expectedChar) {
+                playSound('correct');
+                setCorrectCount((prev) => prev + 1);
+                setKeystrokeLog((prev) => [...prev, { key: key, timestamp: Date.now() - (startTime ?? 0), correct: true, index: newValue.length - 1 }]);
+            } else {
+                playSound('incorrect');
+                setErrorCount((prev) => prev + 1);
+                setKeystrokeLog((prev) => [...prev, { key: key, timestamp: Date.now() - (startTime ?? 0), correct: false, index: newValue.length - 1 }]);
+            }
         }
     };
 
@@ -253,12 +360,28 @@ const PracticePage = ({}) => {
         };
     }, []);
 
+    const minutes = elapsedTime / 60;
+    const cpm = correctCount / minutes || 0;
+    const raw = (correctCount + errorCount) / minutes || 0;
+    const wpm = correctCount / 5 / minutes || 0;
+    const accuracy = correctCount + errorCount === 0
+        ? 100
+        : (correctCount / (correctCount + errorCount)) * 100;
+
+
     return (
         <div className="w-full h-full flex flex-col gap-5 p-4 items-center">
-            <TypingMenu setTypingText={setText} />
-            <div className="w-full">metrics</div>
+            <TypingModeMenu setTypingText={setText} />
+            <div className="w-full flex justify-start items-center gap-4 text-md px-10 bg text-accent-foreground">
+                <div>WPM: {wpm.toFixed(2)}</div>
+                <div>CPM: {cpm.toFixed(2)}</div>
+                <div>Raw: {raw.toFixed(2)}</div>
+                <div>Accuracy: {accuracy.toFixed(2)}%</div>
+                <div>Errors: {errorCount}</div>
+                <div>Time: {elapsedTime}s</div>
+            </div>
             <div className="flex flex-col gap-5 items-center h-fit">
-                <div className="w-full bg-background px-10">
+                <div className="w-full bg-background">
                     {/* Typing Area */}
                     <div
                         ref={scrollRef}
@@ -266,7 +389,7 @@ const PracticePage = ({}) => {
                         style={{ maxHeight: `${getTypingAreaHeight(keyboardSize, textSize)}vh` }}
                     >
                         <div
-                            className="w-full px-10 py-6 cursor-text whitespace-pre-wrap break-words"
+                            className="w-full px-10 cursor-text whitespace-pre-wrap break-words"
                             onClick={() => inputRef.current?.focus()}
                             onFocus={() => inputRef.current?.focus()}
                         >
