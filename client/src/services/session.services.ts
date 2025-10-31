@@ -13,12 +13,12 @@ interface TypingMode {
     subConfig?: { [key: string]: any };
 }
 
-export const getPracticeTypingText = async (mode: TypingMode) => {
+export const getPracticeTypingText = async (languageCode: string, mode: TypingMode) => {
     return await fetch('/api/sessions/practice', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
         },
-        body: JSON.stringify(mode),
+        body: JSON.stringify({ languageCode, mode }),
     })
 }

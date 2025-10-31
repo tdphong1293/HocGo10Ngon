@@ -50,6 +50,7 @@ export class AuthService {
                 role: user.role,
                 theme: user.preferredTheme,
                 font: user.preferredFont,
+                languageCode: user.preferredLanguageCode,
             };
 
             // Generate access token (short-lived)

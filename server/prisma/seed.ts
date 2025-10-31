@@ -68,16 +68,10 @@ async function main() {
 
     await prisma.language.createMany({
         data: [
-            { languageName: 'English' },
-            { languageName: 'Vietnamese' },
+            { languageName: 'English', languageCode: 'en' },
+            { languageName: 'Vietnamese', languageCode: 'vi' },
         ],
     });
-
-    /*
-    * 
-    *
-    * 
-    */
 
     const categorizedWordByLength = (word: string) => {
         if (word.length <= 4) {
@@ -131,7 +125,7 @@ async function main() {
     }
 
     const englishLanguage = await prisma.language.findUnique({
-        where: { languageName: 'English' },
+        where: { languageCode: 'en' },
     })
     
     if (!englishLanguage) {
@@ -139,7 +133,7 @@ async function main() {
     }
 
     const vietnameseLanguage = await prisma.language.findUnique({
-        where: { languageName: 'Vietnamese' },
+        where: { languageCode: 'vi' },
     })
 
     if (!vietnameseLanguage) {

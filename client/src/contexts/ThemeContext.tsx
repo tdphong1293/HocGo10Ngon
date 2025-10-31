@@ -10,9 +10,11 @@ export type Font = 'geist' | 'inter' | 'roboto' | 'poppins' | 'openSans' | 'sour
 interface ThemeContextType {
     theme: Theme;
     font: Font;
+    languageCode: string
     isLoaded: boolean;
     setTheme: (theme: Theme) => void;
     setFont: (font: Font) => void;
+    setLanguageCode: (language: string) => void;
 }
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
@@ -33,15 +35,18 @@ interface ThemeProviderProps {
 export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
     const [theme, setTheme] = useState<Theme>('light');
     const [font, setFont] = useState<Font>('geist');
+    const [languageCode, setLanguageCode] = useState<string>('en');
     const [isLoaded, setIsLoaded] = useState(false);
     const { isAuthenticated, user, accessToken } = useAuth();
 
     useEffect(() => {
         const savedTheme = document.cookie.split('; ').find(row => row.startsWith('theme='))?.split('=')[1];
         const savedFont = document.cookie.split('; ').find(row => row.startsWith('font='))?.split('=')[1];
+        const savedLanguageCode = document.cookie.split('; ').find(row => row.startsWith('languageCode='))?.split('=')[1];
 
         setTheme(savedTheme as Theme || 'light');
         setFont(savedFont as Font || 'geist');
+        setLanguageCode(savedLanguageCode || 'en');
 
         setIsLoaded(true);
     }, []);
@@ -52,22 +57,26 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
             document.documentElement.setAttribute('data-font', font);
             document.cookie = `theme=${encodeURIComponent(theme)}; Path=/; Max-Age=${60 * 60 * 24 * 365}; SameSite=Lax`;
             document.cookie = `font=${encodeURIComponent(font)}; Path=/; Max-Age=${60 * 60 * 24 * 365}; SameSite=Lax`;
+            document.cookie = `languageCode=${encodeURIComponent(languageCode)}; Path=/; Max-Age=${60 * 60 * 24 * 365}; SameSite=Lax`;
         }
-    }, [theme, font]);
+    }, [theme, font, languageCode]);
 
     useEffect(() => {
         if (isLoaded && isAuthenticated && user && accessToken) {
             setTheme(user.theme as Theme);
             setFont(user.font as Font);
+            setLanguageCode(user.languageCode as string);
         }
-    }, [isLoaded, isAuthenticated, user, accessToken, theme, font]);
+    }, [isLoaded, isAuthenticated, user, accessToken, theme, font, languageCode]);
 
     const value = {
         theme,
         font,
+        languageCode,
         isLoaded,
         setTheme,
         setFont,
+        setLanguageCode,
     };
 
     return (

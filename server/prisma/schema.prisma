@@ -4,8 +4,8 @@ datasource db {
 }
 
 generator client {
-    provider = "prisma-client"
-    output   = "../src/generated/client"
+    provider     = "prisma-client"
+    output       = "../src/generated/client"
     moduleFormat = "commonjs"
 }
 
@@ -15,23 +15,23 @@ enum Role {
 }
 
 model User {
-    userid            String         @id @default(cuid())
-    username          String         @unique
-    email             String         @unique
-    password          String
-    role              Role           @default(USER)
-    bestCPM           Decimal        @default(0)
-    avgCPM            Decimal        @default(0)
-    bestWPM           Decimal        @default(0)
-    avgWPM            Decimal        @default(0)
-    preferredTheme    String?
-    preferredFont     String?
-    preferredLanguage String?
-    createdAt         DateTime       @default(now())
-    updatedAt         DateTime       @updatedAt
-    userLessons       UserLesson[]
-    userPractices     UserPractice[]
-    refreshTokens     RefreshToken[]
+    userid                String         @id @default(cuid())
+    username              String         @unique
+    email                 String         @unique
+    password              String
+    role                  Role           @default(USER)
+    bestCPM               Decimal        @default(0)
+    avgCPM                Decimal        @default(0)
+    bestWPM               Decimal        @default(0)
+    avgWPM                Decimal        @default(0)
+    preferredTheme        String?
+    preferredFont         String?
+    preferredLanguageCode String?
+    createdAt             DateTime       @default(now())
+    updatedAt             DateTime       @updatedAt
+    userLessons           UserLesson[]
+    userPractices         UserPractice[]
+    refreshTokens         RefreshToken[]
 
     @@map("users")
 }
@@ -39,6 +39,7 @@ model User {
 model Language {
     languageid   String      @id @default(cuid())
     languageName String      @unique
+    languageCode String      @unique
     paragraphs   Paragraph[]
     words        Word[]
     lessons      Lesson[]
@@ -53,22 +54,22 @@ enum LengthType {
 }
 
 model Paragraph {
-    paragraphid      String     @id @default(cuid())
+    paragraphid      String      @id @default(cuid())
     lengthType       LengthType?
     paragraphContent String
-    language         Language   @relation(fields: [languageid], references: [languageid])
+    language         Language    @relation(fields: [languageid], references: [languageid])
     languageid       String
 
     @@map("paragraphs")
 }
 
 model Word {
-    wordid      String     @id @default(cuid())
+    wordid      String      @id @default(cuid())
     lengthType  LengthType?
     rowType     RowType?
-    normalForm  String     @unique
-    capitalForm String?    
-    language    Language   @relation(fields: [languageid], references: [languageid])
+    normalForm  String      @unique
+    capitalForm String?
+    language    Language    @relation(fields: [languageid], references: [languageid])
     languageid  String
 
     @@map("words")

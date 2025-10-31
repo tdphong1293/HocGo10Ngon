@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { getSessionModes, getPracticeTypingText } from '@/services/session.services';
 import { toast } from "react-toastify";
+import { useTheme } from "@/hooks/useTheme";
 
 interface TypingMode {
     modeName: string;
@@ -36,9 +37,10 @@ const TypingMenu: React.FC<TypingMenuProps> = ({
     setTypingText,
 }) => {
     const [sessionModeData, setSessionModeData] = useState<TypingMode[] | null>(null);
-
     const [activeMode, setActiveMode] = useState<TypingMode | null>(sessionModeData?.[0] || null);
     const [state, setState] = useState<TypingMode | null>(createDefaultState(sessionModeData?.[0] || null));
+    const [prevState, setPrevState] = useState<TypingMode | null>(null);
+    const { languageCode } = useTheme();
 
     useEffect(() => {
         const fetchModes = async () => {
@@ -56,7 +58,7 @@ const TypingMenu: React.FC<TypingMenuProps> = ({
     useEffect(() => {
         const fetchPracticeText = async () => {
             if (state) {
-                const response = await getPracticeTypingText(state);
+                const response = await getPracticeTypingText(languageCode, state);
                 if (response.ok) {
                     const { data } = await response.json();
                     setTypingText && setTypingText(data.text);
@@ -67,15 +69,21 @@ const TypingMenu: React.FC<TypingMenuProps> = ({
                 }
             }
         };
-        fetchPracticeText();
+
+        if (JSON.stringify(state) !== JSON.stringify(prevState)) {
+            fetchPracticeText();
+        }
     }, [state]);
 
     const handleModeChange = (mode: TypingMode) => {
+        if (activeMode?.modeName === mode.modeName) return; // no change
         setActiveMode(mode);
+        setPrevState(state);
         setState(createDefaultState(mode));
     }
 
     const handleToggleConfig = (key: string) => {
+        setPrevState(state);
         setState((prev: TypingMode | null) => {
             if (!prev) return null;
             return {
@@ -90,6 +98,7 @@ const TypingMenu: React.FC<TypingMenuProps> = ({
     };
 
     const handleToggleSubConfig = (key: string) => {
+        setPrevState(state);
         setState((prev: TypingMode | null) => {
             if (!prev) return null;
             return {
@@ -104,6 +113,8 @@ const TypingMenu: React.FC<TypingMenuProps> = ({
     };
 
     const handleSelectConfigOption = (key: string, value: any) => {
+        if (state?.config?.[key] === value) return; // no change
+        setPrevState(state);
         setState((prev: TypingMode | null) => {
             if (!prev) return null;
             return {
@@ -118,6 +129,8 @@ const TypingMenu: React.FC<TypingMenuProps> = ({
     };
 
     const handleSelectSubConfigOption = (key: string, value: any) => {
+        if (state?.subConfig?.[key] === value) return; // no change
+        setPrevState(state);
         setState((prev: TypingMode | null) => {
             if (!prev) return null;
             return {

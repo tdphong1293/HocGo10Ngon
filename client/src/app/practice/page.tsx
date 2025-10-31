@@ -38,6 +38,7 @@ const PracticePage = ({ }) => {
     const [keyboardSize, setKeyboardSize] = useState<keyboardSizes>('small');
     const [textSize, setTextSize] = useState<textSizes>('small');
     const [activeKeys, setActiveKeys] = useState<string[]>([]);
+    const [isFocused, setIsFocused] = useState(true);
 
     const inputRef = useRef<HTMLDivElement>(null);
     const scrollRef = useRef<HTMLDivElement>(null);
@@ -381,7 +382,15 @@ const PracticePage = ({ }) => {
                 <div>Time: {elapsedTime}s</div>
             </div>
             <div className="flex flex-col gap-5 items-center h-fit">
-                <div className="w-full bg-background">
+                <div className="w-full bg-background relative">
+                        <div
+                            className={`absolute inset-0 bg-accent/50 rounded-md mx-10 text-accent-foreground z-10 flex flex-col justify-center items-center gap-4 backdrop-blur-sm transition-opacity duration-300 ${isFocused ? 'opacity-0 pointer-events-none' : 'opacity-100 pointer-events-auto'}`}
+                            onClick={() => {
+                                inputRef.current?.focus();
+                            }}
+                        >
+                            Nhấn vào đây để tiếp tục gõ
+                        </div>
                     {/* Typing Area */}
                     <div
                         ref={scrollRef}
@@ -389,13 +398,27 @@ const PracticePage = ({ }) => {
                         style={{ maxHeight: `${getTypingAreaHeight(keyboardSize, textSize)}vh` }}
                     >
                         <div
-                            className="w-full px-10 cursor-text whitespace-pre-wrap break-words"
-                            onClick={() => inputRef.current?.focus()}
-                            onFocus={() => inputRef.current?.focus()}
+                            className="w-full px-10 cursor-text whitespace-pre-wrap break-words select-none"
+                            onClick={() => {
+                                inputRef.current?.focus();
+                                setIsFocused(true);
+                            }}
+                            onFocus={() => {
+                                inputRef.current?.focus();
+                                setIsFocused(true);
+                            }}
+                            onMouseDown={(e) => e.preventDefault()}
+                            onDragStart={(e) => e.preventDefault()}
                         >
                             {renderText()}
                         </div>
                         <div
+                            onBlur={() => {
+                                setIsFocused(false);
+                            }}
+                            onFocus={() => {
+                                setIsFocused(true);
+                            }}
                             ref={inputRef}
                             tabIndex={0}
                             onKeyDown={handleKeyDown}

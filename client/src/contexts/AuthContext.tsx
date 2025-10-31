@@ -12,6 +12,7 @@ interface AuthUser {
     role: Role;
     theme?: string;
     font?: string;
+    languageCode?: string;
 }
 
 interface AuthContextType {

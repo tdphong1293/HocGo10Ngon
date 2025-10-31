@@ -100,7 +100,7 @@ export class SessionService {
         }
     }
 
-    async getPracticeTypingText(mode: SessionMode): Promise<string> {
+    async getPracticeTypingText(languageCode: string, mode: SessionMode): Promise<string> {
         try {
             if (mode.modeName === 'words') {
                 const wordCount = mode.config?.wordCount || 50;
@@ -109,7 +109,7 @@ export class SessionService {
                 // --- 1. Fetch random words from DB ---
                 const words = await this.prismaService.word.findMany({
                     where: {
-                        language: { languageName: 'English' },
+                        language: { languageCode: languageCode },
                     },
                 });
 
@@ -171,12 +171,16 @@ export class SessionService {
                     subConfig: mode.subConfig,
                 } as SessionMode;
 
-                return this.getPracticeTypingText(tmpMode);
+                return this.getPracticeTypingText(languageCode, tmpMode);
             }
             else if (mode.modeName === 'paragraphs') {
                 const paragraphLength = mode.config?.paragraphLength || 'MEDIUM';
                 if (paragraphLength === 'ALL') {
-                    const paragraphs = await this.prismaService.paragraph.findMany({});
+                    const paragraphs = await this.prismaService.paragraph.findMany({
+                        where: {
+                            language: { languageCode: languageCode },
+                        }
+                    });
                     const randomParagraph = paragraphs[Math.floor(Math.random() * paragraphs.length)];
                     return randomParagraph.paragraphContent;
                 }
@@ -184,6 +188,7 @@ export class SessionService {
                     const paragraphs = await this.prismaService.paragraph.findMany({
                         where: {
                             lengthType: paragraphLength,
+                            language: { languageCode: languageCode },
                         }
                     });
                     const randomParagraph = paragraphs[Math.floor(Math.random() * paragraphs.length)];
@@ -197,6 +202,7 @@ export class SessionService {
                 const words = await this.prismaService.word.findMany({
                     where: {
                         rowType: rowType,
+                        language: { languageCode: languageCode },
                     }
                 });
 

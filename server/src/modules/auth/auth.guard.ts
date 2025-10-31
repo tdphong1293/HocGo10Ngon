@@ -22,6 +22,7 @@ export interface AuthenticatedRequest extends Request {
         role: string;
         font?: string;
         theme?: string;
+        language?: string;
         iat: number;
         exp: number;
     };
