@@ -1,4 +1,5 @@
 import { Theme, Font } from '@/contexts/ThemeContext'
+import { TypingMode } from './session.services'
 
 export const updatePreferredTheme = async (access_token: string, theme: Theme) => {
     return await fetch('/api/users/preferred-theme', {
@@ -63,5 +64,28 @@ export const changePassword = async (access_token: string, currentPassword: stri
         },
         credentials: 'include',
         body: JSON.stringify({ currentPassword, newPassword }),
+    })
+}
+
+export const getUserSessionMode = async (access_token: string) => {
+    return await fetch('/api/users/get-session-mode', {
+        method: 'GET',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${access_token}`,
+        },
+        credentials: 'include',
+    })
+}
+
+export const updateUserSessionMode = async (access_token: string, mode: TypingMode) => {
+    return await fetch('/api/users/update-session-mode', {
+        method: 'PUT',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${access_token}`,
+        },
+        credentials: 'include',
+        body: JSON.stringify(mode),
     })
 }

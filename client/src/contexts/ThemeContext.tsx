@@ -40,9 +40,15 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
     const { isAuthenticated, user, accessToken } = useAuth();
 
     useEffect(() => {
-        const savedTheme = document.cookie.split('; ').find(row => row.startsWith('theme='))?.split('=')[1];
-        const savedFont = document.cookie.split('; ').find(row => row.startsWith('font='))?.split('=')[1];
-        const savedLanguageCode = document.cookie.split('; ').find(row => row.startsWith('languageCode='))?.split('=')[1];
+        const getCookieValue = (name: string) => {
+            const value = document.cookie.split('; ').find(row => row.startsWith(name + '='))?.split('=')[1];
+            if (!value || value === 'undefined' || value === 'null') return undefined;
+            return value;
+        };
+
+        const savedTheme = getCookieValue('theme');
+        const savedFont = getCookieValue('font');
+        const savedLanguageCode = getCookieValue('languageCode');
 
         setTheme(savedTheme as Theme || 'light');
         setFont(savedFont as Font || 'geist');
@@ -59,15 +65,15 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
             document.cookie = `font=${encodeURIComponent(font)}; Path=/; Max-Age=${60 * 60 * 24 * 365}; SameSite=Lax`;
             document.cookie = `languageCode=${encodeURIComponent(languageCode)}; Path=/; Max-Age=${60 * 60 * 24 * 365}; SameSite=Lax`;
         }
-    }, [theme, font, languageCode]);
+    }, [isLoaded, theme, font, languageCode]);
 
     useEffect(() => {
         if (isLoaded && isAuthenticated && user && accessToken) {
-            setTheme(user.theme as Theme);
-            setFont(user.font as Font);
-            setLanguageCode(user.languageCode as string);
+            setTheme(user.theme as Theme || 'light');
+            setFont(user.font as Font || 'geist');
+            setLanguageCode(user.languageCode as string || 'en');
         }
-    }, [isLoaded, isAuthenticated, user, accessToken, theme, font, languageCode]);
+    }, [isLoaded, isAuthenticated, user, accessToken]);
 
     const value = {
         theme,

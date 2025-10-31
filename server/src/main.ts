@@ -22,10 +22,16 @@ async function bootstrap() {
 		.setTitle('HocGo10Ngon API')
 		.setDescription('HocGo10Ngon API description')
 		.setVersion('1.0')
-		.addBearerAuth()
+		.addBearerAuth(
+			{ type: 'http', scheme: 'bearer', bearerFormat: 'JWT' },
+			'access-token'
+		)
 		.build();
 	const document = SwaggerModule.createDocument(app, config);
-	SwaggerModule.setup('api', app, document);
+	document.security = [{ 'access-token': [] }];
+	SwaggerModule.setup('api', app, document, {
+		swaggerOptions: { persistAuthorization: true },
+	});
 
 	if (sessionModeData && sessionModeData.length > 0) {
 		const databaseService = app.get(DatabaseService);

@@ -1,8 +1,10 @@
 import { useState, useEffect } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { getSessionModes, getPracticeTypingText } from '@/services/session.services';
+import { getUserSessionMode, updateUserSessionMode } from "@/services/user.services";
 import { toast } from "react-toastify";
 import { useTheme } from "@/hooks/useTheme";
+import { useAuth } from "@/hooks/useAuth";
 
 interface TypingMode {
     modeName: string;
@@ -41,6 +43,7 @@ const TypingMenu: React.FC<TypingMenuProps> = ({
     const [state, setState] = useState<TypingMode | null>(createDefaultState(sessionModeData?.[0] || null));
     const [prevState, setPrevState] = useState<TypingMode | null>(null);
     const { languageCode } = useTheme();
+    const { isAuthenticated, user, accessToken } = useAuth();
 
     useEffect(() => {
         const fetchModes = async () => {
@@ -56,8 +59,26 @@ const TypingMenu: React.FC<TypingMenuProps> = ({
     }, []);
 
     useEffect(() => {
+        const fetchUserMode = async () => {
+            const response = await getUserSessionMode(accessToken!);
+            if (response.ok) {
+                const { data: { activeMode, sessionMode } } = await response.json();
+                setActiveMode(activeMode);
+                setState(sessionMode);
+            }
+        }
+        if (isAuthenticated && user && accessToken) {
+            fetchUserMode();
+        }
+    }, [isAuthenticated, user, accessToken]);
+
+    useEffect(() => {
         const fetchPracticeText = async () => {
             if (state) {
+                if (isAuthenticated && user && accessToken) {
+                    updateUserSessionMode(accessToken, state);
+                }
+
                 const response = await getPracticeTypingText(languageCode, state);
                 if (response.ok) {
                     const { data } = await response.json();
@@ -73,7 +94,7 @@ const TypingMenu: React.FC<TypingMenuProps> = ({
         if (JSON.stringify(state) !== JSON.stringify(prevState)) {
             fetchPracticeText();
         }
-    }, [state]);
+    }, [state, languageCode]);
 
     const handleModeChange = (mode: TypingMode) => {
         if (activeMode?.modeName === mode.modeName) return; // no change

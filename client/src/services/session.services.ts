@@ -7,7 +7,7 @@ export const getSessionModes = async () => {
     })
 }
 
-interface TypingMode {
+export interface TypingMode {
     modeName: string;
     config: { [key: string]: any };
     subConfig?: { [key: string]: any };

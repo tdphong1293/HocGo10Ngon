@@ -1,10 +1,18 @@
 import { BadRequestException, Injectable, InternalServerErrorException, NotFoundException, HttpException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import * as bcrypt from 'bcryptjs';
+import { InjectModel } from '@nestjs/mongoose';
+import { Model } from 'mongoose';
+import { UserSessionModeDocument } from '../mongoose/schemas/user_session_mode.schema';
+import { SessionModeDocument, SessionMode } from '../mongoose/schemas/session_mode.schema';
 
 @Injectable()
 export class UserService {
-    constructor(private readonly prisma: PrismaService) { }
+    constructor(
+        private readonly prisma: PrismaService,
+        @InjectModel('UserSessionMode') private userSessionModeModel: Model<UserSessionModeDocument>,
+        @InjectModel('SessionMode') private sessionModeModel: Model<SessionModeDocument>,
+    ) { }
 
     async create(username: string, email: string, password: string) {
         const hashedPassword = await bcrypt.hash(password, 10);
@@ -153,6 +161,74 @@ export class UserService {
                 throw error;
             }
             throw new InternalServerErrorException('Đổi mật khẩu không thành công');
+        }
+    }
+
+    async getUserSessionMode(userid: string) {
+        try {
+            const userSessionMode = await this.userSessionModeModel.findOne({ userid }).exec();
+
+            if (!userSessionMode) {
+                throw new NotFoundException('Không tìm thấy chế độ gõ của người dùng');
+            }
+
+            const activeSessionMode = await this.sessionModeModel.findOne({ modeName: userSessionMode.modeName }).exec();
+
+            if (!activeSessionMode) {
+                throw new NotFoundException('Chế độ gõ của người dùng không hợp lệ');
+            }
+
+            const userSessionModeFormatted = {
+                modeName: userSessionMode.modeName,
+                config: userSessionMode.config,
+                subConfig: userSessionMode.subConfig,
+            }
+
+            const userActiveModeFormatted = {
+                modeName: activeSessionMode.modeName,
+                config: activeSessionMode.config,
+                subConfig: activeSessionMode.subConfig,
+            }
+
+            return {
+                message: 'Lấy chế độ gõ của người dùng thành công',
+                activeMode: userActiveModeFormatted,
+                sessionMode: userSessionModeFormatted,
+            }
+        } catch (error) {
+            console.log('error', error);
+            if (error instanceof HttpException) {
+                throw error;
+            }
+            throw new InternalServerErrorException('Lấy chế độ gõ của người dùng không thành công');
+        }
+    }
+
+    async updateUserSessionMode(userid: string, mode: SessionMode) {
+        try {
+            const updatedSessionMode = await this.userSessionModeModel.updateOne(
+                { userid },
+                {
+                    modeName: mode.modeName,
+                    config: mode.config,
+                    subConfig: mode.subConfig,
+                },
+                { upsert: true }
+            ).exec();
+
+            if (!updatedSessionMode) {
+                throw new NotFoundException('Không tìm thấy chế độ gõ của người dùng');
+            }
+
+            return {
+                message: 'Cập nhật chế độ gõ của người dùng thành công',
+                sessionMode: updatedSessionMode,
+            }
+        } catch (error) {
+            if (error instanceof HttpException) {
+                throw error;
+            }
+            throw new InternalServerErrorException('Cập nhật chế độ gõ của người dùng không thành công');
         }
     }
 }
