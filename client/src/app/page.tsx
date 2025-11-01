@@ -7,10 +7,12 @@ import { FontTestDemo } from '@/components/FontTestDemo';
 import Keyboard from '@/components/Keyboard';
 import Input from '@/components/Input';
 import { useState } from 'react';
+import Switch from '@/components/Switch';
 
 export default function Home() {
 	const { theme, font } = useTheme();
 	const [inputValue, setInputValue] = useState('');
+	const [switchState, setSwitchState] = useState(false);
 
 	return (
 		<div className="min-h-screen p-8 pb-20 gap-16 sm:p-20">
@@ -190,6 +192,10 @@ export default function Home() {
 						label="Test label"
 					/>
 				</div>
+				<Switch
+					state={switchState} 
+					setState={setSwitchState}
+				/>
 
 				<footer className="text-center text-muted-foreground">
 					<p>Click the customize button in the top right to change themes and fonts!</p>

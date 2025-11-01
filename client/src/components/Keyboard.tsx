@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 
 export type keyboardSizes = 'small' | 'normal' | 'large';
 
@@ -42,16 +42,43 @@ const normalizeKeyName = (code: string): string => {
 };
 
 
-export const twoCharacterKey = (keys: string[], activeKeys: string[], size: keyboardSizes = 'large', extraClass: string = "") => {
-    const normalizedActiveKeys = activeKeys.map(normalizeKeyName);
-    const isActive = keys.some(key => normalizedActiveKeys.includes(key));
-    const sizeMap: Record<keyboardSizes, string> = {
+// ----- Shared helpers for DRY -----
+const sizeStyles = {
+    twoChar: {
         small: 'gap-0 px-2 py-0.5 min-h-9 min-w-9 text-xs',
         normal: 'gap-0.5 px-2 py-1 min-h-10 min-w-10 text-xs',
         large: 'gap-1 px-3 py-1 min-h-14 min-w-14 text-sm',
-    };
-    const baseClasses = `flex flex-col border-1 border-border justify-center items-center rounded-md transition-colors ${sizeMap[size]}`;
-    const bgClass = isActive ? "bg-primary text-primary-foreground" : "bg-background text-foreground";
+    },
+    func: {
+        small: 'px-1 py-0.5 min-h-9 text-xs',
+        normal: 'px-1 py-1 min-h-10 text-sm',
+        large: 'px-1 py-1 min-h-14 text-base',
+    },
+    letter: {
+        small: 'text-lg px-1 py-0.5 min-h-9 min-w-9',
+        normal: 'text-xl px-1 py-1 min-h-10 min-w-10',
+        large: 'text-4xl px-2 py-1 min-h-14 min-w-14',
+    },
+} as const;
+
+const baseKeyClasses = 'border-1 border-border rounded-md transition-colors';
+
+const bgForActive = (isActive: boolean) =>
+    isActive ? 'bg-primary text-primary-foreground' : 'bg-background text-foreground';
+
+const getNormalizedActiveKeys = (activeKeys: string[], pre?: string[]) => pre ?? activeKeys.map(normalizeKeyName);
+
+export const twoCharacterKey = (
+    keys: string[],
+    activeKeys: string[],
+    size: keyboardSizes = 'large',
+    extraClass: string = "",
+    normalizedActiveKeys?: string[],
+) => {
+    const normalized = getNormalizedActiveKeys(activeKeys, normalizedActiveKeys);
+    const isActive = keys.some(key => normalized.includes(key));
+    const baseClasses = `flex flex-col justify-center items-center ${baseKeyClasses} ${sizeStyles.twoChar[size]}`;
+    const bgClass = bgForActive(isActive);
 
     return (
         <div className={`${baseClasses} ${bgClass} ${extraClass}`.trim()}>
@@ -64,7 +91,13 @@ export const twoCharacterKey = (keys: string[], activeKeys: string[], size: keyb
     );
 }
 
-export const functionKey = (key: string, activeKeys: string[], size: keyboardSizes = 'large', extraClass: string = "") => {
+export const functionKey = (
+    key: string,
+    activeKeys: string[],
+    size: keyboardSizes = 'large',
+    extraClass: string = "",
+    normalizedActiveKeys?: string[],
+) => {
     let displayKey = key;
     if (key.toLowerCase() === 'lshift' || key.toLowerCase() === 'rshift') {
         displayKey = 'Shift';
@@ -78,14 +111,10 @@ export const functionKey = (key: string, activeKeys: string[], size: keyboardSiz
     else if (key.toLowerCase() === 'lalt' || key.toLowerCase() === 'ralt') {
         displayKey = 'Alt';
     }
-    const isActive = activeKeys.some(activeKey => normalizeKeyName(activeKey).toLowerCase() === key.toLowerCase());
-    const funcSizeMap: Record<keyboardSizes, string> = {
-        small: 'px-1 py-0.5 min-h-9 text-xs',
-        normal: 'px-1 py-1 min-h-10 text-sm',
-        large: 'px-1 py-1 min-h-14 text-base',
-    };
-    const baseClasses = `flex justify-start items-end border-1 border-border rounded-md transition-colors ${funcSizeMap[size]}`;
-    const bgClass = isActive ? "bg-primary text-primary-foreground" : "bg-background text-foreground";
+    const normalized = getNormalizedActiveKeys(activeKeys, normalizedActiveKeys).map(s => s.toLowerCase());
+    const isActive = normalized.includes(key.toLowerCase());
+    const baseClasses = `flex justify-start items-end ${baseKeyClasses} ${sizeStyles.func[size]}`;
+    const bgClass = bgForActive(isActive);
 
     return (
         <div className={`${baseClasses} ${bgClass} ${extraClass}`.trim()}>
@@ -94,15 +123,17 @@ export const functionKey = (key: string, activeKeys: string[], size: keyboardSiz
     );
 }
 
-export const letterKey = (key: string, activeKeys: string[], size: keyboardSizes = 'large', extraClass: string = "") => {
-    const isActive = activeKeys.some(activeKey => normalizeKeyName(activeKey).toLowerCase() === key.toLowerCase());
-    const sizeMap: Record<keyboardSizes, string> = {
-        small: 'text-lg px-1 py-0.5 min-h-9 min-w-9',
-        normal: 'text-xl px-1 py-1 min-h-10 min-w-10',
-        large: 'text-4xl px-2 py-1 min-h-14 min-w-14',
-    };
-    const baseClasses = `flex justify-center items-center border-1 border-border rounded-md transition-colors ${sizeMap[size]}`;
-    const bgClass = isActive ? "bg-primary text-primary-foreground" : "bg-background text-foreground";
+export const letterKey = (
+    key: string,
+    activeKeys: string[],
+    size: keyboardSizes = 'large',
+    extraClass: string = "",
+    normalizedActiveKeys?: string[],
+) => {
+    const normalized = getNormalizedActiveKeys(activeKeys, normalizedActiveKeys).map(s => s.toLowerCase());
+    const isActive = normalized.includes(key.toLowerCase());
+    const baseClasses = `flex justify-center items-center ${baseKeyClasses} ${sizeStyles.letter[size]}`;
+    const bgClass = bgForActive(isActive);
 
     return (
         <div key={`letter-key-${key}`} className={`${baseClasses} ${bgClass} ${extraClass}`.trim()}>
@@ -132,55 +163,57 @@ const Keyboard: React.FC<KeyboardProps> = ({
     };
     const containerGapClass = containerGapMap[size];
 
+    const normalizedActive = useMemo(() => activeKeys.map(normalizeKeyName), [activeKeys]);
+
     return (
         <div className={`keyboard-fixed-font flex flex-col ${containerGapClass} ${containerWidthClass} w-full`}>
             <div className={`flex ${containerGapClass}`}>
-                {twoCharacterKey(['~', '`'], activeKeys, size, 'w-1/16')}
-                {twoCharacterKey(['!', '1'], activeKeys, size, 'w-1/16')}
-                {twoCharacterKey(['@', '2'], activeKeys, size, 'w-1/16')}
-                {twoCharacterKey(['#', '3'], activeKeys, size, 'w-1/16')}
-                {twoCharacterKey(['$', '4'], activeKeys, size, 'w-1/16')}
-                {twoCharacterKey(['%', '5'], activeKeys, size, 'w-1/16')}
-                {twoCharacterKey(['^', '6'], activeKeys, size, 'w-1/16')}
-                {twoCharacterKey(['&', '7'], activeKeys, size, 'w-1/16')}
-                {twoCharacterKey(['*', '8'], activeKeys, size, 'w-1/16')}
-                {twoCharacterKey(['(', '9'], activeKeys, size, 'w-1/16')}
-                {twoCharacterKey([')', '0'], activeKeys, size, 'w-1/16')}
-                {twoCharacterKey(['_', '-'], activeKeys, size, 'w-1/16')}
-                {twoCharacterKey(['+', '='], activeKeys, size, 'w-1/16')}
-                {functionKey('Backspace', activeKeys, size, 'w-3/16')}
+                {twoCharacterKey(['~', '`'], activeKeys, size, 'w-1/16', normalizedActive)}
+                {twoCharacterKey(['!', '1'], activeKeys, size, 'w-1/16', normalizedActive)}
+                {twoCharacterKey(['@', '2'], activeKeys, size, 'w-1/16', normalizedActive)}
+                {twoCharacterKey(['#', '3'], activeKeys, size, 'w-1/16', normalizedActive)}
+                {twoCharacterKey(['$', '4'], activeKeys, size, 'w-1/16', normalizedActive)}
+                {twoCharacterKey(['%', '5'], activeKeys, size, 'w-1/16', normalizedActive)}
+                {twoCharacterKey(['^', '6'], activeKeys, size, 'w-1/16', normalizedActive)}
+                {twoCharacterKey(['&', '7'], activeKeys, size, 'w-1/16', normalizedActive)}
+                {twoCharacterKey(['*', '8'], activeKeys, size, 'w-1/16', normalizedActive)}
+                {twoCharacterKey(['(', '9'], activeKeys, size, 'w-1/16', normalizedActive)}
+                {twoCharacterKey([')', '0'], activeKeys, size, 'w-1/16', normalizedActive)}
+                {twoCharacterKey(['_', '-'], activeKeys, size, 'w-1/16', normalizedActive)}
+                {twoCharacterKey(['+', '='], activeKeys, size, 'w-1/16', normalizedActive)}
+                {functionKey('Backspace', activeKeys, size, 'w-3/16', normalizedActive)}
             </div>
             <div className={`flex ${containerGapClass}`}>
-                {functionKey('Tab', activeKeys, size, 'w-2/17')}
-                {TopRowKeys.map((key) => letterKey(key, activeKeys, size, 'w-1/17'))}
-                {twoCharacterKey(['{', '['], activeKeys, size, 'w-1/17')}
-                {twoCharacterKey(['}', ']'], activeKeys, size, 'w-1/17')}
-                {twoCharacterKey(['|', '\\'], activeKeys, size, 'w-3/17')}
+                {functionKey('Tab', activeKeys, size, 'w-2/17', normalizedActive)}
+                {TopRowKeys.map((key) => letterKey(key, activeKeys, size, 'w-1/17', normalizedActive))}
+                {twoCharacterKey(['{', '['], activeKeys, size, 'w-1/17', normalizedActive)}
+                {twoCharacterKey(['}', ']'], activeKeys, size, 'w-1/17', normalizedActive)}
+                {twoCharacterKey(['|', '\\'], activeKeys, size, 'w-3/17', normalizedActive)}
             </div>
             <div className={`flex ${containerGapClass}`}>
-                {functionKey('Caps Lock', activeKeys, size, 'w-4/19')}
-                {HomeRowKeys.map((key) => letterKey(key, activeKeys, size, 'w-1/19'))}
-                {twoCharacterKey([':', ';'], activeKeys, size, 'w-1/19')}
-                {twoCharacterKey(['"', "'"], activeKeys, size, 'w-1/19')}
-                {functionKey('Enter', activeKeys, size, 'w-6/19')}
+                {functionKey('Caps Lock', activeKeys, size, 'w-4/19', normalizedActive)}
+                {HomeRowKeys.map((key) => letterKey(key, activeKeys, size, 'w-1/19', normalizedActive))}
+                {twoCharacterKey([':', ';'], activeKeys, size, 'w-1/19', normalizedActive)}
+                {twoCharacterKey(['"', "'"], activeKeys, size, 'w-1/19', normalizedActive)}
+                {functionKey('Enter', activeKeys, size, 'w-6/19', normalizedActive)}
             </div>
             <div className={`flex ${containerGapClass}`}>
-                {functionKey('LShift', activeKeys, size, 'w-3/19')}
-                {BottomRowKeys.map((key) => letterKey(key, activeKeys, size, 'w-1/19'))}
-                {twoCharacterKey(['<', ','], activeKeys, size, 'w-1/19')}
-                {twoCharacterKey(['>', '.'], activeKeys, size, 'w-1/19')}
-                {twoCharacterKey(['?', '/'], activeKeys, size, 'w-1/19')}
-                {functionKey('RShift', activeKeys, size, 'w-5/19')}
+                {functionKey('LShift', activeKeys, size, 'w-3/19', normalizedActive)}
+                {BottomRowKeys.map((key) => letterKey(key, activeKeys, size, 'w-1/19', normalizedActive))}
+                {twoCharacterKey(['<', ','], activeKeys, size, 'w-1/19', normalizedActive)}
+                {twoCharacterKey(['>', '.'], activeKeys, size, 'w-1/19', normalizedActive)}
+                {twoCharacterKey(['?', '/'], activeKeys, size, 'w-1/19', normalizedActive)}
+                {functionKey('RShift', activeKeys, size, 'w-5/19', normalizedActive)}
             </div>
             <div className={`flex ${containerGapClass}`}>
-                {functionKey('LCtrl', activeKeys, size, 'w-1/11')}
-                {functionKey('LWin', activeKeys, size, 'w-1/11')}
-                {functionKey('LAlt', activeKeys, size, 'w-1/11')}
-                {functionKey('Space', activeKeys, size, 'w-5/12')}
-                {functionKey('RAlt', activeKeys, size, 'w-1/11')}
-                {functionKey('RWin', activeKeys, size, 'w-1/11')}
-                {functionKey('Menu', activeKeys, size, 'w-1/11')}
-                {functionKey('RCtrl', activeKeys, size, 'w-1/11')}
+                {functionKey('LCtrl', activeKeys, size, 'w-1/11', normalizedActive)}
+                {functionKey('LWin', activeKeys, size, 'w-1/11', normalizedActive)}
+                {functionKey('LAlt', activeKeys, size, 'w-1/11', normalizedActive)}
+                {functionKey('Space', activeKeys, size, 'w-5/12', normalizedActive)}
+                {functionKey('RAlt', activeKeys, size, 'w-1/11', normalizedActive)}
+                {functionKey('RWin', activeKeys, size, 'w-1/11', normalizedActive)}
+                {functionKey('Menu', activeKeys, size, 'w-1/11', normalizedActive)}
+                {functionKey('RCtrl', activeKeys, size, 'w-1/11', normalizedActive)}
             </div>
         </div>
     )
