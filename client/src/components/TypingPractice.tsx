@@ -29,6 +29,7 @@ interface TypingPracticeProps {
     showKeyboard: boolean;
     hintMode: boolean;
     onStatsChange?: (stats: TypingStats) => void;
+    enableSounds: boolean;
 }
 
 const TypingPractice: React.FC<TypingPracticeProps> = ({
@@ -38,6 +39,7 @@ const TypingPractice: React.FC<TypingPracticeProps> = ({
     showKeyboard,
     hintMode,
     onStatsChange,
+    enableSounds,
 }) => {
     const [userInput, setUserInput] = useState('');
     const [currentIndex, setCurrentIndex] = useState(0);
@@ -83,6 +85,7 @@ const TypingPractice: React.FC<TypingPracticeProps> = ({
     }, [timerRunning]);
 
     const playSound = (type: 'correct' | 'incorrect') => {
+        if (!enableSounds) return;
         const soundPath = type === 'correct' ? '/sounds/correct.mp3' : '/sounds/incorrect.mp3';
         const audio = new Audio(soundPath);
         audio.volume = 0.5;

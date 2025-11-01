@@ -9,8 +9,9 @@ import type { TextSize } from "@/config/typingUi";
 
 const PracticePage = ({ }) => {
     const [showKeyboard, setShowKeyboard] = useState(true);
+    const [enableSounds, setEnableSounds] = useState(true);
     const [keyboardSize, setKeyboardSize] = useState<keyboardSizes>('small');
-    const [textSize, setTextSize] = useState<TextSize>('large');
+    const [textSize, setTextSize] = useState<TextSize>('normal');
     const [hintMode, setHintMode] = useState(true);
     const [text, setText] = useState('');
 
@@ -37,6 +38,8 @@ const PracticePage = ({ }) => {
                     setShowKeyboard={setShowKeyboard}
                     hintMode={hintMode}
                     setHintMode={setHintMode}
+                    enableSounds={enableSounds}
+                    setEnableSounds={setEnableSounds}
                 />
             </div>
             <TypingPractice
@@ -46,6 +49,7 @@ const PracticePage = ({ }) => {
                 showKeyboard={showKeyboard}
                 hintMode={hintMode}
                 onStatsChange={setStats}
+                enableSounds={enableSounds}
             />
         </div>
     );

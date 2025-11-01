@@ -42,6 +42,8 @@ interface TypingOptionMenuProps {
     setShowKeyboard: (value: boolean) => void;
     hintMode: boolean;
     setHintMode: (value: boolean) => void;
+    enableSounds: boolean;
+    setEnableSounds: (value: boolean) => void;
 }
 
 const TypingOptionMenu: React.FC<TypingOptionMenuProps> = ({
@@ -52,7 +54,9 @@ const TypingOptionMenu: React.FC<TypingOptionMenuProps> = ({
     showKeyboard,
     setShowKeyboard,
     hintMode,
-    setHintMode
+    setHintMode,
+    enableSounds,
+    setEnableSounds,
 }) => {
     const [isOpen, setIsOpen] = useState(false);
 
@@ -69,7 +73,7 @@ const TypingOptionMenu: React.FC<TypingOptionMenuProps> = ({
                 {isOpen && (
                     <div className="absolute top-full right-0
                         bg-card shadow-lg rounded-lg p-4 border-2 border-border
-                        flex flex-col gap-2 z-20 w-100
+                        flex flex-col gap-5  z-20 w-100
                     ">
                         <div className="flex justify-between gap-5 items-start">
                             <span className="text-sm">Hiển thị chữ đúng ở dưới nếu gõ sai</span>
@@ -83,6 +87,13 @@ const TypingOptionMenu: React.FC<TypingOptionMenuProps> = ({
                             <Switch
                                 state={showKeyboard}
                                 setState={setShowKeyboard}
+                            />
+                        </div>
+                        <div className="flex justify-between gap-5 items-start">
+                            <span className="text-sm">Âm thanh khi gõ phím</span>
+                            <Switch
+                                state={enableSounds}
+                                setState={setEnableSounds}
                             />
                         </div>
                         <div className="flex flex-col gap-1">
