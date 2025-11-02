@@ -430,7 +430,7 @@ const TypingPractice: React.FC<TypingPracticeProps> = ({
         }
 
         if (endMode === 'time') {
-            if (timeLimit && elapsedTime >= timeLimit) {
+            if (timeLimit && (elapsedTime >= timeLimit || userInput.length >= text.length)) {
                 setIsFinished(true);
                 setTimerRunning(false);
             }

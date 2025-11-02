@@ -77,7 +77,6 @@ body {
 }
 
 @keyframes cursor-blink {
-
 	0%,
 	50% {
 		background-color: var(--cursor);
