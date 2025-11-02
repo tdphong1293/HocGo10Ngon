@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, use, useCallback } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { getSessionModes, getPracticeTypingText } from '@/services/session.services';
 import { getUserSessionMode, updateUserSessionMode } from "@/services/user.services";
@@ -14,6 +14,9 @@ interface TypingMode {
 
 interface TypingMenuProps {
     setTypingText: (text: string) => void;
+    setEndMode?: (mode: 'time' | 'length' | null) => void;
+    setTimeLimit?: (limit: number | null) => void;
+    onProvideRefresh?: (refresh: () => Promise<void>) => void;
 }
 
 const createDefaultState = (mode: TypingMode | null) => {
@@ -37,6 +40,9 @@ const createDefaultState = (mode: TypingMode | null) => {
 
 const TypingMenu: React.FC<TypingMenuProps> = ({
     setTypingText,
+    setEndMode,
+    setTimeLimit,
+    onProvideRefresh,
 }) => {
     const [sessionModeData, setSessionModeData] = useState<TypingMode[] | null>(null);
     const [activeMode, setActiveMode] = useState<TypingMode | null>(sessionModeData?.[0] || null);
@@ -72,27 +78,47 @@ const TypingMenu: React.FC<TypingMenuProps> = ({
         }
     }, [isAuthenticated, user, accessToken]);
 
-    useEffect(() => {
-        const fetchPracticeText = async () => {
-            if (state) {
-                if (isAuthenticated && user && accessToken) {
-                    updateUserSessionMode(accessToken, state);
-                }
-
-                const response = await getPracticeTypingText(languageCode, state);
-                if (response.ok) {
-                    const { data } = await response.json();
-                    setTypingText && setTypingText(data.text);
-                }
-                else {
-                    const errorData = await response.json();
-                    toast.error(errorData.message || 'Lỗi khi lấy văn bản luyện tập');
-                }
+    const fetchPracticeText = useCallback(async () => {
+        if (state) {
+            if (isAuthenticated && user && accessToken && JSON.stringify(state) !== JSON.stringify(prevState)) {
+                updateUserSessionMode(accessToken, state);
             }
-        };
 
+            const response = await getPracticeTypingText(languageCode, state);
+            if (response.ok) {
+                const { data } = await response.json();
+                setTypingText && setTypingText(data.text);
+            }
+            else {
+                const errorData = await response.json();
+                toast.error(errorData.message || 'Lỗi khi lấy văn bản luyện tập');
+            }
+        }
+    }, [state, prevState, languageCode, isAuthenticated, user, accessToken]);
+
+    // Expose bound refresh function to parent
+    useEffect(() => {
+        onProvideRefresh?.(fetchPracticeText);
+    }, [onProvideRefresh, fetchPracticeText]);
+
+    useEffect(() => {
         if (JSON.stringify(state) !== JSON.stringify(prevState)) {
             fetchPracticeText();
+
+            switch (state?.modeName) {
+                case 'time':
+                    setEndMode?.('time');
+                    setTimeLimit?.(state.config?.timeLimit || null);
+                    break;
+                case 'words':
+                case 'row-based':
+                case 'paragraphs':
+                    setEndMode?.('length');
+                    setTimeLimit?.(null);
+                    break;
+                default:
+                    setEndMode?.(null);
+            }
         }
     }, [state, languageCode]);
 

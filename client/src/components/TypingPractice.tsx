@@ -5,6 +5,8 @@ import Keyboard, { keyboardSizes } from '@/components/Keyboard';
 import { Icon } from '@iconify/react';
 import type { TextSize } from '@/config/typingUi';
 import { textSizeClass, wrongTextClass } from '@/config/typingUi';
+import TypingOptionMenu from '@/app/practice/TypingOptionMenu';
+import { AnimatePresence, motion } from 'framer-motion';
 
 interface Keystroke {
     key: string;
@@ -20,16 +22,23 @@ export interface TypingStats {
     accuracy: number;
     errors: number;
     elapsed: number;
+    words: number;
 }
 
 interface TypingPracticeProps {
     text: string;
-    textSize: TextSize;
-    keyboardSize: keyboardSizes;
-    showKeyboard: boolean;
-    hintMode: boolean;
+    // Controlled (optional)
+    textSize?: TextSize;
+    keyboardSize?: keyboardSizes;
+    showKeyboard?: boolean;
+    hintMode?: boolean;
+    enableSounds?: boolean;
+    // Outputs and misc
     onStatsChange?: (stats: TypingStats) => void;
-    enableSounds: boolean;
+    endMode?: 'time' | 'words' | 'length' | null;
+    timeLimit?: number | null;
+    // Refresh text function
+    refreshText?: () => Promise<void>;
 }
 
 const TypingPractice: React.FC<TypingPracticeProps> = ({
@@ -40,6 +49,9 @@ const TypingPractice: React.FC<TypingPracticeProps> = ({
     hintMode,
     onStatsChange,
     enableSounds,
+    endMode = null,
+    timeLimit = null,
+    refreshText,
 }) => {
     const [userInput, setUserInput] = useState('');
     const [currentIndex, setCurrentIndex] = useState(0);
@@ -54,18 +66,63 @@ const TypingPractice: React.FC<TypingPracticeProps> = ({
 
     // Typing metrics
     const [startTime, setStartTime] = useState<number | null>(null);
+    const [userWordCount, setUserWordCount] = useState(0);
     const [elapsedTime, setElapsedTime] = useState(0); // seconds
     const [errorCount, setErrorCount] = useState(0);
     const [correctCount, setCorrectCount] = useState(0);
     const [timerRunning, setTimerRunning] = useState(false);
     const [keystrokeLog, setKeystrokeLog] = useState<Array<Keystroke>>([]);
 
-    const [timeLimit, setTimeLimit] = useState<number | null>(null);
-    const [wordLimit, setWordLimit] = useState<number | null>(null);
+    const [isFinished, setIsFinished] = useState(false);
 
-    const wordCount = text.trim().split(/\s+/).length;
+    const wordCount = (text: string) => {
+        return text.trim().split(/\s+/).filter(word => word.length > 0).length;
+    }
+
+    const textWordCount = wordCount(text);
+
+    // Local option state (used when uncontrolled)
+    const [localTextSize, setLocalTextSize] = useState<TextSize>('normal');
+    const [localKeyboardSize, setLocalKeyboardSize] = useState<keyboardSizes>('small');
+    const [localShowKeyboard, setLocalShowKeyboard] = useState<boolean>(true);
+    const [localHintMode, setLocalHintMode] = useState<boolean>(true);
+    const [localEnableSounds, setLocalEnableSounds] = useState<boolean>(true);
+
+    // Initialize local options from props or localStorage
+    useEffect(() => {
+        const ls = typeof window !== 'undefined' ? window.localStorage : null;
+        const saved = {
+            textSize: (ls?.getItem('textSize') as TextSize | null) ?? null,
+            keyboardSize: (ls?.getItem('keyboardSize') as keyboardSizes | null) ?? null,
+            showKeyboard: ls ? JSON.parse(ls.getItem('showKeyboard') ?? 'true') as boolean : true,
+            hintMode: ls ? JSON.parse(ls.getItem('hintMode') ?? 'true') as boolean : true,
+            enableSounds: ls ? JSON.parse(ls.getItem('enableSounds') ?? 'true') as boolean : true,
+        };
+
+        setLocalTextSize(textSize ?? saved.textSize ?? 'normal');
+        setLocalKeyboardSize(keyboardSize ?? saved.keyboardSize ?? 'small');
+        setLocalShowKeyboard(showKeyboard ?? saved.showKeyboard ?? true);
+        setLocalHintMode(hintMode ?? saved.hintMode ?? true);
+        setLocalEnableSounds((typeof enableSounds === 'boolean') ? enableSounds : saved.enableSounds ?? true);
+    }, []);
 
     useEffect(() => {
+        const ls = typeof window !== 'undefined' ? window.localStorage : null;
+        if (!ls) return;
+        ls.setItem('textSize', localTextSize);
+        ls.setItem('keyboardSize', localKeyboardSize);
+        ls.setItem('showKeyboard', JSON.stringify(localShowKeyboard));
+        ls.setItem('hintMode', JSON.stringify(localHintMode));
+        ls.setItem('enableSounds', JSON.stringify(localEnableSounds));
+    }, [localTextSize, localKeyboardSize, localShowKeyboard, localHintMode, localEnableSounds]);
+
+    const textSizeToUse = textSize ?? localTextSize;
+    const keyboardSizeToUse = keyboardSize ?? localKeyboardSize;
+    const showKeyboardToUse = showKeyboard ?? localShowKeyboard;
+    const hintModeToUse = hintMode ?? localHintMode;
+    const enableSoundsToUse = (typeof enableSounds === 'boolean') ? enableSounds : localEnableSounds;
+
+    const resetSession = () => {
         setUserInput('');
         setCurrentIndex(0);
         setStartTime(null);
@@ -74,6 +131,11 @@ const TypingPractice: React.FC<TypingPracticeProps> = ({
         setCorrectCount(0);
         setTimerRunning(false);
         setKeystrokeLog([]);
+        setIsFinished(false);
+    }
+
+    useEffect(() => {
+        resetSession();
     }, [text]);
 
     useEffect(() => {
@@ -85,7 +147,7 @@ const TypingPractice: React.FC<TypingPracticeProps> = ({
     }, [timerRunning]);
 
     const playSound = (type: 'correct' | 'incorrect') => {
-        if (!enableSounds) return;
+        if (!enableSoundsToUse) return;
         const soundPath = type === 'correct' ? '/sounds/correct.mp3' : '/sounds/incorrect.mp3';
         const audio = new Audio(soundPath);
         audio.volume = 0.5;
@@ -104,6 +166,21 @@ const TypingPractice: React.FC<TypingPracticeProps> = ({
         setActiveKeys((prev) => (prev.includes(keyCode) ? prev : [...prev, keyCode]));
 
         const key = e.key;
+
+        // Ctrl + Shift + R => Lấy text gõ mới
+        if (e.ctrlKey && e.shiftKey && !e.altKey && key.toLowerCase() === 'r') {
+            e.preventDefault();
+            (async () => { await refreshText?.(); })();
+            return;
+        }
+
+        // Ctrl + R => reset lại session gõ hiện tại
+        if (e.ctrlKey && !e.shiftKey && !e.altKey && key.toLowerCase() === 'r') {
+            e.preventDefault(); // stop browser refresh
+            resetSession();
+            return;
+        }
+
         if (e.metaKey || e.ctrlKey || key === 'F12' || key === 'F5' || key === 'Escape') return;
 
         e.preventDefault();
@@ -227,11 +304,11 @@ const TypingPractice: React.FC<TypingPracticeProps> = ({
             );
         }
 
-        if (hintMode && isTyped && !isCorrect) {
+        if (hintModeToUse && isTyped && !isCorrect) {
             return (
                 <span key={index} className="relative">
                     <span className="text-incorrect">{renderSymbol(expectedChar)}</span>
-                    <span className={`absolute text-accent-foreground/30 left-1/2 -translate-x-1/2 top-1/2 ${wrongTextClass[textSize]}`}>
+                    <span className={`absolute text-accent-foreground/30 left-1/2 -translate-x-1/2 top-1/2 ${wrongTextClass[textSizeToUse]}`}>
                         {renderSymbol(typedChar)}
                     </span>
                 </span>
@@ -254,7 +331,7 @@ const TypingPractice: React.FC<TypingPracticeProps> = ({
         const lines = text.split(/(?<=\n)/);
         let globalIndex = 0;
         return (
-            <div className={`flex flex-col gap-0 ${textSizeClass[textSize]}`}>
+            <div className={`flex flex-col gap-0 ${textSizeClass[textSizeToUse]}`}>
                 {lines.map((line, lineIndex) => (
                     <div key={lineIndex} className={`w-full leading-loose`}>
                         {line.split(' ').map((word, wordIndex) => {
@@ -299,10 +376,12 @@ const TypingPractice: React.FC<TypingPracticeProps> = ({
             normal: 5,
             large: 10,
         };
-        return textHeightMap[textSize] - (showKeyboard ? keyboardAdjustMap[keyboardSize] : -extraHeight);
+        return textHeightMap[textSize] - (showKeyboardToUse ? keyboardAdjustMap[keyboardSize] : -extraHeight);
     };
 
     useEffect(() => {
+        setUserWordCount(wordCount(userInput));
+
         if (cursorRef.current && scrollRef.current) {
             const cursor = cursorRef.current;
             const container = scrollRef.current;
@@ -314,6 +393,19 @@ const TypingPractice: React.FC<TypingPracticeProps> = ({
                 container.scrollTo({ top: cursorTop, behavior: 'smooth' });
             } else if (cursorTop < viewTop) {
                 container.scrollTo({ top: Math.max(0, viewTop - container.clientHeight + 20), behavior: 'smooth' });
+            }
+        }
+
+        if (endMode === 'time') {
+            if (timeLimit && elapsedTime >= timeLimit) {
+                setIsFinished(true);
+                setTimerRunning(false);
+            }
+        }
+        else if (endMode === 'length') {
+            if (userInput.length >= text.length) {
+                setIsFinished(true);
+                setTimerRunning(false);
             }
         }
     }, [userInput]);
@@ -337,11 +429,61 @@ const TypingPractice: React.FC<TypingPracticeProps> = ({
         const raw = (correctCount + errorCount) / (minutes || 1) || 0;
         const wpm = correctCount / 5 / (minutes || 1) || 0;
         const accuracy = correctCount + errorCount === 0 ? 100 : (correctCount / (correctCount + errorCount)) * 100;
-        onStatsChange?.({ wpm, cpm, raw, accuracy, errors: errorCount, elapsed: elapsedTime });
+        onStatsChange?.({ wpm, cpm, raw, accuracy, errors: errorCount, elapsed: elapsedTime, words: userWordCount });
     }, [correctCount, errorCount, elapsedTime]);
 
     return (
         <div className="flex flex-col gap-5 items-center h-fit w-full">
+            {/* Stats + Options */}
+            <div className="flex justify-between w-full gap-10 px-10">
+                <div className="w-full flex justify-start items-center gap-4 text-accent-foreground">
+                    <div className="flex flex-col text-right">
+                        <span className="text-sm font-bold">WPM:</span>
+                        <span className="text-lg">{((correctCount / 5) / (elapsedTime / 60 || 1)).toFixed(2)}</span>
+                    </div>
+                    <div className="flex flex-col text-right">
+                        <span className="text-sm font-bold">CPM:</span>
+                        <span className="text-lg">{(correctCount / (elapsedTime / 60 || 1)).toFixed(2)}</span>
+                    </div>
+                    <div className="flex flex-col text-right">
+                        <span className="text-sm font-bold">Raw:</span>
+                        <span className="text-lg">{(((correctCount + errorCount)) / (elapsedTime / 60 || 1)).toFixed(2)}</span>
+                    </div>
+                    <div className="flex flex-col text-right">
+                        <span className="text-sm font-bold">Accuracy:</span>
+                        <span className="text-lg">{(correctCount + errorCount === 0 ? 100 : (correctCount / (correctCount + errorCount)) * 100).toFixed(2)}%</span>
+                    </div>
+                    <div className="flex flex-col text-right">
+                        <span className="text-sm font-bold">Errors:</span>
+                        <span className="text-lg">{errorCount}</span>
+                    </div>
+                    <div className="flex flex-col text-right">
+                        <span className="text-sm font-bold">Time:</span>
+                        <span className="text-lg">{elapsedTime}s {timeLimit ? ` / ${timeLimit}s` : ''}</span>
+                    </div>
+                    <div className="flex flex-col text-right">
+                        <span className="text-sm font-bold">Words:</span>
+                        <span className="text-lg">{userWordCount} / {textWordCount}</span>
+                    </div>
+                    {isFinished && (
+                        <div className="flex flex-col">
+                            <span className="text-sm font-bold">Finished!</span>
+                        </div>
+                    )}
+                </div>
+                <TypingOptionMenu
+                    textSize={textSizeToUse}
+                    keyboardSize={keyboardSizeToUse}
+                    setTextSize={setLocalTextSize}
+                    setKeyboardSize={setLocalKeyboardSize}
+                    showKeyboard={showKeyboardToUse}
+                    setShowKeyboard={setLocalShowKeyboard}
+                    hintMode={hintModeToUse}
+                    setHintMode={setLocalHintMode}
+                    enableSounds={enableSoundsToUse}
+                    setEnableSounds={setLocalEnableSounds}
+                />
+            </div>
             <div className="w-full bg-background relative">
                 <div
                     className={`absolute inset-0 bg-accent/50 rounded-md mx-10 text-accent-foreground z-10 flex flex-col justify-center items-center gap-4 backdrop-blur-sm transition-opacity duration-300 ${isFocused ? 'opacity-0 pointer-events-none' : 'opacity-100 pointer-events-auto'}`}
@@ -363,10 +505,13 @@ const TypingPractice: React.FC<TypingPracticeProps> = ({
                 <div
                     ref={scrollRef}
                     className={`relative overflow-y-auto flex justify-center items-start scrollbar-hide`}
-                    style={{ maxHeight: `${getTypingAreaHeight(keyboardSize, textSize)}vh` }}
+                    style={{ maxHeight: `${getTypingAreaHeight(keyboardSizeToUse, textSizeToUse)}vh` }}
                 >
                     <div
                         className="w-full px-10 cursor-text whitespace-pre-wrap break-words select-none"
+                        style={{
+                            fontFeatureSettings: '"liga" 0, "calt" 0',
+                        }}
                         onClick={() => {
                             inputRef.current?.focus();
                             setIsFocused(true);
@@ -391,8 +536,8 @@ const TypingPractice: React.FC<TypingPracticeProps> = ({
                     />
                 </div>
             </div>
-            {showKeyboard && (
-                <Keyboard activeKeys={activeKeys} size={keyboardSize} />
+            {showKeyboardToUse && (
+                <Keyboard activeKeys={activeKeys} size={keyboardSizeToUse} />
             )}
         </div>
     );
