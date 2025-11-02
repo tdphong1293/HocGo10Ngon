@@ -74,6 +74,7 @@ const TypingPractice: React.FC<TypingPracticeProps> = ({
     const [keystrokeLog, setKeystrokeLog] = useState<Array<Keystroke>>([]);
 
     const [isFinished, setIsFinished] = useState(false);
+    const [textAnimationKey, setTextAnimationKey] = useState(0);
 
     const wordCount = (text: string) => {
         return text.trim().split(/\s+/).filter(word => word.length > 0).length;
@@ -136,6 +137,7 @@ const TypingPractice: React.FC<TypingPracticeProps> = ({
 
     useEffect(() => {
         resetSession();
+        setTextAnimationKey(Math.random());
     }, [text]);
 
     useEffect(() => {
@@ -484,7 +486,14 @@ const TypingPractice: React.FC<TypingPracticeProps> = ({
                     setEnableSounds={setLocalEnableSounds}
                 />
             </div>
-            <div className="w-full bg-background relative">
+            <motion.div
+                key={textAnimationKey}
+                className="w-full bg-background relative"
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.9 }}
+                transition={{ duration: 0.35, ease: 'easeOut' }}
+            >
                 <div
                     className={`absolute inset-0 bg-accent/50 rounded-md mx-10 text-accent-foreground z-10 flex flex-col justify-center items-center gap-4 backdrop-blur-sm transition-opacity duration-300 ${isFocused ? 'opacity-0 pointer-events-none' : 'opacity-100 pointer-events-auto'}`}
                     onClick={() => inputRef.current?.focus()}
@@ -535,10 +544,22 @@ const TypingPractice: React.FC<TypingPracticeProps> = ({
                         className="absolute opacity-0 top-4 left-4 pointer-events-none"
                     />
                 </div>
-            </div>
-            {showKeyboardToUse && (
-                <Keyboard activeKeys={activeKeys} size={keyboardSizeToUse} />
-            )}
+            </motion.div>
+            <AnimatePresence>
+                {showKeyboardToUse && (
+                    <motion.div
+                        initial={{ opacity: 0, y: 30 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: 30 }}
+                        transition={{ duration: 0.3, ease: 'easeOut' }}
+                    >
+                        <Keyboard
+                            activeKeys={activeKeys}
+                            size={keyboardSizeToUse}
+                        />
+                    </motion.div>
+                )}
+            </AnimatePresence>
         </div>
     );
 };
