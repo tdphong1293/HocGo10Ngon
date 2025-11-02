@@ -5,8 +5,9 @@ import Keyboard, { keyboardSizes } from '@/components/Keyboard';
 import { Icon } from '@iconify/react';
 import type { TextSize } from '@/config/typingUi';
 import { textSizeClass, wrongTextClass } from '@/config/typingUi';
-import TypingOptionMenu from '@/app/practice/TypingOptionMenu';
+import TypingOptionMenu from './TypingOptionMenu';
 import { AnimatePresence, motion } from 'framer-motion';
+import PostSessionLineChart from './PostSessionLineChart';
 
 interface Keystroke {
     key: string;
@@ -37,6 +38,7 @@ interface TypingPracticeProps {
     onStatsChange?: (stats: TypingStats) => void;
     endMode?: 'time' | 'words' | 'length' | null;
     timeLimit?: number | null;
+    heldKey?: string | null;
     // Refresh text function
     refreshText?: () => Promise<void>;
 }
@@ -51,18 +53,19 @@ const TypingPractice: React.FC<TypingPracticeProps> = ({
     enableSounds,
     endMode = null,
     timeLimit = null,
+    heldKey = null,
     refreshText,
 }) => {
     const [userInput, setUserInput] = useState('');
     const [currentIndex, setCurrentIndex] = useState(0);
     const [activeKeys, setActiveKeys] = useState<string[]>([]);
-    const [isFocused, setIsFocused] = useState(true);
-    const [heldKey, setHeldKey] = useState<string | null>(null);
+    const [isFocused, setIsFocused] = useState(false);
     const [isHoldingKey, setIsHoldingKey] = useState(false);
 
     const inputRef = useRef<HTMLDivElement>(null);
     const scrollRef = useRef<HTMLDivElement>(null);
     const cursorRef = useRef<HTMLSpanElement>(null);
+    const isProcessingRef = useRef(false);
 
     // Typing metrics
     const [startTime, setStartTime] = useState<number | null>(null);
@@ -72,6 +75,7 @@ const TypingPractice: React.FC<TypingPracticeProps> = ({
     const [correctCount, setCorrectCount] = useState(0);
     const [timerRunning, setTimerRunning] = useState(false);
     const [keystrokeLog, setKeystrokeLog] = useState<Array<Keystroke>>([]);
+    const [inputHistory, setInputHistory] = useState<string>(''); // Track actual typed characters
 
     const [isFinished, setIsFinished] = useState(false);
     const [textAnimationKey, setTextAnimationKey] = useState(0);
@@ -132,6 +136,7 @@ const TypingPractice: React.FC<TypingPracticeProps> = ({
         setCorrectCount(0);
         setTimerRunning(false);
         setKeystrokeLog([]);
+        setInputHistory('');
         setIsFinished(false);
     }
 
@@ -164,8 +169,15 @@ const TypingPractice: React.FC<TypingPracticeProps> = ({
     }, []);
 
     const handleKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
+        if (isProcessingRef.current) return; // Prevent recursive calls
+        isProcessingRef.current = true;
+
         const keyCode = e.code;
-        setActiveKeys((prev) => (prev.includes(keyCode) ? prev : [...prev, keyCode]));
+        // Use callback form but return same reference if no change to prevent unnecessary re-renders
+        setActiveKeys((prev) => {
+            if (prev.includes(keyCode)) return prev;
+            return [...prev, keyCode];
+        });
 
         const key = e.key;
 
@@ -173,6 +185,7 @@ const TypingPractice: React.FC<TypingPracticeProps> = ({
         if (e.ctrlKey && e.shiftKey && !e.altKey && key.toLowerCase() === 'r') {
             e.preventDefault();
             (async () => { await refreshText?.(); })();
+            isProcessingRef.current = false;
             return;
         }
 
@@ -180,13 +193,26 @@ const TypingPractice: React.FC<TypingPracticeProps> = ({
         if (e.ctrlKey && !e.shiftKey && !e.altKey && key.toLowerCase() === 'r') {
             e.preventDefault(); // stop browser refresh
             resetSession();
+            isProcessingRef.current = false;
             return;
         }
 
-        if (e.metaKey || e.ctrlKey || key === 'F12' || key === 'F5' || key === 'Escape') return;
+        if (e.metaKey || e.ctrlKey || key === 'F12' || key === 'F5' || key === 'Escape') {
+            isProcessingRef.current = false;
+            return;
+        }
 
         e.preventDefault();
-        if (["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown"].includes(key)) return;
+        if (["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown"].includes(key)) {
+            isProcessingRef.current = false;
+            return;
+        }
+
+        // Helper to get current timestamp relative to start
+        const getTimestamp = () => {
+            if (!startTime) return 0; // Return 0 if timer hasn't started yet
+            return Date.now() - startTime;
+        };
 
         if (key === 'Backspace') {
             if (heldKey && !isHoldingKey) return;
@@ -195,10 +221,13 @@ const TypingPractice: React.FC<TypingPracticeProps> = ({
                 setUserInput(newValue);
                 setCurrentIndex(newValue.length);
                 playSound('correct');
-                setKeystrokeLog((prev) => [
-                    ...prev,
-                    { key: 'Backspace', timestamp: Date.now() - (startTime ?? 0), correct: true, index: newValue.length },
-                ]);
+                // Only log if timer has started
+                if (startTime) {
+                    setKeystrokeLog((prev) => [
+                        ...prev,
+                        { key: 'Backspace', timestamp: getTimestamp(), correct: true, index: newValue.length },
+                    ]);
+                }
             }
             return;
         }
@@ -212,13 +241,14 @@ const TypingPractice: React.FC<TypingPracticeProps> = ({
             const newValue = userInput + '\n';
             setUserInput(newValue);
             setCurrentIndex(newValue.length);
+            setInputHistory(prev => prev + '\n'); // Add to history
             const expectedChar = text[newValue.length - 1];
             const correct = expectedChar === '\n';
             playSound(correct ? 'correct' : 'incorrect');
             correct ? setCorrectCount((p) => p + 1) : setErrorCount((p) => p + 1);
             setKeystrokeLog((prev) => [
                 ...prev,
-                { key: 'Enter', timestamp: Date.now() - (startTime ?? 0), correct, index: newValue.length - 1 },
+                { key: 'Enter', timestamp: getTimestamp(), correct, index: newValue.length - 1 },
             ]);
             return;
         }
@@ -232,13 +262,14 @@ const TypingPractice: React.FC<TypingPracticeProps> = ({
             const newValue = userInput + '\t';
             setUserInput(newValue);
             setCurrentIndex(newValue.length);
+            setInputHistory(prev => prev + '\t'); // Add to history
             const expectedChar = text[newValue.length - 1];
             const correct = expectedChar === '\t';
             playSound(correct ? 'correct' : 'incorrect');
             correct ? setCorrectCount((p) => p + 1) : setErrorCount((p) => p + 1);
             setKeystrokeLog((prev) => [
                 ...prev,
-                { key: 'Tab', timestamp: Date.now() - (startTime ?? 0), correct, index: newValue.length - 1 },
+                { key: 'Tab', timestamp: getTimestamp(), correct, index: newValue.length - 1 },
             ]);
             return;
         }
@@ -257,15 +288,19 @@ const TypingPractice: React.FC<TypingPracticeProps> = ({
             const newValue = userInput + key;
             setUserInput(newValue);
             setCurrentIndex(newValue.length);
+            setInputHistory(prev => prev + key); // Add to history
             const expectedChar = text[newValue.length - 1];
             const correct = key === expectedChar;
             playSound(correct ? 'correct' : 'incorrect');
             correct ? setCorrectCount((p) => p + 1) : setErrorCount((p) => p + 1);
             setKeystrokeLog((prev) => [
                 ...prev,
-                { key, timestamp: Date.now() - (startTime ?? 0), correct, index: newValue.length - 1 },
+                { key, timestamp: getTimestamp(), correct, index: newValue.length - 1 },
             ]);
         }
+
+        // Reset processing flag
+        isProcessingRef.current = false;
     };
 
     const handleKeyUp = (e: React.KeyboardEvent<HTMLDivElement>) => {
@@ -362,10 +397,6 @@ const TypingPractice: React.FC<TypingPracticeProps> = ({
         );
     };
 
-    useEffect(() => {
-        inputRef.current?.focus();
-    }, []);
-
     const getTypingAreaHeight = (keyboardSize: keyboardSizes, textSize: TextSize) => {
         const extraHeight = 10;
         const textHeightMap: Record<TextSize, number> = {
@@ -410,7 +441,7 @@ const TypingPractice: React.FC<TypingPracticeProps> = ({
                 setTimerRunning(false);
             }
         }
-    }, [userInput]);
+    }, [userInput, endMode, timeLimit, elapsedTime, text.length]);  
 
     useEffect(() => {
         const container = scrollRef.current;
@@ -467,11 +498,6 @@ const TypingPractice: React.FC<TypingPracticeProps> = ({
                         <span className="text-sm font-bold">Words:</span>
                         <span className="text-lg">{userWordCount} / {textWordCount}</span>
                     </div>
-                    {isFinished && (
-                        <div className="flex flex-col">
-                            <span className="text-sm font-bold">Finished!</span>
-                        </div>
-                    )}
                 </div>
                 <TypingOptionMenu
                     textSize={textSizeToUse}
@@ -493,6 +519,7 @@ const TypingPractice: React.FC<TypingPracticeProps> = ({
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.9 }}
                 transition={{ duration: 0.35, ease: 'easeOut' }}
+                onAnimationComplete={() => inputRef.current?.focus()}
             >
                 <div
                     className={`absolute inset-0 bg-accent/50 rounded-md mx-10 text-accent-foreground z-10 flex flex-col justify-center items-center gap-4 backdrop-blur-sm transition-opacity duration-300 ${isFocused ? 'opacity-0 pointer-events-none' : 'opacity-100 pointer-events-auto'}`}
@@ -513,7 +540,7 @@ const TypingPractice: React.FC<TypingPracticeProps> = ({
                 {/* Typing Area */}
                 <div
                     ref={scrollRef}
-                    className={`relative overflow-y-auto flex justify-center items-start scrollbar-hide`}
+                    className={`relative overflow-y-hidden flex justify-center items-start`}
                     style={{ maxHeight: `${getTypingAreaHeight(keyboardSizeToUse, textSizeToUse)}vh` }}
                 >
                     <div
@@ -560,6 +587,54 @@ const TypingPractice: React.FC<TypingPracticeProps> = ({
                     </motion.div>
                 )}
             </AnimatePresence>
+            {isFinished && keystrokeLog.length > 0 && (
+                <div className="w-full mt-10 space-y-6">
+                    <div>
+                        <h3 className="text-xl font-bold text-accent-foreground mb-4">Session Performance</h3>
+                        <PostSessionLineChart keystrokeLog={keystrokeLog} />
+                    </div>
+
+                    {inputHistory && (
+                        <div className="w-full">
+                            <h3 className="text-lg font-bold text-accent-foreground mb-3">Input History</h3>
+                            <div className="bg-accent/30 rounded-lg p-4 border border-border">
+                                <div className="font-mono text-sm whitespace-pre-wrap break-words text-accent-foreground">
+                                    {inputHistory.split('').map((char, i) => {
+                                        const expectedChar = text[i];
+                                        const isCorrect = char === expectedChar;
+
+                                        if (char === ' ') {
+                                            return (
+                                                <span
+                                                    key={i}
+                                                    className={`inline-block w-[1ch] ${isCorrect ? 'bg-green-500/20' : 'bg-red-500/20'}`}
+                                                >
+                                                    &nbsp;
+                                                </span>
+                                            );
+                                        }
+                                        if (char === '\n') {
+                                            return <span key={i} className={isCorrect ? 'text-green-500' : 'text-red-500'}>↵<br /></span>;
+                                        }
+                                        if (char === '\t') {
+                                            return <span key={i} className={isCorrect ? 'text-green-500' : 'text-red-500'}>→</span>;
+                                        }
+
+                                        return (
+                                            <span
+                                                key={i}
+                                                className={isCorrect ? 'text-green-500' : 'text-red-500 font-bold'}
+                                            >
+                                                {char}
+                                            </span>
+                                        );
+                                    })}
+                                </div>
+                            </div>
+                        </div>
+                    )}
+                </div>
+            )}
         </div>
     );
 };

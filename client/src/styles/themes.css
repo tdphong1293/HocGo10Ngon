@@ -29,6 +29,12 @@
 	--cursor: oklch(25% 0.015 250);
 	--cursor-text: oklch(100% 0 0);
 
+	/* Chart Colors */
+	--chart-wpm: oklch(64% 0.175 200);
+	--chart-raw: oklch(70% 0.191 50);
+	--chart-burst: oklch(64% 0.175 145);
+	--chart-error: oklch(62% 0.257 25);
+
 	/* Toast Colors */
 	--toastify-color-success: oklch(90% 0.04 145);
 	--toastify-text-color-success: oklch(55% 0.12 145);
@@ -69,6 +75,12 @@
 	--untyped: oklch(65% 0.031 250);
 	--cursor: oklch(98% 0.002 250);
 	--cursor-text: oklch(8% 0 0);
+
+	/* Chart Colors - Dark */
+	--chart-wpm: oklch(68% 0.175 200);
+	--chart-raw: oklch(72% 0.191 50);
+	--chart-burst: oklch(68% 0.175 145);
+	--chart-error: oklch(62% 0.257 25);
 
 	/* Toast Colors - Dark */
 	--toastify-color-success: oklch(20% 0.04 145);
@@ -111,6 +123,12 @@
 	--cursor: oklch(66% 0.175 250);
 	--cursor-text: oklch(97% 0.024 250);
 
+	/* Chart Colors - Ocean */
+	--chart-wpm: oklch(66% 0.175 250);
+	--chart-raw: oklch(70% 0.191 50);
+	--chart-burst: oklch(60% 0.175 175);
+	--chart-error: oklch(62% 0.257 25);
+
 	/* Toast Colors - Ocean */
 	--toastify-color-success: oklch(88% 0.04 175);
 	--toastify-text-color-success: oklch(55% 0.12 175);
@@ -151,6 +169,12 @@
 	--untyped: oklch(48% 0.112 145);
 	--cursor: oklch(64% 0.175 145);
 	--cursor-text: oklch(97% 0.043 145);
+
+	/* Chart Colors - Forest */
+	--chart-wpm: oklch(64% 0.175 145);
+	--chart-raw: oklch(70% 0.191 50);
+	--chart-burst: oklch(56% 0.175 145);
+	--chart-error: oklch(62% 0.257 25);
 
 	/* Toast Colors - Forest */
 	--toastify-color-success: oklch(88% 0.04 145);
@@ -193,6 +217,12 @@
 	--cursor: oklch(72% 0.191 70);
 	--cursor-text: oklch(97% 0.024 70);
 
+	/* Chart Colors - Sunset */
+	--chart-wpm: oklch(66% 0.175 200);
+	--chart-raw: oklch(72% 0.191 70);
+	--chart-burst: oklch(60% 0.175 175);
+	--chart-error: oklch(62% 0.257 25);
+
 	/* Toast Colors - Sunset */
 	--toastify-color-success: oklch(88% 0.04 145);
 	--toastify-text-color-success: oklch(55% 0.12 145);
@@ -233,6 +263,12 @@
 	--untyped: oklch(60% 0.175 305);
 	--cursor: oklch(65% 0.217 305);
 	--cursor-text: oklch(97% 0.024 305);
+
+	/* Chart Colors - Lavender */
+	--chart-wpm: oklch(66% 0.175 200);
+	--chart-raw: oklch(70% 0.191 50);
+	--chart-burst: oklch(60% 0.175 145);
+	--chart-error: oklch(62% 0.257 25);
 
 	/* Toast Colors - Lavender */
 	--toastify-color-success: oklch(88% 0.04 145);
@@ -275,6 +311,12 @@
 	--cursor: oklch(62% 0.257 25);
 	--cursor-text: oklch(97% 0.055 25);
 
+	/* Chart Colors - Crimson */
+	--chart-wpm: oklch(66% 0.175 200);
+	--chart-raw: oklch(70% 0.191 50);
+	--chart-burst: oklch(60% 0.175 145);
+	--chart-error: oklch(58% 0.257 25);
+
 	/* Toast Colors - Crimson */
 	--toastify-color-success: oklch(92% 0.03 145);
 	--toastify-text-color-success: oklch(60% 0.1 145);
@@ -315,6 +357,12 @@
 	--untyped: oklch(40% 0.02 260);
 	--cursor: oklch(60% 0.18 230);
 	--cursor-text: oklch(6% 0 260);
+
+	/* Chart Colors - Midnight */
+	--chart-wpm: oklch(60% 0.18 230);
+	--chart-raw: oklch(70% 0.191 50);
+	--chart-burst: oklch(56% 0.14 200);
+	--chart-error: oklch(62% 0.26 25);
 
 	/* Toast Colors */
 	--toastify-color-success: oklch(18% 0.02 200);
@@ -357,6 +405,12 @@
 	--cursor: oklch(55% 0.12 130);
 	--cursor-text: oklch(98% 0.002 130);
 
+	/* Chart Colors - Sage */
+	--chart-wpm: oklch(66% 0.175 200);
+	--chart-raw: oklch(70% 0.191 50);
+	--chart-burst: oklch(56% 0.16 145);
+	--chart-error: oklch(62% 0.26 25);
+
 	/* Toast Colors */
 	--toastify-color-success: oklch(88% 0.04 145);
 	--toastify-text-color-success: oklch(55% 0.12 145);
@@ -397,6 +451,12 @@
 	--untyped: oklch(60% 0.03 80);
 	--cursor: oklch(70% 0.22 80);
 	--cursor-text: oklch(98% 0.002 80);
+
+	/* Chart Colors - Solar */
+	--chart-wpm: oklch(66% 0.175 200);
+	--chart-raw: oklch(70% 0.22 80);
+	--chart-burst: oklch(64% 0.18 90);
+	--chart-error: oklch(62% 0.26 25);
 
 	/* Toast Colors */
 	--toastify-color-success: oklch(88% 0.04 145);
@@ -439,6 +499,12 @@
 	--cursor: oklch(68% 0.18 30);
 	--cursor-text: oklch(98% 0.002 30);
 
+	/* Chart Colors - Peach */
+	--chart-wpm: oklch(66% 0.175 200);
+	--chart-raw: oklch(68% 0.18 30);
+	--chart-burst: oklch(64% 0.18 40);
+	--chart-error: oklch(62% 0.26 25);
+
 	/* Toast Colors */
 	--toastify-color-success: oklch(88% 0.04 145);
 	--toastify-text-color-success: oklch(55% 0.12 145);
@@ -480,6 +546,12 @@
 	--cursor: oklch(62% 0.2 320);
 	--cursor-text: oklch(98% 0.002 320);
 
+	/* Chart Colors - Berry */
+	--chart-wpm: oklch(66% 0.175 200);
+	--chart-raw: oklch(70% 0.191 50);
+	--chart-burst: oklch(64% 0.18 320);
+	--chart-error: oklch(62% 0.26 25);
+
 	/* Toast Colors */
 	--toastify-color-success: oklch(88% 0.04 145);
 	--toastify-text-color-success: oklch(55% 0.12 145);
@@ -520,6 +592,12 @@
 	--untyped: oklch(24% 0.02 0);
 	--cursor: oklch(86% 0.02 200);
 	--cursor-text: oklch(12% 0 0);
+
+	/* Chart Colors - Charcoal */
+	--chart-wpm: oklch(86% 0.02 200);
+	--chart-raw: oklch(70% 0.191 50);
+	--chart-burst: oklch(68% 0.18 145);
+	--chart-error: oklch(62% 0.26 25);
 
 	/* Toast Colors */
 	--toastify-color-success: oklch(20% 0.04 145);

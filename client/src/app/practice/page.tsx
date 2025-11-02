@@ -2,7 +2,7 @@
 
 import { useRef, useState } from "react";
 import TypingModeMenu from "./TypingModeMenu";
-import TypingPractice from "@/components/TypingPractice";
+import TypingPractice from "./TypingPractice";
 
 const PracticePage = ({ }) => {
     const [text, setText] = useState('');
