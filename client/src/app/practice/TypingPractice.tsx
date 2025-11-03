@@ -7,13 +7,12 @@ import type { TextSize } from '@/config/typingUi';
 import { textSizeClass, wrongTextClass } from '@/config/typingUi';
 import TypingOptionMenu from './TypingOptionMenu';
 import { AnimatePresence, motion } from 'framer-motion';
-import PostSessionLineChart from './PostSessionLineChart';
+import PostSessionStat from './PostSessionStat';
 
-interface Keystroke {
+export interface Keystroke {
     key: string;
     timestamp: number;
     correct: boolean;
-    index: number;
 }
 
 export interface TypingStats {
@@ -70,12 +69,21 @@ const TypingPractice: React.FC<TypingPracticeProps> = ({
     // Typing metrics
     const [startTime, setStartTime] = useState<number | null>(null);
     const [userWordCount, setUserWordCount] = useState(0);
-    const [elapsedTime, setElapsedTime] = useState(0); // seconds
+    const [elapsedTime, setElapsedTime] = useState(0);
     const [errorCount, setErrorCount] = useState(0);
     const [correctCount, setCorrectCount] = useState(0);
     const [timerRunning, setTimerRunning] = useState(false);
     const [keystrokeLog, setKeystrokeLog] = useState<Array<Keystroke>>([]);
-    const [inputHistory, setInputHistory] = useState<string>(''); // Track actual typed characters
+    const [inputHistory, setInputHistory] = useState<string>('');
+    const [typingStats, setTypingStats] = useState<TypingStats>({
+        wpm: 0,
+        cpm: 0,
+        raw: 0,
+        accuracy: 100,
+        errors: 0,
+        elapsed: 0,
+        words: 0,
+    });
 
     const [isFinished, setIsFinished] = useState(false);
     const [textAnimationKey, setTextAnimationKey] = useState(0);
@@ -142,7 +150,7 @@ const TypingPractice: React.FC<TypingPracticeProps> = ({
 
     useEffect(() => {
         resetSession();
-        setTextAnimationKey(Math.random());
+        setTextAnimationKey(key => key + 1);
     }, [text]);
 
     useEffect(() => {
@@ -170,6 +178,7 @@ const TypingPractice: React.FC<TypingPracticeProps> = ({
 
     const handleKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
         if (isProcessingRef.current) return; // Prevent recursive calls
+        if (isFinished) return; // Disable typing when finished
         isProcessingRef.current = true;
 
         const keyCode = e.code;
@@ -215,7 +224,10 @@ const TypingPractice: React.FC<TypingPracticeProps> = ({
         };
 
         if (key === 'Backspace') {
-            if (heldKey && !isHoldingKey) return;
+            if (heldKey && !isHoldingKey) {
+                isProcessingRef.current = false;
+                return;
+            }
             if (userInput.length > 0) {
                 const newValue = userInput.slice(0, -1);
                 setUserInput(newValue);
@@ -229,11 +241,15 @@ const TypingPractice: React.FC<TypingPracticeProps> = ({
                     ]);
                 }
             }
+            isProcessingRef.current = false;
             return;
         }
 
         if (key === 'Enter') {
-            if (heldKey && !isHoldingKey) return;
+            if (heldKey && !isHoldingKey) {
+                isProcessingRef.current = false;
+                return;
+            }
             if (!timerRunning) {
                 setTimerRunning(true);
                 setStartTime(Date.now());
@@ -250,11 +266,15 @@ const TypingPractice: React.FC<TypingPracticeProps> = ({
                 ...prev,
                 { key: 'Enter', timestamp: getTimestamp(), correct, index: newValue.length - 1 },
             ]);
+            isProcessingRef.current = false;
             return;
         }
 
         if (key === 'Tab') {
-            if (heldKey && !isHoldingKey) return;
+            if (heldKey && !isHoldingKey) {
+                isProcessingRef.current = false;
+                return;
+            }
             if (!timerRunning) {
                 setTimerRunning(true);
                 setStartTime(Date.now());
@@ -262,7 +282,7 @@ const TypingPractice: React.FC<TypingPracticeProps> = ({
             const newValue = userInput + '\t';
             setUserInput(newValue);
             setCurrentIndex(newValue.length);
-            setInputHistory(prev => prev + '\t'); // Add to history
+            setInputHistory(prev => prev + '\t');
             const expectedChar = text[newValue.length - 1];
             const correct = expectedChar === '\t';
             playSound(correct ? 'correct' : 'incorrect');
@@ -271,16 +291,24 @@ const TypingPractice: React.FC<TypingPracticeProps> = ({
                 ...prev,
                 { key: 'Tab', timestamp: getTimestamp(), correct, index: newValue.length - 1 },
             ]);
+            isProcessingRef.current = false;
             return;
         }
 
         if (key.length === 1) {
             if (heldKey && heldKey === key) {
                 setIsHoldingKey(true);
+                isProcessingRef.current = false;
                 return;
             }
-            if (heldKey && !isHoldingKey) return;
-            if (e.repeat) return; // avoid repeats for characters
+            if (heldKey && !isHoldingKey) {
+                isProcessingRef.current = false;
+                return;
+            }
+            if (e.repeat) {
+                isProcessingRef.current = false;
+                return;
+            }
             if (!timerRunning) {
                 setTimerRunning(true);
                 setStartTime(Date.now());
@@ -441,7 +469,7 @@ const TypingPractice: React.FC<TypingPracticeProps> = ({
                 setTimerRunning(false);
             }
         }
-    }, [userInput, endMode, timeLimit, elapsedTime, text.length]);  
+    }, [userInput, endMode, timeLimit, elapsedTime, text.length]);
 
     useEffect(() => {
         const container = scrollRef.current;
@@ -463,117 +491,123 @@ const TypingPractice: React.FC<TypingPracticeProps> = ({
         const wpm = correctCount / 5 / (minutes || 1) || 0;
         const accuracy = correctCount + errorCount === 0 ? 100 : (correctCount / (correctCount + errorCount)) * 100;
         onStatsChange?.({ wpm, cpm, raw, accuracy, errors: errorCount, elapsed: elapsedTime, words: userWordCount });
-    }, [correctCount, errorCount, elapsedTime]);
+        setTypingStats({ wpm, cpm, raw, accuracy, errors: errorCount, elapsed: elapsedTime, words: userWordCount });
+    }, [correctCount, errorCount, elapsedTime, userWordCount, onStatsChange]);
 
     return (
         <div className="flex flex-col gap-5 items-center h-fit w-full">
             {/* Stats + Options */}
-            <div className="flex justify-between w-full gap-10 px-10">
-                <div className="w-full flex justify-start items-center gap-4 text-accent-foreground">
-                    <div className="flex flex-col text-right">
-                        <span className="text-sm font-bold">WPM:</span>
-                        <span className="text-lg">{((correctCount / 5) / (elapsedTime / 60 || 1)).toFixed(2)}</span>
+            {!isFinished && (
+                <div className="flex justify-between w-full gap-10 px-10">
+                    <div className="w-full flex justify-start items-center gap-4 text-accent-foreground">
+                        <div className="flex flex-col text-right">
+                            <span className="text-sm font-bold">WPM:</span>
+                            <span className="text-lg">{(typingStats.wpm).toFixed(2)}</span>
+                        </div>
+                        <div className="flex flex-col text-right">
+                            <span className="text-sm font-bold">CPM:</span>
+                            <span className="text-lg">{(typingStats.cpm).toFixed(2)}</span>
+                        </div>
+                        <div className="flex flex-col text-right">
+                            <span className="text-sm font-bold">Raw:</span>
+                            <span className="text-lg">{(typingStats.raw).toFixed(2)}</span>
+                        </div>
+                        <div className="flex flex-col text-right">
+                            <span className="text-sm font-bold">Accuracy:</span>
+                            <span className="text-lg">{(typingStats.accuracy).toFixed(2)}%</span>
+                        </div>
+                        <div className="flex flex-col text-right">
+                            <span className="text-sm font-bold">Errors:</span>
+                            <span className="text-lg">{typingStats.errors}</span>
+                        </div>
+                        <div className="flex flex-col text-right">
+                            <span className="text-sm font-bold">Time:</span>
+                            <span className="text-lg">{elapsedTime}s {timeLimit ? ` / ${timeLimit}s` : ''}</span>
+                        </div>
+                        <div className="flex flex-col text-right">
+                            <span className="text-sm font-bold">Words:</span>
+                            <span className="text-lg">{userWordCount} / {textWordCount}</span>
+                        </div>
                     </div>
-                    <div className="flex flex-col text-right">
-                        <span className="text-sm font-bold">CPM:</span>
-                        <span className="text-lg">{(correctCount / (elapsedTime / 60 || 1)).toFixed(2)}</span>
-                    </div>
-                    <div className="flex flex-col text-right">
-                        <span className="text-sm font-bold">Raw:</span>
-                        <span className="text-lg">{(((correctCount + errorCount)) / (elapsedTime / 60 || 1)).toFixed(2)}</span>
-                    </div>
-                    <div className="flex flex-col text-right">
-                        <span className="text-sm font-bold">Accuracy:</span>
-                        <span className="text-lg">{(correctCount + errorCount === 0 ? 100 : (correctCount / (correctCount + errorCount)) * 100).toFixed(2)}%</span>
-                    </div>
-                    <div className="flex flex-col text-right">
-                        <span className="text-sm font-bold">Errors:</span>
-                        <span className="text-lg">{errorCount}</span>
-                    </div>
-                    <div className="flex flex-col text-right">
-                        <span className="text-sm font-bold">Time:</span>
-                        <span className="text-lg">{elapsedTime}s {timeLimit ? ` / ${timeLimit}s` : ''}</span>
-                    </div>
-                    <div className="flex flex-col text-right">
-                        <span className="text-sm font-bold">Words:</span>
-                        <span className="text-lg">{userWordCount} / {textWordCount}</span>
-                    </div>
-                </div>
-                <TypingOptionMenu
-                    textSize={textSizeToUse}
-                    keyboardSize={keyboardSizeToUse}
-                    setTextSize={setLocalTextSize}
-                    setKeyboardSize={setLocalKeyboardSize}
-                    showKeyboard={showKeyboardToUse}
-                    setShowKeyboard={setLocalShowKeyboard}
-                    hintMode={hintModeToUse}
-                    setHintMode={setLocalHintMode}
-                    enableSounds={enableSoundsToUse}
-                    setEnableSounds={setLocalEnableSounds}
-                />
-            </div>
-            <motion.div
-                key={textAnimationKey}
-                className="w-full bg-background relative"
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.9 }}
-                transition={{ duration: 0.35, ease: 'easeOut' }}
-                onAnimationComplete={() => inputRef.current?.focus()}
-            >
-                <div
-                    className={`absolute inset-0 bg-accent/50 rounded-md mx-10 text-accent-foreground z-10 flex flex-col justify-center items-center gap-4 backdrop-blur-sm transition-opacity duration-300 ${isFocused ? 'opacity-0 pointer-events-none' : 'opacity-100 pointer-events-auto'}`}
-                    onClick={() => inputRef.current?.focus()}
-                >
-                    Nhấn vào đây để tiếp tục gõ
-                </div>
-                <div
-                    className={`absolute inset-0 bg-accent/50 rounded-md mx-10 text-accent-foreground z-10 flex flex-col justify-center items-center gap-4 backdrop-blur-sm transition-opacity duration-300 pointer-events-none ${isHoldingKey || !heldKey ? 'opacity-0' : 'opacity-100'}`}
-                >
-                    <div className="flex gap-3 justify-center items-center text-2xl">
-                        Vui lòng giữ phím
-                        <span className="w-10 h-10 bg-primary/20 rounded-md flex justify-center items-center border-2 border-primary-foreground text-primary-foreground animate-bounce">{heldKey}</span>
-                        để tiếp tục
-                    </div>
-                </div>
-
-                {/* Typing Area */}
-                <div
-                    ref={scrollRef}
-                    className={`relative overflow-y-hidden flex justify-center items-start`}
-                    style={{ maxHeight: `${getTypingAreaHeight(keyboardSizeToUse, textSizeToUse)}vh` }}
-                >
-                    <div
-                        className="w-full px-10 cursor-text whitespace-pre-wrap break-words select-none"
-                        style={{
-                            fontFeatureSettings: '"liga" 0, "calt" 0',
-                        }}
-                        onClick={() => {
-                            inputRef.current?.focus();
-                            setIsFocused(true);
-                        }}
-                        onFocus={() => {
-                            inputRef.current?.focus();
-                            setIsFocused(true);
-                        }}
-                        onMouseDown={(e) => e.preventDefault()}
-                        onDragStart={(e) => e.preventDefault()}
-                    >
-                        {renderText()}
-                    </div>
-                    <div
-                        onBlur={() => setIsFocused(false)}
-                        onFocus={() => setIsFocused(true)}
-                        ref={inputRef}
-                        tabIndex={0}
-                        onKeyDown={handleKeyDown}
-                        onKeyUp={handleKeyUp}
-                        className="absolute opacity-0 top-4 left-4 pointer-events-none"
+                    <TypingOptionMenu
+                        textSize={textSizeToUse}
+                        keyboardSize={keyboardSizeToUse}
+                        setTextSize={setLocalTextSize}
+                        setKeyboardSize={setLocalKeyboardSize}
+                        showKeyboard={showKeyboardToUse}
+                        setShowKeyboard={setLocalShowKeyboard}
+                        hintMode={hintModeToUse}
+                        setHintMode={setLocalHintMode}
+                        enableSounds={enableSoundsToUse}
+                        setEnableSounds={setLocalEnableSounds}
                     />
                 </div>
-            </motion.div>
+            )}
+            {!isFinished && (
+                <motion.div
+                    key={textAnimationKey}
+                    className="w-full bg-background relative"
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.9 }}
+                    transition={{ duration: 0.35, ease: 'easeOut' }}
+                    onAnimationComplete={() => inputRef.current?.focus()}
+                >
+                    <div
+                        className={`absolute inset-0 bg-accent/50 rounded-md mx-10 text-accent-foreground z-10 flex flex-col justify-center items-center gap-4 backdrop-blur-sm transition-opacity duration-300 ${isFocused ? 'opacity-0 pointer-events-none' : 'opacity-100 pointer-events-auto'}`}
+                        onClick={() => inputRef.current?.focus()}
+                    >
+                        Nhấn vào đây để tiếp tục gõ
+                    </div>
+                    <div
+                        className={`absolute inset-0 bg-accent/50 rounded-md mx-10 text-accent-foreground z-10 flex flex-col justify-center items-center gap-4 backdrop-blur-sm transition-opacity duration-300 pointer-events-none ${isHoldingKey || !heldKey ? 'opacity-0' : 'opacity-100'}`}
+                    >
+                        <div className="flex gap-3 justify-center items-center text-2xl">
+                            Vui lòng giữ phím
+                            <span className="w-10 h-10 bg-primary/20 rounded-md flex justify-center items-center border-2 border-primary-foreground text-primary-foreground animate-bounce">{heldKey}</span>
+                            để tiếp tục
+                        </div>
+                    </div>
+
+                    {/* Typing Area */}
+                    <div
+                        ref={scrollRef}
+                        className={`relative overflow-y-hidden flex justify-center items-start`}
+                        style={{ maxHeight: `${getTypingAreaHeight(keyboardSizeToUse, textSizeToUse)}vh` }}
+                    >
+                        <div
+                            className="w-full px-10 cursor-text whitespace-pre-wrap break-words select-none"
+                            style={{
+                                fontFeatureSettings: '"liga" 0, "calt" 0',
+                            }}
+                            onClick={() => {
+                                inputRef.current?.focus();
+                                setIsFocused(true);
+                            }}
+                            onFocus={() => {
+                                inputRef.current?.focus();
+                                setIsFocused(true);
+                            }}
+                            onMouseDown={(e) => e.preventDefault()}
+                            onDragStart={(e) => e.preventDefault()}
+                        >
+                            {renderText()}
+                        </div>
+                        <div
+                            onBlur={() => setIsFocused(false)}
+                            onFocus={() => setIsFocused(true)}
+                            ref={inputRef}
+                            tabIndex={0}
+                            onKeyDown={handleKeyDown}
+                            onKeyUp={handleKeyUp}
+                            className="absolute opacity-0 top-4 left-4 pointer-events-none"
+                        />
+                    </div>
+                </motion.div>
+            )}
+
             <AnimatePresence>
-                {showKeyboardToUse && (
+                {showKeyboardToUse && !isFinished && (
                     <motion.div
                         initial={{ opacity: 0, y: 30 }}
                         animate={{ opacity: 1, y: 0 }}
@@ -587,54 +621,24 @@ const TypingPractice: React.FC<TypingPracticeProps> = ({
                     </motion.div>
                 )}
             </AnimatePresence>
-            {isFinished && keystrokeLog.length > 0 && (
-                <div className="w-full mt-10 space-y-6">
-                    <div>
-                        <h3 className="text-xl font-bold text-accent-foreground mb-4">Session Performance</h3>
-                        <PostSessionLineChart keystrokeLog={keystrokeLog} />
-                    </div>
-
-                    {inputHistory && (
-                        <div className="w-full">
-                            <h3 className="text-lg font-bold text-accent-foreground mb-3">Input History</h3>
-                            <div className="bg-accent/30 rounded-lg p-4 border border-border">
-                                <div className="font-mono text-sm whitespace-pre-wrap break-words text-accent-foreground">
-                                    {inputHistory.split('').map((char, i) => {
-                                        const expectedChar = text[i];
-                                        const isCorrect = char === expectedChar;
-
-                                        if (char === ' ') {
-                                            return (
-                                                <span
-                                                    key={i}
-                                                    className={`inline-block w-[1ch] ${isCorrect ? 'bg-green-500/20' : 'bg-red-500/20'}`}
-                                                >
-                                                    &nbsp;
-                                                </span>
-                                            );
-                                        }
-                                        if (char === '\n') {
-                                            return <span key={i} className={isCorrect ? 'text-green-500' : 'text-red-500'}>↵<br /></span>;
-                                        }
-                                        if (char === '\t') {
-                                            return <span key={i} className={isCorrect ? 'text-green-500' : 'text-red-500'}>→</span>;
-                                        }
-
-                                        return (
-                                            <span
-                                                key={i}
-                                                className={isCorrect ? 'text-green-500' : 'text-red-500 font-bold'}
-                                            >
-                                                {char}
-                                            </span>
-                                        );
-                                    })}
-                                </div>
-                            </div>
-                        </div>
-                    )}
-                </div>
-            )}
+            <AnimatePresence>
+                {isFinished && keystrokeLog.length > 0 && (
+                    <motion.div
+                        initial={{ opacity: 0, y: 50 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: 50 }}
+                        transition={{ duration: 0.5, ease: 'easeOut' }}
+                        className="w-full"
+                    >
+                        <PostSessionStat
+                            text={text}
+                            keystrokeLog={keystrokeLog}
+                            typingStats={typingStats}
+                            inputHistory={inputHistory}
+                        />
+                    </motion.div>
+                )}
+            </AnimatePresence>
         </div>
     );
 };

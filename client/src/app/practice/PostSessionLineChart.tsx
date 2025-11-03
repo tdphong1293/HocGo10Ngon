@@ -2,21 +2,15 @@
 
 import { LineChart, XAxis, YAxis, CartesianGrid, Tooltip, Legend, Line, ResponsiveContainer, ReferenceLine } from 'recharts';
 import { useState } from 'react';
-
-interface Keystroke {
-    key: string;
-    timestamp: number;
-    correct: boolean;
-    index: number;
-}
+import { Keystroke } from './TypingPractice';
 
 export interface ChartDataPoint {
-    time: number;           // seconds
-    wpm: number;           // WPM at this time
-    raw: number;           // Raw WPM (including errors)
-    burst: number;         // Peak WPM in this interval
-    errors: number;        // Cumulative error count
-    hasError?: boolean;    // Whether this interval has errors (for markers)
+    time: number;        
+    wpm: number;         
+    raw: number;         
+    burst: number;       
+    errors: number;      
+    hasError?: boolean;  
 }
 
 interface PostSessionLineChartProps {
