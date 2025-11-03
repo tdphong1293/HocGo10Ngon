@@ -25,21 +25,21 @@ const PostSessionStat: React.FC<PostSessionStatProps> = ({
     return (
         <div className="w-full px-10 flex flex-col gap-5">
             <div className="flex gap-2 items-center">
-                <div className="flex flex-col gap-10">
+                <div className="flex flex-col gap-5">
                     <div className="flex gap-2 items-end">
-                        <span className="text-5xl font-bold">{typingStats.wpm.toFixed(2)}</span>
+                        <span className="text-4xl font-bold">{typingStats.wpm.toFixed(2)}</span>
                         <span className="">WPM</span>
                     </div>
                     <div className="flex gap-2 items-end">
-                        <span className="text-5xl font-bold">{typingStats.cpm.toFixed(2)}</span>
+                        <span className="text-4xl font-bold">{typingStats.cpm.toFixed(2)}</span>
                         <span className="">CPM</span>
                     </div>
                     <div className="flex gap-2 items-end">
-                        <span className="text-5xl font-bold">{typingStats.raw.toFixed(2)}</span>
+                        <span className="text-4xl font-bold">{typingStats.raw.toFixed(2)}</span>
                         <span className="">Raw</span>
                     </div>
                     <div className="flex gap-2 items-end">
-                        <span className="text-5xl font-bold">{typingStats.accuracy.toFixed(2)}%</span>
+                        <span className="text-4xl font-bold">{typingStats.accuracy.toFixed(2)}%</span>
                         <span className="">Accuracy</span>
                     </div>
                     <div className="flex gap-5">
@@ -51,6 +51,11 @@ const PostSessionStat: React.FC<PostSessionStatProps> = ({
                             <span className="">Errors:</span>
                             <span className="text-3xl font-bold">{typingStats.errors}</span>
                         </div>
+                    </div>
+                    <div className="flex gap-2 items-end">
+                        <span className="">Đã gõ</span>
+                        <span className="text-4xl font-bold">{typingStats.words}</span>
+                        <span className="">từ</span>
                     </div>
                 </div>
                 <PostSessionLineChart keystrokeLog={keystrokeLog} />

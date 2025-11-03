@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useMemo } from 'react';
 import Keyboard, { keyboardSizes } from '@/components/Keyboard';
 import { Icon } from '@iconify/react';
 import type { TextSize } from '@/config/typingUi';
@@ -26,7 +26,8 @@ export interface TypingStats {
 }
 
 interface TypingPracticeProps {
-    text: string;
+    words: string[];
+    totalWords: number;
     // Controlled (optional)
     textSize?: TextSize;
     keyboardSize?: keyboardSizes;
@@ -43,7 +44,8 @@ interface TypingPracticeProps {
 }
 
 const TypingPractice: React.FC<TypingPracticeProps> = ({
-    text,
+    words,
+    totalWords,
     textSize,
     keyboardSize,
     showKeyboard,
@@ -65,10 +67,15 @@ const TypingPractice: React.FC<TypingPracticeProps> = ({
     const scrollRef = useRef<HTMLDivElement>(null);
     const cursorRef = useRef<HTMLSpanElement>(null);
     const isProcessingRef = useRef(false);
+    const scrollTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+    // Lazy rendering state
+    const INITIAL_WORDS = 80;
+    const BUFFER_WORDS = 10;
+    const [renderedWordCount, setRenderedWordCount] = useState(INITIAL_WORDS); // Initial render count
 
     // Typing metrics
     const [startTime, setStartTime] = useState<number | null>(null);
-    const [userWordCount, setUserWordCount] = useState(0);
     const [elapsedTime, setElapsedTime] = useState(0);
     const [errorCount, setErrorCount] = useState(0);
     const [correctCount, setCorrectCount] = useState(0);
@@ -88,11 +95,31 @@ const TypingPractice: React.FC<TypingPracticeProps> = ({
     const [isFinished, setIsFinished] = useState(false);
     const [textAnimationKey, setTextAnimationKey] = useState(0);
 
+    // Compute full text from words array for rendering up to renderedWordCount
+    const text = useMemo(() => {
+        return words.slice(0, renderedWordCount).join(' ');
+    }, [words, renderedWordCount]);
+
+    // Total text length for completion check
+    const fullTextLength = useMemo(() => {
+        return words.join(' ').length;
+    }, [words]);
+
+    // Full text for PostSessionStat analysis
+    const fullText = useMemo(() => {
+        return words.join(' ');
+    }, [words]);
+
     const wordCount = (text: string) => {
         return text.trim().split(/\s+/).filter(word => word.length > 0).length;
     }
 
-    const textWordCount = wordCount(text);
+    // Get current word index based on character position
+    const getCurrentWordIndex = (charIndex: number) => {
+        const fullText = words.join(' ');
+        const textUpToCursor = fullText.slice(0, charIndex);
+        return wordCount(textUpToCursor);
+    }
 
     // Local option state (used when uncontrolled)
     const [localTextSize, setLocalTextSize] = useState<TextSize>('normal');
@@ -146,12 +173,17 @@ const TypingPractice: React.FC<TypingPracticeProps> = ({
         setKeystrokeLog([]);
         setInputHistory('');
         setIsFinished(false);
+        setRenderedWordCount(INITIAL_WORDS); // Reset rendered word count
     }
 
     useEffect(() => {
         resetSession();
         setTextAnimationKey(key => key + 1);
-    }, [text]);
+        // Delay focus to after animation starts
+        setTimeout(() => {
+            inputRef.current?.focus();
+        }, 100);
+    }, [words]);
 
     useEffect(() => {
         if (!timerRunning) return;
@@ -176,6 +208,32 @@ const TypingPractice: React.FC<TypingPracticeProps> = ({
         return () => window.removeEventListener('blur', handleBlur);
     }, []);
 
+    // Global keyboard shortcuts - works even when finished
+    useEffect(() => {
+        const handleGlobalKeyDown = (e: KeyboardEvent) => {
+            const key = e.key;
+
+            // Ctrl + Shift + R => Lấy text gõ mới (refresh text)
+            if (e.ctrlKey && e.shiftKey && !e.altKey && key.toLowerCase() === 'r') {
+                e.preventDefault();
+                (async () => { await refreshText?.(); })();
+                return;
+            }
+
+            // Ctrl + R => reset lại session gõ hiện tại (reset session)
+            if (e.ctrlKey && !e.shiftKey && !e.altKey && key.toLowerCase() === 'r') {
+                e.preventDefault(); // stop browser refresh
+                resetSession();
+                setTextAnimationKey(key => key + 1);
+                setTimeout(() => inputRef.current?.focus(), 100);
+                return;
+            }
+        };
+
+        window.addEventListener('keydown', handleGlobalKeyDown);
+        return () => window.removeEventListener('keydown', handleGlobalKeyDown);
+    }, [refreshText, resetSession]);
+
     const handleKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
         if (isProcessingRef.current) return; // Prevent recursive calls
         if (isFinished) return; // Disable typing when finished
@@ -190,21 +248,7 @@ const TypingPractice: React.FC<TypingPracticeProps> = ({
 
         const key = e.key;
 
-        // Ctrl + Shift + R => Lấy text gõ mới
-        if (e.ctrlKey && e.shiftKey && !e.altKey && key.toLowerCase() === 'r') {
-            e.preventDefault();
-            (async () => { await refreshText?.(); })();
-            isProcessingRef.current = false;
-            return;
-        }
-
-        // Ctrl + R => reset lại session gõ hiện tại
-        if (e.ctrlKey && !e.shiftKey && !e.altKey && key.toLowerCase() === 'r') {
-            e.preventDefault(); // stop browser refresh
-            resetSession();
-            isProcessingRef.current = false;
-            return;
-        }
+        // Note: Ctrl+R and Ctrl+Shift+R are handled globally now (works even when finished)
 
         if (e.metaKey || e.ctrlKey || key === 'F12' || key === 'F5' || key === 'Escape') {
             isProcessingRef.current = false;
@@ -345,19 +389,13 @@ const TypingPractice: React.FC<TypingPracticeProps> = ({
         const isCorrect = typedChar === expectedChar;
         const isActive = index === currentIndex;
 
+        // Optimize symbol rendering - reuse objects
         const renderSymbol = (c: string) => {
-            if (c === ' ')
-                return (
-                    <span className="inline-block align-baseline w-[1ch]">&nbsp;</span>
-                );
+            if (c === ' ') return '\u00A0'; // Non-breaking space as string
             if (c === '\n')
-                return (
-                    <Icon icon="fluent:arrow-enter-left-24-regular" className="inline-block align-middle" />
-                );
+                return <Icon icon="fluent:arrow-enter-left-24-regular" className="inline-block align-middle" />;
             if (c === '\t')
-                return (
-                    <Icon icon="fluent:keyboard-tab-24-regular" className="inline-block align-middle" />
-                );
+                return <Icon icon="fluent:keyboard-tab-24-regular" className="inline-block align-middle" />;
             return c;
         };
 
@@ -380,10 +418,12 @@ const TypingPractice: React.FC<TypingPracticeProps> = ({
             );
         }
 
-        let className = 'transition-colors duration-150 ';
-        if (!isTyped) className += 'text-untyped';
-        else if (isCorrect) className += 'text-correct';
-        else className += 'text-incorrect';
+        // Use single class string instead of concatenation
+        const className = !isTyped
+            ? 'transition-colors duration-150 text-untyped'
+            : isCorrect
+                ? 'transition-colors duration-150 text-correct'
+                : 'transition-colors duration-150 text-incorrect';
 
         return (
             <span key={index} className={className}>
@@ -393,83 +433,104 @@ const TypingPractice: React.FC<TypingPracticeProps> = ({
     };
 
     const renderText = () => {
-        const lines = text.split(/(?<=\n)/);
+        // Use words array directly - only render up to renderedWordCount
         let globalIndex = 0;
+        const renderedContent: React.ReactElement[] = [];
+
+        for (let i = 0; i < renderedWordCount && i < words.length; i++) {
+            const word = words[i];
+
+            // Render each character in the word
+            const wordEls = word.split('').map((char, charIndex) => {
+                const el = renderCharacter(char, globalIndex);
+                globalIndex++;
+                return el;
+            });
+
+            renderedContent.push(
+                <span key={`word-${i}`} className="inline-block">
+                    {wordEls}
+                </span>
+            );
+
+            // Add space after word (except last word)
+            if (i < renderedWordCount - 1 && i < words.length - 1) {
+                const spaceEl = renderCharacter(' ', globalIndex);
+                globalIndex++;
+                renderedContent.push(
+                    <span key={`space-${i}`} className="inline-block">
+                        {spaceEl}
+                    </span>
+                );
+            }
+        }
+
         return (
-            <div className={`flex flex-col gap-0 ${textSizeClass[textSizeToUse]}`}>
-                {lines.map((line, lineIndex) => (
-                    <div key={lineIndex} className={`w-full leading-loose`}>
-                        {line.split(' ').map((word, wordIndex) => {
-                            let lastChar = '';
-                            const wordEls = word.split('').map((char, i) => {
-                                const el = renderCharacter(char, globalIndex);
-                                if (i === word.length - 1) lastChar = char;
-                                globalIndex++;
-                                return el;
-                            });
-                            let spaceEl = null;
-                            if (lastChar !== '\n' && lastChar !== '\t' && lastChar !== ' ') {
-                                spaceEl = renderCharacter(' ', globalIndex);
-                                globalIndex++;
-                            }
-                            return (
-                                <span key={wordIndex} className="inline-block">
-                                    {wordEls}
-                                    {spaceEl}
-                                </span>
-                            );
-                        })}
-                    </div>
-                ))}
+            <div className={`flex flex-wrap gap-0 ${textSizeClass[textSizeToUse]} leading-loose`}>
+                {renderedContent}
             </div>
         );
     };
 
-    const getTypingAreaHeight = (keyboardSize: keyboardSizes, textSize: TextSize) => {
-        const extraHeight = 10;
-        const textHeightMap: Record<TextSize, number> = {
-            normal: 45,
-            large: 40,
-            'very-large': 35,
-        };
-        const keyboardAdjustMap: Record<keyboardSizes, number> = {
-            small: 0,
-            normal: 5,
-            large: 10,
-        };
-        return textHeightMap[textSize] - (showKeyboardToUse ? keyboardAdjustMap[keyboardSize] : -extraHeight);
-    };
-
     useEffect(() => {
-        setUserWordCount(wordCount(userInput));
+        // Dynamic word rendering: adjust rendered word count based on typing position
+        const currentWordIndex = getCurrentWordIndex(currentIndex);
 
-        if (cursorRef.current && scrollRef.current) {
-            const cursor = cursorRef.current;
-            const container = scrollRef.current;
-            const cursorTop = cursor.offsetTop;
-            const cursorBottom = cursorTop + cursor.offsetHeight;
-            const viewTop = container.scrollTop;
-            const viewBottom = viewTop + container.clientHeight;
-            if (cursorBottom > viewBottom - 20) {
-                container.scrollTo({ top: cursorTop, behavior: 'smooth' });
-            } else if (cursorTop < viewTop) {
-                container.scrollTo({ top: Math.max(0, viewTop - container.clientHeight + 20), behavior: 'smooth' });
-            }
+        // Progressive rendering: Append BUFFER_WORDS after every BUFFER_WORDS typed
+        // Example: BUFFER_WORDS=10, INITIAL=80 → after typing word 10, append 10 (90 total); after word 20, append 10 (100), etc.
+        const wordsTyped = currentWordIndex;
+        const expectedRendered = INITIAL_WORDS + Math.ceil(wordsTyped / BUFFER_WORDS) * BUFFER_WORDS;
+
+        // Append if we've typed enough words and haven't rendered enough yet
+        if (wordsTyped > 0 && wordsTyped % BUFFER_WORDS === 0 && renderedWordCount < expectedRendered && renderedWordCount < totalWords) {
+            setRenderedWordCount(Math.min(expectedRendered, totalWords));
+        }
+        // If backspacing significantly, remove words (keep at least INITIAL_WORDS)
+        else if (wordsTyped < renderedWordCount - INITIAL_WORDS + BUFFER_WORDS && renderedWordCount > INITIAL_WORDS) {
+            // Remove words back to current position + buffer
+            setRenderedWordCount(Math.max(wordsTyped + INITIAL_WORDS, INITIAL_WORDS));
         }
 
+        // Debounce scroll updates to reduce performance impact
+        if (scrollTimeoutRef.current) {
+            clearTimeout(scrollTimeoutRef.current);
+        }
+
+        scrollTimeoutRef.current = setTimeout(() => {
+            if (cursorRef.current && scrollRef.current) {
+                const cursor = cursorRef.current;
+                const container = scrollRef.current;
+                const cursorTop = cursor.offsetTop;
+                const cursorBottom = cursorTop + cursor.offsetHeight;
+                const viewTop = container.scrollTop;
+                const viewBottom = viewTop + container.clientHeight;
+                if (cursorBottom > viewBottom - 20) {
+                    container.scrollTo({ top: cursorTop, behavior: 'smooth' });
+                } else if (cursorTop < viewTop) {
+                    container.scrollTo({ top: Math.max(0, viewTop - container.clientHeight), behavior: 'smooth' });
+                }
+            }
+        }, 50); // 50ms debounce
+
         if (endMode === 'time') {
-            if (timeLimit && (elapsedTime >= timeLimit || userInput.length >= text.length)) {
+            if (timeLimit && (elapsedTime >= timeLimit || userInput.length >= fullTextLength)) {
                 setIsFinished(true);
                 setTimerRunning(false);
             }
         }
         else if (endMode === 'length') {
-            if (userInput.length >= text.length) {
+            if (userInput.length >= fullTextLength) {
                 setIsFinished(true);
                 setTimerRunning(false);
             }
         }
-    }, [userInput, endMode, timeLimit, elapsedTime, text.length]);
+
+        return () => {
+            if (scrollTimeoutRef.current) {
+                clearTimeout(scrollTimeoutRef.current);
+            }
+        };
+    }, [userInput, endMode, timeLimit, elapsedTime, fullTextLength, currentIndex, totalWords, renderedWordCount, BUFFER_WORDS, INITIAL_WORDS]);
 
     useEffect(() => {
         const container = scrollRef.current;
@@ -490,45 +551,59 @@ const TypingPractice: React.FC<TypingPracticeProps> = ({
         const raw = (correctCount + errorCount) / (minutes || 1) || 0;
         const wpm = correctCount / 5 / (minutes || 1) || 0;
         const accuracy = correctCount + errorCount === 0 ? 100 : (correctCount / (correctCount + errorCount)) * 100;
-        onStatsChange?.({ wpm, cpm, raw, accuracy, errors: errorCount, elapsed: elapsedTime, words: userWordCount });
-        setTypingStats({ wpm, cpm, raw, accuracy, errors: errorCount, elapsed: elapsedTime, words: userWordCount });
-    }, [correctCount, errorCount, elapsedTime, userWordCount, onStatsChange]);
+        onStatsChange?.({ wpm, cpm, raw, accuracy, errors: errorCount, elapsed: elapsedTime, words: getCurrentWordIndex(currentIndex) });
+        setTypingStats({ wpm, cpm, raw, accuracy, errors: errorCount, elapsed: elapsedTime, words: getCurrentWordIndex(currentIndex) });
+    }, [correctCount, errorCount, elapsedTime, currentIndex, onStatsChange]);
+
+    const getTypingAreaHeight = (textSize: TextSize) => {
+        const textHeightMap: Record<TextSize, number> = {
+            normal: 25,
+            large: 36,
+            'very-large': 36,
+        };
+        return textHeightMap[textSize];
+    };
+
+    // Memoize stats display to prevent re-renders
+    const StatsDisplay = useMemo(() => (
+        <div className="w-full flex justify-start items-center gap-4 text-accent-foreground">
+            <div className="flex flex-col text-right">
+                <span className="text-sm font-bold">WPM:</span>
+                <span className="text-lg">{(typingStats.wpm).toFixed(2)}</span>
+            </div>
+            <div className="flex flex-col text-right">
+                <span className="text-sm font-bold">CPM:</span>
+                <span className="text-lg">{(typingStats.cpm).toFixed(2)}</span>
+            </div>
+            <div className="flex flex-col text-right">
+                <span className="text-sm font-bold">Raw:</span>
+                <span className="text-lg">{(typingStats.raw).toFixed(2)}</span>
+            </div>
+            <div className="flex flex-col text-right">
+                <span className="text-sm font-bold">Accuracy:</span>
+                <span className="text-lg">{(typingStats.accuracy).toFixed(2)}%</span>
+            </div>
+            <div className="flex flex-col text-right">
+                <span className="text-sm font-bold">Errors:</span>
+                <span className="text-lg">{typingStats.errors}</span>
+            </div>
+            <div className="flex flex-col text-right">
+                <span className="text-sm font-bold">Time:</span>
+                <span className="text-lg">{elapsedTime}s {timeLimit ? ` / ${timeLimit}s` : ''}</span>
+            </div>
+            <div className="flex flex-col text-right">
+                <span className="text-sm font-bold">Words:</span>
+                <span className="text-lg">{getCurrentWordIndex(currentIndex)} / {totalWords}</span>
+            </div>
+        </div>
+    ), [typingStats, elapsedTime, timeLimit, currentIndex, totalWords]);
 
     return (
         <div className="flex flex-col gap-5 items-center h-fit w-full">
             {/* Stats + Options */}
             {!isFinished && (
                 <div className="flex justify-between w-full gap-10 px-10">
-                    <div className="w-full flex justify-start items-center gap-4 text-accent-foreground">
-                        <div className="flex flex-col text-right">
-                            <span className="text-sm font-bold">WPM:</span>
-                            <span className="text-lg">{(typingStats.wpm).toFixed(2)}</span>
-                        </div>
-                        <div className="flex flex-col text-right">
-                            <span className="text-sm font-bold">CPM:</span>
-                            <span className="text-lg">{(typingStats.cpm).toFixed(2)}</span>
-                        </div>
-                        <div className="flex flex-col text-right">
-                            <span className="text-sm font-bold">Raw:</span>
-                            <span className="text-lg">{(typingStats.raw).toFixed(2)}</span>
-                        </div>
-                        <div className="flex flex-col text-right">
-                            <span className="text-sm font-bold">Accuracy:</span>
-                            <span className="text-lg">{(typingStats.accuracy).toFixed(2)}%</span>
-                        </div>
-                        <div className="flex flex-col text-right">
-                            <span className="text-sm font-bold">Errors:</span>
-                            <span className="text-lg">{typingStats.errors}</span>
-                        </div>
-                        <div className="flex flex-col text-right">
-                            <span className="text-sm font-bold">Time:</span>
-                            <span className="text-lg">{elapsedTime}s {timeLimit ? ` / ${timeLimit}s` : ''}</span>
-                        </div>
-                        <div className="flex flex-col text-right">
-                            <span className="text-sm font-bold">Words:</span>
-                            <span className="text-lg">{userWordCount} / {textWordCount}</span>
-                        </div>
-                    </div>
+                    {StatsDisplay}
                     <TypingOptionMenu
                         textSize={textSizeToUse}
                         keyboardSize={keyboardSizeToUse}
@@ -573,7 +648,7 @@ const TypingPractice: React.FC<TypingPracticeProps> = ({
                     <div
                         ref={scrollRef}
                         className={`relative overflow-y-hidden flex justify-center items-start`}
-                        style={{ maxHeight: `${getTypingAreaHeight(keyboardSizeToUse, textSizeToUse)}vh` }}
+                        style={{ height: `${getTypingAreaHeight(textSizeToUse)}vh` }}
                     >
                         <div
                             className="w-full px-10 cursor-text whitespace-pre-wrap break-words select-none"
@@ -631,7 +706,7 @@ const TypingPractice: React.FC<TypingPracticeProps> = ({
                         className="w-full"
                     >
                         <PostSessionStat
-                            text={text}
+                            text={fullText}
                             keystrokeLog={keystrokeLog}
                             typingStats={typingStats}
                             inputHistory={inputHistory}

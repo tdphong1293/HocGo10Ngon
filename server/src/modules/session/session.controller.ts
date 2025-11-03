@@ -19,10 +19,11 @@ export class SessionController {
     @Post('practice')
     async getTypingPracticeText(@Body() textDto: PracticeTypingTextDto) {
         const { languageCode, mode } = textDto;
-        const practiceText = await this.sessionService.getPracticeTypingText(languageCode, mode);
+        const { totalWords, words } = await this.sessionService.getPracticeTypingText(languageCode, mode);
         return {
             message: 'Lấy dữ liệu văn bản tập gõ thành công',
-            text: practiceText
+            totalWords: totalWords,
+            words: words,
         };
     }
 }

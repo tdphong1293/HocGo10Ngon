@@ -13,7 +13,8 @@ interface TypingMode {
 }
 
 interface TypingMenuProps {
-    setTypingText: (text: string) => void;
+    setTypingWords: (words: string[]) => void;
+    setWordCount?: (count: number) => void;
     setEndMode?: (mode: 'time' | 'length' | null) => void;
     setTimeLimit?: (limit: number | null) => void;
     onProvideRefresh?: (refresh: () => Promise<void>) => void;
@@ -39,7 +40,8 @@ const createDefaultState = (mode: TypingMode | null) => {
 };
 
 const TypingMenu: React.FC<TypingMenuProps> = ({
-    setTypingText,
+    setTypingWords,
+    setWordCount,
     setEndMode,
     setTimeLimit,
     onProvideRefresh,
@@ -87,7 +89,8 @@ const TypingMenu: React.FC<TypingMenuProps> = ({
             const response = await getPracticeTypingText(languageCode, state);
             if (response.ok) {
                 const { data } = await response.json();
-                setTypingText && setTypingText(data.text);
+                setTypingWords && setTypingWords(data.words);
+                setWordCount && setWordCount(data.totalWords);
             }
             else {
                 const errorData = await response.json();

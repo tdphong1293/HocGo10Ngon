@@ -100,7 +100,7 @@ export class SessionService {
         }
     }
 
-    async getPracticeTypingText(languageCode: string, mode: SessionMode): Promise<string> {
+    async getPracticeTypingText(languageCode: string, mode: SessionMode): Promise<{ totalWords: number, words: string[] }> {
         try {
             if (mode.modeName === 'words') {
                 const wordCount = mode.config?.wordCount || 50;
@@ -158,7 +158,10 @@ export class SessionService {
 
                 // --- 5. Shuffle and join ---
                 wordList = wordList.sort(() => Math.random() - 0.5);
-                return wordList.join(' ');
+                return {
+                    totalWords: wordList.length,
+                    words: wordList,
+                }
             }
             else if (mode.modeName === 'time') {
                 const ratioLimit = 5; // 300 words per minute => 5 words per second
@@ -182,7 +185,11 @@ export class SessionService {
                         }
                     });
                     const randomParagraph = paragraphs[Math.floor(Math.random() * paragraphs.length)];
-                    return randomParagraph.paragraphContent;
+                    const wordList = randomParagraph.paragraphContent.split(' ');
+                    return {
+                        totalWords: wordList.length,
+                        words: wordList,
+                    }
                 }
                 else {
                     const paragraphs = await this.prismaService.paragraph.findMany({
@@ -192,7 +199,11 @@ export class SessionService {
                         }
                     });
                     const randomParagraph = paragraphs[Math.floor(Math.random() * paragraphs.length)];
-                    return randomParagraph.paragraphContent;
+                    const wordList = randomParagraph.paragraphContent.split(' ');
+                    return {
+                        totalWords: wordList.length,
+                        words: wordList,
+                    }
                 }
             }
             else if (mode.modeName === 'row-based') {
@@ -208,7 +219,10 @@ export class SessionService {
 
                 const takenWords = words.sort(() => 0.5 - Math.random()).slice(0, wordCount);
                 const wordList = takenWords.map(w => w.normalForm);
-                return wordList.join(' ');
+                return {
+                    totalWords: wordList.length,
+                    words: wordList,
+                }
             }
             else {
                 throw new BadRequestException('Chế độ gõ không hợp lệ');
