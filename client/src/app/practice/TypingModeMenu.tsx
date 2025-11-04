@@ -6,7 +6,7 @@ import { toast } from "react-toastify";
 import { useTheme } from "@/hooks/useTheme";
 import { useAuth } from "@/hooks/useAuth";
 
-interface TypingMode {
+export interface TypingMode {
     modeName: string;
     config: { [key: string]: any };
     subConfig?: { [key: string]: any };
@@ -16,6 +16,7 @@ interface TypingMenuProps {
     setTypingWords: (words: string[]) => void;
     setWordCount?: (count: number) => void;
     setEndMode?: (mode: 'time' | 'length' | null) => void;
+    onStateChange?: (state: TypingMode | null) => void;
     setTimeLimit?: (limit: number | null) => void;
     onProvideRefresh?: (refresh: () => Promise<void>) => void;
 }
@@ -44,6 +45,7 @@ const TypingMenu: React.FC<TypingMenuProps> = ({
     setWordCount,
     setEndMode,
     setTimeLimit,
+    onStateChange,
     onProvideRefresh,
 }) => {
     const [sessionModeData, setSessionModeData] = useState<TypingMode[] | null>(null);
@@ -107,6 +109,7 @@ const TypingMenu: React.FC<TypingMenuProps> = ({
     useEffect(() => {
         if (JSON.stringify(state) !== JSON.stringify(prevState)) {
             fetchPracticeText();
+            onStateChange?.(state);
 
             switch (state?.modeName) {
                 case 'time':

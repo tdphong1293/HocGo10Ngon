@@ -8,6 +8,11 @@ import { textSizeClass, wrongTextClass } from '@/config/typingUi';
 import TypingOptionMenu from './TypingOptionMenu';
 import { AnimatePresence, motion } from 'framer-motion';
 import PostSessionStat from './PostSessionStat';
+import { storeTypingSessionResult } from '@/services/session.services';
+import { useAuth } from '@/hooks/useAuth';
+import { useTheme } from '@/hooks/useTheme';
+import { TypingMode } from './TypingModeMenu';
+import Tooltip from '@/components/Tooltip';
 
 export interface Keystroke {
     key: string;
@@ -37,6 +42,7 @@ interface TypingPracticeProps {
     // Outputs and misc
     onStatsChange?: (stats: TypingStats) => void;
     endMode?: 'time' | 'words' | 'length' | null;
+    state?: TypingMode | null;
     timeLimit?: number | null;
     heldKey?: string | null;
     // Refresh text function
@@ -53,6 +59,7 @@ const TypingPractice: React.FC<TypingPracticeProps> = ({
     onStatsChange,
     enableSounds,
     endMode = null,
+    state = null,
     timeLimit = null,
     heldKey = null,
     refreshText,
@@ -213,10 +220,14 @@ const TypingPractice: React.FC<TypingPracticeProps> = ({
         const handleGlobalKeyDown = (e: KeyboardEvent) => {
             const key = e.key;
 
-            // Ctrl + Shift + R => Lấy text gõ mới (refresh text)
-            if (e.ctrlKey && e.shiftKey && !e.altKey && key.toLowerCase() === 'r') {
+            // Ctrl + Enter => Lấy text gõ mới (refresh text)
+            if (e.ctrlKey && !e.shiftKey && !e.altKey && key === 'Enter') {
                 e.preventDefault();
-                (async () => { await refreshText?.(); })();
+                (async () => {
+                    await refreshText?.();
+                    setTextAnimationKey(key => key + 1);
+                    setTimeout(() => inputRef.current?.focus(), 100);
+                })();
                 return;
             }
 
@@ -230,8 +241,8 @@ const TypingPractice: React.FC<TypingPracticeProps> = ({
             }
         };
 
-        window.addEventListener('keydown', handleGlobalKeyDown);
-        return () => window.removeEventListener('keydown', handleGlobalKeyDown);
+        window.addEventListener('keydown', handleGlobalKeyDown, { capture: true });
+        return () => window.removeEventListener('keydown', handleGlobalKeyDown, { capture: true });
     }, [refreshText, resetSession]);
 
     const handleKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
@@ -598,6 +609,32 @@ const TypingPractice: React.FC<TypingPracticeProps> = ({
         </div>
     ), [typingStats, elapsedTime, timeLimit, currentIndex, totalWords]);
 
+    const { isAuthenticated, user, accessToken } = useAuth();
+    const { languageCode } = useTheme();
+
+    useEffect(() => {
+        if (isFinished && keystrokeLog.length > 0 && isAuthenticated && user && accessToken && languageCode) {
+            const data = {
+                sessionType: 'practice',
+                languageCode: languageCode,
+                modeName: state?.modeName,
+                useConfig: state?.config || {},
+                useSubConfig: state?.subConfig || {},
+                wpm: typingStats.wpm,
+                cpm: typingStats.cpm,
+                accuracy: typingStats.accuracy,
+                errorCount: typingStats.errors,
+                duration: typingStats.elapsed,
+                rawInput: inputHistory,
+                keystrokes: keystrokeLog,
+            };
+
+            (async () => {
+                await storeTypingSessionResult(accessToken, data);
+            })();
+        }
+    }, [isFinished, keystrokeLog, isAuthenticated, user, accessToken, languageCode, typingStats, state, inputHistory]);
+
     return (
         <div className="flex flex-col gap-5 items-center h-fit w-full">
             {/* Stats + Options */}
@@ -711,6 +748,24 @@ const TypingPractice: React.FC<TypingPracticeProps> = ({
                             typingStats={typingStats}
                             inputHistory={inputHistory}
                         />
+                        <div className="flex justify-center gap-10 mt-6">
+                            <Tooltip text="Gõ lại với văn bản hiện tại" shortcut="Ctrl+R" side="left">
+                                <div className="p-2 cursor-pointer border-2 border-border rounded-md hover:bg-accent hover:text-accent-foreground transition-colors">
+                                    <Icon
+                                        icon="ri:reset-left-fill" className="text-2xl"
+                                        onClick={resetSession}
+                                    />
+                                </div>
+                            </Tooltip>
+                            <Tooltip text="Phiên gõ mới" shortcut="Ctrl+Enter" side="right">
+                                <div className="p-2 cursor-pointer border-2 border-border rounded-md hover:bg-accent hover:text-accent-foreground transition-colors">
+                                    <Icon
+                                        icon="ooui:next-ltr" className="text-2xl"
+                                        onClick={async () => { await refreshText?.(); }}
+                                    />
+                                </div>
+                            </Tooltip>
+                        </div>
                     </motion.div>
                 )}
             </AnimatePresence>

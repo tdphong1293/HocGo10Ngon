@@ -4,12 +4,13 @@ import { SessionDocument, Session } from '../mongoose/schemas/session.schema';
 import { SessionModeDocument, SessionMode } from '../mongoose/schemas/session_mode.schema';
 import { PrismaService } from '../prisma/prisma.service';
 import { InjectModel } from '@nestjs/mongoose';
+import { sessionDataDto } from './dto/sessionData.dto';
 
 @Injectable()
 export class SessionService {
     constructor(
-        @InjectModel('Session') private sessionModel: Model<SessionDocument>,
-        @InjectModel('SessionMode') private sessionModeModel: Model<SessionModeDocument>,
+        @InjectModel(Session.name) private sessionModel: Model<SessionDocument>,
+        @InjectModel(SessionMode.name) private sessionModeModel: Model<SessionModeDocument>,
         private prismaService: PrismaService,
     ) { }
 
@@ -234,6 +235,21 @@ export class SessionService {
             else {
                 throw new InternalServerErrorException('Lỗi khi lấy dữ liệu gõ');
             }
+        }
+    }
+
+    async storeSession(userid: string, sessionDataDto: sessionDataDto) {
+        try {
+            const result = await this.sessionModel.create({ userid, ...sessionDataDto });
+            return {
+                message: 'Lưu trữ dữ liệu phiên gõ thành công',
+                sessionid: result._id,
+            }
+        } catch (error) {
+            if (error instanceof HttpException) {
+                throw error;
+            }
+            throw new InternalServerErrorException('Lỗi khi lưu trữ dữ liệu phiên gõ');
         }
     }
 }

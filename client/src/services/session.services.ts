@@ -22,3 +22,14 @@ export const getPracticeTypingText = async (languageCode: string, mode: TypingMo
         body: JSON.stringify({ languageCode, mode }),
     })
 }
+
+export const storeTypingSessionResult = async (accessToken: string, data: any) => {
+    return await fetch('/api/sessions/store', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${accessToken}`,
+        },
+        body: JSON.stringify(data),
+    })
+}

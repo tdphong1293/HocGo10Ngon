@@ -6,6 +6,7 @@ export type SessionDocument = HydratedDocument<Session>;
 interface KeystrokeData {
     key: string;
     timestamp: number;
+    correct: boolean;
 }
 
 @Schema({
@@ -13,14 +14,14 @@ interface KeystrokeData {
     collection: 'sessions'
 })
 export class Session {
-    @Prop({ required: true, unique: true })
-    sessionid: string;
-
     @Prop({ required: true })
     userid: string;
 
     @Prop({ required: true })
-    languageid: string;
+    sessionType: string;
+
+    @Prop({ required: true })
+    languageCode: string;
 
     @Prop({ required: true })
     modeName: string;
@@ -51,7 +52,8 @@ export class Session {
 
     @Prop([{
         key: { type: String, required: true },
-        timestamp: { type: Number, required: true }
+        timestamp: { type: Number, required: true },
+        correct: { type: Boolean, required: true }
     }])
     keystrokes: KeystrokeData[];
 }

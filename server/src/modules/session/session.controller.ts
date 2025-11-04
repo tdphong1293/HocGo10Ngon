@@ -1,7 +1,9 @@
 import { Controller, Get, Post, Put, Patch, Delete, Body, Param, Res, Req, UnauthorizedException } from '@nestjs/common';
 import { SessionService } from './session.service';
 import { Public } from '../auth/auth.guard';
+import type { AuthenticatedRequest } from '../auth/auth.guard';
 import { PracticeTypingTextDto } from './dto/practiceTypingText.dto';
+import { sessionDataDto } from './dto/sessionData.dto';
 
 @Controller('sessions')
 export class SessionController {
@@ -25,5 +27,11 @@ export class SessionController {
             totalWords: totalWords,
             words: words,
         };
+    }
+
+    @Post('store')
+    async storeSession(@Req() req: AuthenticatedRequest, @Body() sessionDataDto: sessionDataDto) {
+        const { sub } = req.user;
+        return this.sessionService.storeSession(sub, sessionDataDto);
     }
 }
