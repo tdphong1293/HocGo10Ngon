@@ -8,6 +8,7 @@ import { AppService } from './app.service';
 import { AuthModule } from './modules/auth/auth.module';
 import { UserModule } from './modules/user/user.module';
 import { SessionModule } from './modules/session/session.module';
+import { ScheduleModule } from '@nestjs/schedule';
 
 @Module({
 	imports: [
@@ -15,6 +16,7 @@ import { SessionModule } from './modules/session/session.module';
 			isGlobal: true,
 			expandVariables: true,
 		}),
+		ScheduleModule.forRoot(),
 		PrismaModule,
 		DatabaseModule,
 		CacheModule,

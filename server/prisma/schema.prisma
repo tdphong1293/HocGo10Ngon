@@ -53,14 +53,24 @@ enum LengthType {
     LONG
 }
 
+enum ContentType {
+    PARAGRAPH
+    QUOTE
+}
+
 model Paragraph {
     paragraphid      String      @id @default(cuid())
     lengthType       LengthType?
     paragraphContent String
+    contentType      ContentType @default(PARAGRAPH)
+    author           String?
+    source           String?
+    externalid       String?
     language         Language    @relation(fields: [languageid], references: [languageid])
     languageid       String
 
     @@map("paragraphs")
+    @@unique([source, externalid])
 }
 
 model Word {
