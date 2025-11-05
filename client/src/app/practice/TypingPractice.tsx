@@ -31,8 +31,9 @@ export interface TypingStats {
 }
 
 interface TypingPracticeProps {
-    words: string[];
-    totalWords: number;
+    text?: string,
+    words?: string[];
+    totalWords?: number;
     // Controlled (optional)
     textSize?: TextSize;
     keyboardSize?: keyboardSizes;
@@ -50,6 +51,7 @@ interface TypingPracticeProps {
 }
 
 const TypingPractice: React.FC<TypingPracticeProps> = ({
+    text,
     words,
     totalWords,
     textSize,
@@ -102,20 +104,30 @@ const TypingPractice: React.FC<TypingPracticeProps> = ({
     const [isFinished, setIsFinished] = useState(false);
     const [textAnimationKey, setTextAnimationKey] = useState(0);
 
+    // If `text` prop provided, use it; otherwise use `words` prop.
+    const wordsToUse = useMemo(() => {
+        if (typeof text === 'string' && text.trim().length > 0) {
+            return text.trim().split(/\s+/).filter(Boolean);
+        }
+        return words ?? [];
+    }, [text, words]);
+
     // Compute full text from words array for rendering up to renderedWordCount
-    const text = useMemo(() => {
-        return words.slice(0, renderedWordCount).join(' ');
-    }, [words, renderedWordCount]);
+    const displayText = useMemo(() => {
+        return wordsToUse.slice(0, renderedWordCount).join(' ');
+    }, [wordsToUse, renderedWordCount]);
 
     // Total text length for completion check
     const fullTextLength = useMemo(() => {
-        return words.join(' ').length;
-    }, [words]);
+        return wordsToUse.join(' ').length;
+    }, [wordsToUse]);
 
     // Full text for PostSessionStat analysis
     const fullText = useMemo(() => {
-        return words.join(' ');
-    }, [words]);
+        return wordsToUse.join(' ');
+    }, [wordsToUse]);
+
+    const totalWordsToUse = totalWords ?? wordsToUse.length;
 
     const wordCount = (text: string) => {
         return text.trim().split(/\s+/).filter(word => word.length > 0).length;
@@ -123,8 +135,8 @@ const TypingPractice: React.FC<TypingPracticeProps> = ({
 
     // Get current word index based on character position
     const getCurrentWordIndex = (charIndex: number) => {
-        const fullText = words.join(' ');
-        const textUpToCursor = fullText.slice(0, charIndex);
+        const fullTextLocal = wordsToUse.join(' ');
+        const textUpToCursor = fullTextLocal.slice(0, charIndex);
         return wordCount(textUpToCursor);
     }
 
@@ -190,7 +202,7 @@ const TypingPractice: React.FC<TypingPracticeProps> = ({
         setTimeout(() => {
             inputRef.current?.focus();
         }, 100);
-    }, [words]);
+    }, [text, words]);
 
     useEffect(() => {
         if (!timerRunning) return;
@@ -251,15 +263,13 @@ const TypingPractice: React.FC<TypingPracticeProps> = ({
         isProcessingRef.current = true;
 
         const keyCode = e.code;
-        // Use callback form but return same reference if no change to prevent unnecessary re-renders
+
         setActiveKeys((prev) => {
             if (prev.includes(keyCode)) return prev;
             return [...prev, keyCode];
         });
 
         const key = e.key;
-
-        // Note: Ctrl+R and Ctrl+Shift+R are handled globally now (works even when finished)
 
         if (e.metaKey || e.ctrlKey || key === 'F12' || key === 'F5' || key === 'Escape') {
             isProcessingRef.current = false;
@@ -272,9 +282,8 @@ const TypingPractice: React.FC<TypingPracticeProps> = ({
             return;
         }
 
-        // Helper to get current timestamp relative to start
         const getTimestamp = () => {
-            if (!startTime) return 0; // Return 0 if timer hasn't started yet
+            if (!startTime) return 0;
             return Date.now() - startTime;
         };
 
@@ -288,7 +297,6 @@ const TypingPractice: React.FC<TypingPracticeProps> = ({
                 setUserInput(newValue);
                 setCurrentIndex(newValue.length);
                 playSound('correct');
-                // Only log if timer has started
                 if (startTime) {
                     setKeystrokeLog((prev) => [
                         ...prev,
@@ -313,7 +321,7 @@ const TypingPractice: React.FC<TypingPracticeProps> = ({
             setUserInput(newValue);
             setCurrentIndex(newValue.length);
             setInputHistory(prev => prev + '\n'); // Add to history
-            const expectedChar = text[newValue.length - 1];
+            const expectedChar = displayText[newValue.length - 1];
             const correct = expectedChar === '\n';
             playSound(correct ? 'correct' : 'incorrect');
             correct ? setCorrectCount((p) => p + 1) : setErrorCount((p) => p + 1);
@@ -338,7 +346,7 @@ const TypingPractice: React.FC<TypingPracticeProps> = ({
             setUserInput(newValue);
             setCurrentIndex(newValue.length);
             setInputHistory(prev => prev + '\t');
-            const expectedChar = text[newValue.length - 1];
+            const expectedChar = displayText[newValue.length - 1];
             const correct = expectedChar === '\t';
             playSound(correct ? 'correct' : 'incorrect');
             correct ? setCorrectCount((p) => p + 1) : setErrorCount((p) => p + 1);
@@ -372,7 +380,7 @@ const TypingPractice: React.FC<TypingPracticeProps> = ({
             setUserInput(newValue);
             setCurrentIndex(newValue.length);
             setInputHistory(prev => prev + key); // Add to history
-            const expectedChar = text[newValue.length - 1];
+            const expectedChar = displayText[newValue.length - 1];
             const correct = key === expectedChar;
             playSound(correct ? 'correct' : 'incorrect');
             correct ? setCorrectCount((p) => p + 1) : setErrorCount((p) => p + 1);
@@ -444,12 +452,12 @@ const TypingPractice: React.FC<TypingPracticeProps> = ({
     };
 
     const renderText = () => {
-        // Use words array directly - only render up to renderedWordCount
+        // Use wordsToUse array directly - only render up to renderedWordCount
         let globalIndex = 0;
         const renderedContent: React.ReactElement[] = [];
 
-        for (let i = 0; i < renderedWordCount && i < words.length; i++) {
-            const word = words[i];
+        for (let i = 0; i < renderedWordCount && i < wordsToUse.length; i++) {
+            const word = wordsToUse[i];
 
             // Render each character in the word
             const wordEls = word.split('').map((char, charIndex) => {
@@ -464,8 +472,8 @@ const TypingPractice: React.FC<TypingPracticeProps> = ({
                 </span>
             );
 
-            // Add space after word (except last word)
-            if (i < renderedWordCount - 1 && i < words.length - 1) {
+            // Add space after word (except last word or last character is newline/tab)
+            if (i < renderedWordCount - 1 && i < wordsToUse.length - 1 && displayText[globalIndex] !== '\n' && displayText[globalIndex] !== '\t') {
                 const spaceEl = renderCharacter(' ', globalIndex);
                 globalIndex++;
                 renderedContent.push(
@@ -493,8 +501,8 @@ const TypingPractice: React.FC<TypingPracticeProps> = ({
         const expectedRendered = INITIAL_WORDS + Math.ceil(wordsTyped / BUFFER_WORDS) * BUFFER_WORDS;
 
         // Append if we've typed enough words and haven't rendered enough yet
-        if (wordsTyped > 0 && wordsTyped % BUFFER_WORDS === 0 && renderedWordCount < expectedRendered && renderedWordCount < totalWords) {
-            setRenderedWordCount(Math.min(expectedRendered, totalWords));
+        if (wordsTyped > 0 && wordsTyped % BUFFER_WORDS === 0 && renderedWordCount < expectedRendered && renderedWordCount < totalWordsToUse) {
+            setRenderedWordCount(Math.min(expectedRendered, totalWordsToUse));
         }
         // If backspacing significantly, remove words (keep at least INITIAL_WORDS)
         else if (wordsTyped < renderedWordCount - INITIAL_WORDS + BUFFER_WORDS && renderedWordCount > INITIAL_WORDS) {
@@ -541,7 +549,7 @@ const TypingPractice: React.FC<TypingPracticeProps> = ({
                 clearTimeout(scrollTimeoutRef.current);
             }
         };
-    }, [userInput, endMode, timeLimit, elapsedTime, fullTextLength, currentIndex, totalWords, renderedWordCount, BUFFER_WORDS, INITIAL_WORDS]);
+    }, [userInput, endMode, timeLimit, elapsedTime, fullTextLength, currentIndex, totalWordsToUse, renderedWordCount, BUFFER_WORDS, INITIAL_WORDS]);
 
     useEffect(() => {
         const container = scrollRef.current;
@@ -604,7 +612,7 @@ const TypingPractice: React.FC<TypingPracticeProps> = ({
             </div>
             <div className="flex flex-col text-right">
                 <span className="text-sm font-bold">Words:</span>
-                <span className="text-lg">{getCurrentWordIndex(currentIndex)} / {totalWords}</span>
+                <span className="text-lg">{getCurrentWordIndex(currentIndex)} / {totalWordsToUse}</span>
             </div>
         </div>
     ), [typingStats, elapsedTime, timeLimit, currentIndex, totalWords]);
