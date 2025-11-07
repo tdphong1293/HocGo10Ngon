@@ -8,6 +8,8 @@ import Keyboard from '@/components/Keyboard';
 import Input from '@/components/Input';
 import { useState } from 'react';
 import Switch from '@/components/Switch';
+import Textarea from '@/components/Textarea';
+import CustomSelect from '@/components/Select';
 
 export default function Home() {
 	const { theme, font } = useTheme();
@@ -193,10 +195,22 @@ export default function Home() {
 					/>
 				</div>
 				<Switch
-					state={switchState} 
+					state={switchState}
 					setState={setSwitchState}
 				/>
-
+				<Textarea
+					className="w-full max-w-4xl h-32 p-4 border border-border rounded-lg bg-background text-foreground"
+					placeholder="This is a textarea. Press Tab to insert a tab character."
+				/>
+				<CustomSelect
+					options={[
+						{ value: "apple", label: "Apple BUN 🍎 BANANA BUN BAN BAN ADFASDF SADF SADFS ADFSA DFS  " },
+						{ value: "banana", label: "Banana" },
+						{ value: "cherry", label: "Cherry" },
+					]}
+					placeholder="Choose fruit..."
+					onChange={(v) => console.log("Selected:", v)}
+				/>
 				<footer className="text-center text-muted-foreground">
 					<p>Click the customize button in the top right to change themes and fonts!</p>
 					<p className="text-xs mt-2">Font changes are applied instantly to the entire page</p>

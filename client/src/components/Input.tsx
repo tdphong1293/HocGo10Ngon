@@ -72,6 +72,7 @@ const Input: React.FC<InputProps> = ({
             const end = target.selectionEnd || 0;
             const value = target.value;
             const newValue = value.slice(0, start) + cleanedText + value.slice(end);
+            target.selectionStart = target.selectionEnd = start + cleanedText.length;
 
             onChange(newValue);
         }
@@ -98,21 +99,20 @@ const Input: React.FC<InputProps> = ({
                     value={value}
                     onChange={(e) => onChange(e.target.value)}
                     onFocus={() => setIsFocused(true)}
-                    onBlur={() =>  setIsFocused(false)}
+                    onBlur={() => setIsFocused(false)}
                     onPaste={handlePaste}
                     placeholder={isFocused ? placeholder : ''}
                     className={`
-                        w-full px-4 py-2 border-2 rounded-md transition-colors duration-300
+                        w-full py-2 border-2 rounded-md transition-colors duration-300
                         text-sm text-foreground bg-background
                         focus:outline-none focus:ring-1 focus:ring-ring
                         ${isFocused
                             ? 'border-ring'
                             : 'border-border hover:border-border-hover'
                         }
-                        ${
-                            (isFocused || passwordVisible)
+                        ${(type === 'password' && (isFocused || passwordVisible))
                             ? 'pl-4 pr-7'
-                            : '' 
+                            : 'px-4'
                         }
                         ${error ? 'border-destructive' : ''}
                     `}

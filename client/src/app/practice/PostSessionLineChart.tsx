@@ -5,12 +5,12 @@ import { useState } from 'react';
 import { Keystroke } from './TypingPractice';
 
 export interface ChartDataPoint {
-    time: number;        
-    wpm: number;         
-    raw: number;         
-    burst: number;       
-    errors: number;      
-    hasError?: boolean;  
+    time: number;
+    wpm: number;
+    raw: number;
+    burst: number;
+    errors: number;
+    hasError?: boolean;
 }
 
 interface PostSessionLineChartProps {
@@ -301,7 +301,12 @@ const PostSessionLineChart: React.FC<PostSessionLineChartProps> = ({
         .filter((value, index, self) => self.indexOf(value) === index); // Remove duplicates
 
     return (
-        <ResponsiveContainer width="100%" height={450} debounce={50}>
+        <ResponsiveContainer
+            width="100%"
+            height={450}
+            debounce={50}
+            className={`[&_*]:focus:outline-none`}
+        >
             <LineChart
                 data={chartData}
                 margin={{ top: 10, right: 10, left: 10, bottom: 10 }}
