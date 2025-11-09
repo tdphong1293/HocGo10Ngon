@@ -8,14 +8,14 @@ interface Option {
     label: string;
 }
 
-interface CustomSelectProps {
+interface SelectProps {
     options: Option[];
     placeholder?: string;
     className?: string;
     onChange?: (value: string, isNew?: boolean) => void; // added `isNew`
 }
 
-const CustomSelect: React.FC<CustomSelectProps> = ({
+const Select: React.FC<SelectProps> = ({
     options,
     placeholder = "Select...",
     className,
@@ -113,4 +113,4 @@ const CustomSelect: React.FC<CustomSelectProps> = ({
     );
 };
 
-export default CustomSelect;
+export default Select;

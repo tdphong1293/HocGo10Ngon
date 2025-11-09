@@ -196,7 +196,6 @@ export class UserService {
                 sessionMode: userSessionModeFormatted,
             }
         } catch (error) {
-            console.log('error', error);
             if (error instanceof HttpException) {
                 throw error;
             }

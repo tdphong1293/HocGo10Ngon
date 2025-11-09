@@ -20,6 +20,12 @@ export const menuConfig: Record<Role, MenuItem[]> = {
     [Role.ADMIN]: [
         { title: 'Luyện tập', href: '/practice' },
         { title: 'Tùy chỉnh giao diện', href: '/preferences' },
-        { title: 'Tùy chỉnh', href: '/admin-settings' },
+        {
+            title: 'Quản lý', href: '#', submenu: [
+                { title: 'Quản lý từ ngữ', href: '/admin/words' },
+                { title: 'Quản lý đoạn văn bản', href: '/admin/paragraphs' },
+                { title: 'Quản lý bài học', href: '/admin/lessons' },
+            ]
+        }
     ]
 }

@@ -9,7 +9,7 @@ import Input from '@/components/Input';
 import { useState } from 'react';
 import Switch from '@/components/Switch';
 import Textarea from '@/components/Textarea';
-import CustomSelect from '@/components/Select';
+import Select from '@/components/Select';
 
 export default function Home() {
 	const { theme, font } = useTheme();
@@ -202,7 +202,7 @@ export default function Home() {
 					className="w-full max-w-4xl h-32 p-4 border border-border rounded-lg bg-background text-foreground"
 					placeholder="This is a textarea. Press Tab to insert a tab character."
 				/>
-				<CustomSelect
+				<Select
 					options={[
 						{ value: "apple", label: "Apple BUN 🍎 BANANA BUN BAN BAN ADFASDF SADF SADFS ADFSA DFS  " },
 						{ value: "banana", label: "Banana" },
