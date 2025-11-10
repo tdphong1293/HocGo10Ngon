@@ -48,7 +48,7 @@ export const RadioGroup = ({
                 disabled,
             }}
         >
-            <div className={`space-y-2 ${className}`} role="radiogroup">
+            <div className={`${className}`} role="radiogroup">
                 {children}
             </div>
         </RadioGroupContext.Provider>
@@ -98,7 +98,7 @@ export const RadioGroupItem = ({
                 <div
                     onClick={handleChange}
                     className={`
-                        w-4 h-4 rounded-full border-2 flex items-center justify-center cursor-pointer
+                        w-4 h-4 rounded-full border-2 flex items-center justify-center
                         transition-all duration-200
                         ${isChecked
                             ? 'border-primary bg-primary'
@@ -106,9 +106,9 @@ export const RadioGroupItem = ({
                         }
                         ${isDisabled
                             ? 'opacity-50 cursor-not-allowed'
-                            : 'hover:border-primary/70'
+                            : 'hover:border-primary/70 cursor-pointer'
                         }
-                        peer-focus-visible:ring-2 peer-focus-visible:ring-ring peer-focus-visible:ring-offset-2
+                        peer-focus-visible:ring-2 peer-focus-visible:ring-ring peer-focus-visible:ring-offset-1
                     `}
                 >
                     {isChecked && (
@@ -120,8 +120,8 @@ export const RadioGroupItem = ({
                 <label
                     htmlFor={id}
                     className={`
-                        ml-2 text-sm cursor-pointer select-none
-                        ${isDisabled ? 'opacity-50 cursor-not-allowed' : ''}
+                        ml-2 text-sm select-none
+                        ${isDisabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}
                     `}
                 >
                     {children}

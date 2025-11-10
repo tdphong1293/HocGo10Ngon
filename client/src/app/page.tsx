@@ -10,11 +10,14 @@ import { useState } from 'react';
 import Switch from '@/components/Switch';
 import Textarea from '@/components/Textarea';
 import Select from '@/components/Select';
+import { RadioGroup, RadioGroupItem } from '@/components/RadioGroup';
 
 export default function Home() {
 	const { theme, font } = useTheme();
 	const [inputValue, setInputValue] = useState('');
 	const [switchState, setSwitchState] = useState(false);
+	const [selectedOption, setSelectedOption] = useState<string>('banana');
+	const [selectedRadio, setSelectedRadio] = useState<string>('option1');
 
 	return (
 		<div className="min-h-screen p-8 pb-20 gap-16 sm:p-20">
@@ -209,8 +212,24 @@ export default function Home() {
 						{ value: "cherry", label: "Cherry" },
 					]}
 					placeholder="Choose fruit..."
-					onChange={(v) => console.log("Selected:", v)}
+					value={selectedOption}
+					onChange={(v) => {
+						console.log("Selected:", v);
+						setSelectedOption(v);
+					}}
 				/>
+				<RadioGroup
+					name="example"
+					value={selectedRadio}
+					onValueChange={(v) => {
+						console.log("Selected radio:", v);
+						setSelectedRadio(v);
+					}}
+				>
+					<RadioGroupItem value="option1">Option 1</RadioGroupItem>
+					<RadioGroupItem value="option2">Option 2</RadioGroupItem>
+					<RadioGroupItem value="option3" disabled>Option 3 (Disabled)</RadioGroupItem>
+				</RadioGroup>
 				<footer className="text-center text-muted-foreground">
 					<p>Click the customize button in the top right to change themes and fonts!</p>
 					<p className="text-xs mt-2">Font changes are applied instantly to the entire page</p>

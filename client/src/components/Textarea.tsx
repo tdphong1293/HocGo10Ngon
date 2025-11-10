@@ -1,3 +1,4 @@
+'use client';
 
 interface TextareaProps extends React.TextareaHTMLAttributes<HTMLTextAreaElement> {
     className?: string;
@@ -21,7 +22,7 @@ const Textarea: React.FC<TextareaProps> = ({
 
     return (
         <textarea
-            className={`focus:outline-none focus:ring-1 focus:ring-ring resize-none ${className}`}
+            className={`focus:outline-none focus:ring-2 focus:ring-ring resize-none ${className}`}
             style={{ tabSize: 4 }}
             onKeyDown={handleKeyDown}
             {...props}
