@@ -102,7 +102,7 @@ export const RadioGroupItem = ({
                         transition-all duration-200
                         ${isChecked
                             ? 'border-primary bg-primary'
-                            : 'border-input bg-background'
+                            : 'border-border bg-background'
                         }
                         ${isDisabled
                             ? 'opacity-50 cursor-not-allowed'

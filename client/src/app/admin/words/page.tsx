@@ -26,18 +26,17 @@ const AdminWordsPage = () => {
                     <div className="flex flex-row-reverse justify-around">
                         <Button variant="primary" size="medium" className="w-40">Thêm từ</Button>
                         <Button variant="destructive-outline" size="medium" className="w-40">Làm sạch ô thêm</Button>
-                        <Button variant="primary-outline" size="medium" className="w-40">Nhập từ từ file</Button>
+                        <Button variant="primary-outline" size="medium" className="w-40">Nhập từ file</Button>
                     </div>
                 </div>
                 <div className="flex flex-col gap-4 h-full w-2/6">
-                    <div className="flex flex-col gap-1">
-                        <Select
-                            id="language-select"
-                            label="Ngôn ngữ"
-                            placeholder="Chọn ngôn ngữ"
-                            options={testOptions}
-                        />
-                    </div>
+                    <Select
+                        id="language-select"
+                        label="Ngôn ngữ"
+                        placeholder="Chọn ngôn ngữ"
+                        options={testOptions}
+                        className="w-full"
+                    />
                     <div className="flex flex-col gap-1 h-full">
                         <label htmlFor="delete-words-input">Ô nhập từ cần xóa (cách nhau bởi dấu phẩy ",")</label>
                         <Textarea
