@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { Cron, CronExpression, SchedulerRegistry } from '@nestjs/schedule';
 import { PrismaService } from './prisma.service';
-import { categorizedParagraphByLength } from 'src/utils/quoteParagraph';
+import { categorizedParagraphByLength } from 'src/utils/categorizedParagraph';
 
 @Injectable()
 export class PrismaCronService {

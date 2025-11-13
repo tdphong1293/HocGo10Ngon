@@ -16,6 +16,7 @@ interface SelectProps {
     placeholder?: string;
     className?: string;
     onChange?: (value: string, isNew?: boolean) => void;
+    allowCreate?: boolean;
 }
 
 const Select: React.FC<SelectProps> = ({
@@ -26,6 +27,7 @@ const Select: React.FC<SelectProps> = ({
     placeholder = "Chọn...",
     className,
     onChange,
+    allowCreate = false,
 }) => {
     const [open, setOpen] = useState(false);
     const [uncontrolledValue, setUncontrolledValue] = useState<Option | null>(null);
@@ -51,7 +53,7 @@ const Select: React.FC<SelectProps> = ({
         if (isControlled && controlledOption) {
             setInputValue(controlledOption.label);
         } else if (isControlled && !controlledOption) {
-            setInputValue(""); // value cleared externally
+            setInputValue("");
         }
     }, [controlledValue, options]);
 
@@ -75,7 +77,7 @@ const Select: React.FC<SelectProps> = ({
         onChange?.(option.value, isNew);
     };
 
-    const canCreate =
+    const canCreate = allowCreate &&
         inputValue.trim() !== "" &&
         !options.some((o) => o.label.toLowerCase() === inputValue.toLowerCase());
 

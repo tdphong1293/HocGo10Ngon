@@ -64,7 +64,7 @@ const AccountSettingsPage = () => {
 
     const handleChangePasswordFormSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        
+
         const isValid = validateChangePasswordForm();
         if (!isValid) return;
 
@@ -79,7 +79,9 @@ const AccountSettingsPage = () => {
         }
     }
 
-
+    if (!isAuthenticated || !accessToken || !user) {
+        return null;
+    }
     return (
         <div className="p-4 flex flex-col gap-4">
             <span className="text-3xl font-semibold">Cài đặt tài khoản</span>

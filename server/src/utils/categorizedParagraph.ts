@@ -1,10 +1,12 @@
+import { LengthType, RowType } from "src/generated/client/enums";
+
 export const categorizedParagraphByLength = (text: string) => {
     const wordCount = text.trim().split(/\s+/).length;
     if (wordCount < 50) {
-        return 'SHORT';
+        return LengthType.SHORT;
     } else if (wordCount <= 150) {
-        return 'MEDIUM';
+        return LengthType.MEDIUM;
     } else {
-        return 'LONG';
+        return LengthType.LONG;
     }
 }

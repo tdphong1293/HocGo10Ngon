@@ -9,6 +9,8 @@ import { AuthModule } from './modules/auth/auth.module';
 import { UserModule } from './modules/user/user.module';
 import { SessionModule } from './modules/session/session.module';
 import { ScheduleModule } from '@nestjs/schedule';
+import { LanguageModule } from './modules/language/language.module';
+import { WordModule } from './modules/word/word.module';
 
 @Module({
 	imports: [
@@ -23,6 +25,8 @@ import { ScheduleModule } from '@nestjs/schedule';
 		AuthModule,
 		UserModule,
 		SessionModule,
+		LanguageModule,
+		WordModule,
 	],
 	controllers: [AppController],
 	providers: [AppService],

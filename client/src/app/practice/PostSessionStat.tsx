@@ -23,7 +23,7 @@ const PostSessionStat: React.FC<PostSessionStatProps> = ({
     text,
 }) => {
     return (
-        <div className="w-full px-10 flex flex-col gap-5">
+        <div className="w-full px-10 flex flex-col gap-0">
             <div className="flex gap-2 items-center">
                 <div className="flex flex-col gap-5">
                     <div className="flex gap-2 items-end">
