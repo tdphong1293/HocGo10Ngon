@@ -19,6 +19,8 @@ interface TypingMenuProps {
     onStateChange?: (state: TypingMode | null) => void;
     setTimeLimit?: (limit: number | null) => void;
     onProvideRefresh?: (refresh: () => Promise<void>) => void;
+    setAuthor?: (author: string | null) => void;
+    setSource?: (source: string | null) => void;
 }
 
 const createDefaultState = (mode: TypingMode | null) => {
@@ -47,6 +49,8 @@ const TypingMenu: React.FC<TypingMenuProps> = ({
     setTimeLimit,
     onStateChange,
     onProvideRefresh,
+    setAuthor,
+    setSource,
 }) => {
     const [sessionModeData, setSessionModeData] = useState<TypingMode[] | null>(null);
     const [activeMode, setActiveMode] = useState<TypingMode | null>(sessionModeData?.[0] || null);
@@ -93,6 +97,8 @@ const TypingMenu: React.FC<TypingMenuProps> = ({
                 const { data } = await response.json();
                 setTypingWords && setTypingWords(data.words);
                 setWordCount && setWordCount(data.totalWords);
+                setAuthor && setAuthor(data.author || null);
+                setSource && setSource(data.source || null);
             }
             else {
                 const errorData = await response.json();
@@ -205,7 +211,7 @@ const TypingMenu: React.FC<TypingMenuProps> = ({
                     layout
                     transition={{ duration: 0.3, ease: "easeInOut" }}
                 >
-                    {activeMode?.subConfig && (
+                    {activeMode?.subConfig && Object.keys(activeMode.subConfig).length > 0 && (
                         <>
                             <div className="flex gap-5">
                                 {Object.entries(activeMode.subConfig).map(([subKey, subValue]) => {
@@ -260,7 +266,7 @@ const TypingMenu: React.FC<TypingMenuProps> = ({
                         ))}
                     </div>
 
-                    {activeMode?.config && (
+                    {activeMode?.config && Object.keys(activeMode.config).length > 0 && (
                         <>
                             <div>|</div>
                             <div className="flex gap-5">

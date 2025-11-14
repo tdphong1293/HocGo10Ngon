@@ -11,6 +11,8 @@ const PracticePage = ({ }) => {
     const [state, setState] = useState<TypingMode | null>(null);
     const [timeLimit, setTimeLimit] = useState<number | null>(null);
     const refreshRef = useRef<(() => Promise<void>) | null>(null);
+    const [author, setAuthor] = useState<string | null>(null);
+    const [source, setSource] = useState<string | null>(null);
 
     return (
         <div className="w-full h-full flex flex-col gap-5 p-4 items-center">
@@ -21,6 +23,8 @@ const PracticePage = ({ }) => {
                 setTimeLimit={setTimeLimit}
                 onStateChange={setState}
                 onProvideRefresh={(fn) => { refreshRef.current = fn; }}
+                setAuthor={setAuthor}
+                setSource={setSource}
             />
             <TypingPractice
                 words={words}
@@ -29,6 +33,8 @@ const PracticePage = ({ }) => {
                 state={state}
                 timeLimit={timeLimit}
                 refreshText={async () => { await refreshRef.current?.(); }}
+                author={author}
+                source={source}
             />
         </div>
     );

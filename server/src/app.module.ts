@@ -11,6 +11,7 @@ import { SessionModule } from './modules/session/session.module';
 import { ScheduleModule } from '@nestjs/schedule';
 import { LanguageModule } from './modules/language/language.module';
 import { WordModule } from './modules/word/word.module';
+import { ParagraphModule } from './modules/paragraph/paragraph.module';
 
 @Module({
 	imports: [
@@ -27,6 +28,7 @@ import { WordModule } from './modules/word/word.module';
 		SessionModule,
 		LanguageModule,
 		WordModule,
+		ParagraphModule,
 	],
 	controllers: [AppController],
 	providers: [AppService],

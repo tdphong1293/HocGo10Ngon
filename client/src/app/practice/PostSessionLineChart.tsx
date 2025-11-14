@@ -87,7 +87,10 @@ const generateChartData = (
         const minutes = (i * intervalSeconds) / 60;
         const wpm = minutes > 0 ? (cumulativeCorrect / 5) / minutes : 0;
         const raw = minutes > 0 ? (cumulativeTotal / 5) / minutes : 0;
-        const burst = intervalTotal > 0 ? (intervalCorrect / 5) / (intervalSeconds / 60) : 0;
+        // Burst tính dựa trên các keystroke đúng
+        // const burst = intervalTotal > 0 ? (intervalCorrect / 5) / (intervalSeconds / 60) : 0;
+        // Burst tính dựa trên tất cả các keystroke
+        const burst = intervalTotal > 0 ? (intervalTotal / 5) / (intervalSeconds / 60) : 0;
 
         data.push({
             time: i * intervalSeconds,
@@ -303,7 +306,7 @@ const PostSessionLineChart: React.FC<PostSessionLineChartProps> = ({
     return (
         <ResponsiveContainer
             width="100%"
-            height={450}
+            height={500}
             debounce={50}
             className={`[&_*]:focus:outline-none`}
         >

@@ -7,6 +7,8 @@ interface PostSessionStatProps {
     typingStats: TypingStats;
     inputHistory: string;
     text: string;
+    author?: string | null;
+    source?: string | null;
 }
 
 const formatTime = (seconds: number) => {
@@ -21,10 +23,12 @@ const PostSessionStat: React.FC<PostSessionStatProps> = ({
     typingStats,
     inputHistory,
     text,
+    author,
+    source,
 }) => {
     return (
         <div className="w-full px-10 flex flex-col gap-0">
-            <div className="flex gap-2 items-center">
+            <div className={`flex gap-2 ${!author || !source ? 'items-center' : 'items-start'}`}>
                 <div className="flex flex-col gap-5">
                     <div className="flex gap-2 items-end">
                         <span className="text-4xl font-bold">{typingStats.wpm.toFixed(2)}</span>
@@ -57,6 +61,18 @@ const PostSessionStat: React.FC<PostSessionStatProps> = ({
                         <span className="text-4xl font-bold">{typingStats.words}</span>
                         <span className="">từ</span>
                     </div>
+                    {author && (
+                        <div className="flex gap-2 items-end">
+                            <span className="">Tác giả:</span>
+                            <span className="text-3xl font-bold">{author}</span>
+                        </div>
+                    )}
+                    {source && (
+                        <div className="flex gap-2 items-end">
+                            <span className="">Nguồn:</span>
+                            <span className="text-3xl font-bold">{source}</span>
+                        </div>
+                    )}
                 </div>
                 <PostSessionLineChart keystrokeLog={keystrokeLog} />
             </div>

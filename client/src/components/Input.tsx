@@ -102,6 +102,9 @@ const Input: React.FC<InputProps> = ({
                     onBlur={() => setIsFocused(false)}
                     onPaste={handlePaste}
                     placeholder={isFocused ? placeholder : ''}
+                    autoComplete='false'
+                    autoCorrect='false'
+                    autoCapitalize='false'
                     className={`
                         w-full py-2 border-2 rounded-md transition-colors duration-300
                         text-sm text-foreground bg-background

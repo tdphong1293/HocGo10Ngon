@@ -214,7 +214,6 @@ export default function Home() {
 					placeholder="Choose fruit..."
 					value={selectedOption}
 					onChange={(v) => {
-						console.log("Selected:", v);
 						setSelectedOption(v);
 					}}
 				/>
@@ -222,7 +221,6 @@ export default function Home() {
 					name="example"
 					value={selectedRadio}
 					onValueChange={(v) => {
-						console.log("Selected radio:", v);
 						setSelectedRadio(v);
 					}}
 				>

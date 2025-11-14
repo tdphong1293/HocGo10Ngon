@@ -143,6 +143,7 @@ const AdminWordsPage = () => {
             if (response.ok) {
                 toast.success(data.message);
                 setNewWordsInput("");
+                setSelectedLanguage("");
             }
         } catch (err) {
             toast.error("Đã có lỗi xảy ra khi thêm từ.");

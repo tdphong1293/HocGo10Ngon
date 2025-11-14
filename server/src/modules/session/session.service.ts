@@ -101,7 +101,7 @@ export class SessionService {
         }
     }
 
-    async getPracticeTypingText(languageCode: string, mode: SessionMode): Promise<{ totalWords: number, words: string[] }> {
+    async getPracticeTypingText(languageCode: string, mode: SessionMode): Promise<{ totalWords: number, words: string[], author?: string, source?: string }> {
         try {
             if (mode.modeName === 'words') {
                 const wordCount = mode.config?.wordCount || 50;
@@ -190,6 +190,8 @@ export class SessionService {
                     return {
                         totalWords: wordList.length,
                         words: wordList,
+                        author: randomParagraph.author || 'Unknown',
+                        source: randomParagraph.source || 'Unknown',
                     }
                 }
                 else {
@@ -204,6 +206,8 @@ export class SessionService {
                     return {
                         totalWords: wordList.length,
                         words: wordList,
+                        author: randomParagraph.author || 'Unknown',
+                        source: randomParagraph.source || 'Unknown',
                     }
                 }
             }

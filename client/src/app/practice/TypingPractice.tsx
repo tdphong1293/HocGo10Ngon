@@ -34,6 +34,8 @@ interface TypingPracticeProps {
     text?: string,
     words?: string[];
     totalWords?: number;
+    author?: string | null;
+    source?: string | null;
     // Controlled (optional)
     textSize?: TextSize;
     keyboardSize?: keyboardSizes;
@@ -54,6 +56,8 @@ const TypingPractice: React.FC<TypingPracticeProps> = ({
     text,
     words,
     totalWords,
+    author,
+    source,
     textSize,
     keyboardSize,
     showKeyboard,
@@ -567,7 +571,7 @@ const TypingPractice: React.FC<TypingPracticeProps> = ({
     useEffect(() => {
         const minutes = elapsedTime / 60;
         const cpm = correctCount / (minutes || 1) || 0;
-        const raw = (correctCount + errorCount) / (minutes || 1) || 0;
+        const raw = (correctCount + errorCount) / 5 / (minutes || 1) || 0;
         const wpm = correctCount / 5 / (minutes || 1) || 0;
         const accuracy = correctCount + errorCount === 0 ? 100 : (correctCount / (correctCount + errorCount)) * 100;
         onStatsChange?.({ wpm, cpm, raw, accuracy, errors: errorCount, elapsed: elapsedTime, words: getCurrentWordIndex(currentIndex) });
@@ -671,7 +675,6 @@ const TypingPractice: React.FC<TypingPracticeProps> = ({
                     animate={{ opacity: 1, scale: 1 }}
                     exit={{ opacity: 0, scale: 0.9 }}
                     transition={{ duration: 0.35, ease: 'easeOut' }}
-                    onAnimationComplete={() => inputRef.current?.focus()}
                 >
                     <div
                         className={`absolute inset-0 bg-accent/50 rounded-md mx-10 text-accent-foreground z-10 flex flex-col justify-center items-center gap-4 backdrop-blur-sm transition-opacity duration-300 ${isFocused ? 'opacity-0 pointer-events-none' : 'opacity-100 pointer-events-auto'}`}
@@ -755,6 +758,8 @@ const TypingPractice: React.FC<TypingPracticeProps> = ({
                             keystrokeLog={keystrokeLog}
                             typingStats={typingStats}
                             inputHistory={inputHistory}
+                            author={author}
+                            source={source}
                         />
                         <div className="flex justify-center gap-10 mt-6">
                             <Tooltip text="Gõ lại với văn bản hiện tại" shortcut="Ctrl+R" side="left">
