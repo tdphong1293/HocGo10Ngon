@@ -42,7 +42,8 @@ const Select: React.FC<SelectProps> = ({
     // Local input value for filtering
     const [inputValue, setInputValue] = useState(selectedOption?.label || "");
 
-    const usedId = id || useId();
+    const generatedId = useId();
+    const usedId = id || generatedId;
 
     const filteredOptions = options.filter((o) =>
         o.label.toLowerCase().includes(inputValue.toLowerCase())
@@ -133,7 +134,7 @@ const Select: React.FC<SelectProps> = ({
             </div>
 
             {open && (
-                <ul className="absolute z-10 mt-1 w-full max-h-48 overflow-y-auto rounded-lg border border-border bg-popover shadow-md">
+                <ul className="absolute z-20 mt-1 w-full max-h-48 overflow-y-auto rounded-lg border border-border bg-popover shadow-md">
                     {filteredOptions.length === 0 && !canCreate ? (
                         <li className="px-3 py-2 text-sm text-muted-foreground">
                             Không tìm thấy lựa chọn nào
@@ -146,7 +147,7 @@ const Select: React.FC<SelectProps> = ({
                                     onClick={() => handleSelect(option)}
                                     className={`px-3 py-2 text-sm cursor-pointer truncate ${selectedOption?.value === option.value
                                         ? "bg-accent text-accent-foreground"
-                                        : "text-popover-foreground hover:bg-accent hover:text-accent-foreground"
+                                        : "bg-popover text-popover-foreground hover:bg-accent hover:text-accent-foreground"
                                         }`}
                                     title={option.label}
                                 >
@@ -172,7 +173,7 @@ const Select: React.FC<SelectProps> = ({
                                         icon="majesticons:plus-line"
                                         className="inline-block text-lg mr-0.5 align-top"
                                     />
-                                    Thêm "{inputValue}"
+                                    {`Thêm "${inputValue}"`}
                                 </li>
                             )}
                         </>

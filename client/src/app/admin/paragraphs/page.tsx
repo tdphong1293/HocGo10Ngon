@@ -194,7 +194,7 @@ const AdminParagraphsPage = () => {
                             value={paragraphText}
                             onChange={(e) => setParagraphText(e.target.value)}
                         />
-                        <span className="text-sm text-muted-foreground">Lưu ý: Đoạn văn bản có quan tâm dấu xuống dòng ("\n") và dấu tab ("\t"). Khi đoạn văn bản được thêm từ file, sẽ ghi đè lên nội dung hiện tại.</span>
+                        <span className="text-sm text-muted-foreground">{`Lưu ý: Đoạn văn bản có quan tâm dấu xuống dòng ("\\n") và dấu tab ("\\t"). Khi đoạn văn bản được thêm từ file, sẽ ghi đè lên nội dung hiện tại.`}</span>
                     </div>
                     <div className="flex flex-row-reverse justify-around">
                         <Button variant="primary" size="medium" className="w-50" onClick={handleCreateParagraph}>Thêm đoạn văn bản</Button>

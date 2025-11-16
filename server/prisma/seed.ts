@@ -24,8 +24,6 @@ async function main() {
         'punctuations',
         'user_lessons',
         'languages',
-        'lesson_practices',
-        'user_practices',
     ];
 
     await deleteAllData(tableList);

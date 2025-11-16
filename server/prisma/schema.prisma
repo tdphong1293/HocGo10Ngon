@@ -30,7 +30,6 @@ model User {
     createdAt             DateTime       @default(now())
     updatedAt             DateTime       @updatedAt
     userLessons           UserLesson[]
-    userPractices         UserPractice[]
     refreshTokens         RefreshToken[]
 
     @@map("users")
@@ -69,8 +68,8 @@ model Paragraph {
     language         Language    @relation(fields: [languageid], references: [languageid])
     languageid       String
 
-    @@map("paragraphs")
     @@unique([source, externalid])
+    @@map("paragraphs")
 }
 
 model Word {
@@ -110,36 +109,26 @@ enum RowType {
     ALL
 }
 
+enum LessonType {
+    ONE_HANDED
+    BOTH_HANDS
+}
+
 model Lesson {
     lessonid      String           @id @default(cuid())
     title         String
-    orderNumber   Int
+    orderNumber   Int              @unique
     rowType       RowType
+    lessonType    LessonType
+    heldKey      String?
     lessonContent String
     language      Language         @relation(fields: [languageid], references: [languageid])
     languageid    String
-    practices     LessonPractice[]
     UserLesson    UserLesson[]
 
     @@map("lessons")
 }
 
-enum PracticeType {
-    ONE_HANDED
-    BOTH_HANDS
-}
-
-model LessonPractice {
-    practiceid      String         @id @default(cuid())
-    practiceType    PracticeType
-    heldKey         String?
-    practiceContent String
-    lesson          Lesson         @relation(fields: [lessonid], references: [lessonid])
-    lessonid        String
-    UserPractice    UserPractice[]
-
-    @@map("lesson_practices")
-}
 
 model UserLesson {
     userid   String
@@ -149,16 +138,6 @@ model UserLesson {
 
     @@id([userid, lessonid])
     @@map("user_lessons")
-}
-
-model UserPractice {
-    userid     String
-    user       User           @relation(fields: [userid], references: [userid])
-    practiceid String
-    practice   LessonPractice @relation(fields: [practiceid], references: [practiceid])
-
-    @@id([userid, practiceid])
-    @@map("user_practices")
 }
 
 model RefreshToken {

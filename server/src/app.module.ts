@@ -12,6 +12,7 @@ import { ScheduleModule } from '@nestjs/schedule';
 import { LanguageModule } from './modules/language/language.module';
 import { WordModule } from './modules/word/word.module';
 import { ParagraphModule } from './modules/paragraph/paragraph.module';
+import { LessonModule } from './modules/lesson/lesson.module';
 
 @Module({
 	imports: [
@@ -29,6 +30,7 @@ import { ParagraphModule } from './modules/paragraph/paragraph.module';
 		LanguageModule,
 		WordModule,
 		ParagraphModule,
+		LessonModule,
 	],
 	controllers: [AppController],
 	providers: [AppService],

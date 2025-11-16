@@ -9,6 +9,11 @@ interface KeystrokeData {
     correct: boolean;
 }
 
+export enum SessionType {
+    PRACTICE = 'PRACTICE',
+    LESSON = 'LESSON',
+}
+
 @Schema({
     timestamps: true,
     collection: 'sessions'
@@ -17,8 +22,11 @@ export class Session {
     @Prop({ required: true })
     userid: string;
 
-    @Prop({ required: true })
-    sessionType: string;
+    @Prop({ 
+        required: true,
+        enum: Object.values(SessionType)
+    })
+    sessionType: SessionType;
 
     @Prop({ required: true })
     languageCode: string;

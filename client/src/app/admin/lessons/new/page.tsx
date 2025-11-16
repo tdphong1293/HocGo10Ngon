@@ -31,7 +31,7 @@ const AdminNewLessonPage = () => {
                             placeholder="Nhập nội dung bài học mới..."
                             className={`p-4 border-2 border-border rounded-lg h-full bg-background text-foreground`}
                         />
-                        <span className="text-sm text-muted-foreground">Lưu ý: Nội dung bài học có quan tâm dấu xuống dòng ("\n") và dấu tab ("\t").</span>
+                        <span className="text-sm text-muted-foreground">{`Lưu ý: Nội dung bài học có quan tâm dấu xuống dòng ("\\n") và dấu tab ("\\t").`}</span>
                     </div>
                     <div className="flex flex-row-reverse justify-around">
                         <Button variant="primary" size="medium" className="w-45">Thêm bài học</Button>

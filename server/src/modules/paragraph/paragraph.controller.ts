@@ -10,7 +10,7 @@ export class ParagraphController {
 
     @Post()
     async createParagraph(@Body() data: createParagraphDto) {
-        const result = await this.paragraphService.createParagraph(data);
+        await this.paragraphService.createParagraph(data);
         return {
             message: "Đã thêm đoạn văn bản thành công"
         }

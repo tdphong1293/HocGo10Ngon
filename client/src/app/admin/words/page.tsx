@@ -178,7 +178,7 @@ const AdminWordsPage = () => {
             <div className={`flex gap-4 items-start justify-center h-190 w-full`}>
                 <div className="flex flex-col gap-4 h-full w-3/6">
                     <div className="flex flex-col gap-1 h-full w-full">
-                        <label htmlFor="new-words-input">Ô nhập từ cần thêm (cách nhau bởi dấu phẩy ",")</label>
+                        <label htmlFor="new-words-input">{`Ô nhập từ cần thêm (cách nhau bởi dấu phẩy ",")`}</label>
                         <Textarea
                             id="new-words-input"
                             placeholder="Nhập từ mới..."
@@ -214,7 +214,7 @@ const AdminWordsPage = () => {
                         allowCreate={true}
                     />
                     <div className="flex flex-col gap-1 h-full">
-                        <label htmlFor="delete-words-input">Ô nhập từ cần xóa (cách nhau bởi dấu phẩy ",")</label>
+                        <label htmlFor="delete-words-input">{`Ô nhập từ cần xóa (cách nhau bởi dấu phẩy ",")`}</label>
                         <Textarea
                             id="delete-words-input"
                             placeholder="Nhập từ cần xóa..."

@@ -387,7 +387,12 @@ const TypingPractice: React.FC<TypingPracticeProps> = ({
             const expectedChar = displayText[newValue.length - 1];
             const correct = key === expectedChar;
             playSound(correct ? 'correct' : 'incorrect');
-            correct ? setCorrectCount((p) => p + 1) : setErrorCount((p) => p + 1);
+            if (correct) {
+                setCorrectCount((p) => p + 1);
+            }
+            else {
+                setErrorCount((p) => p + 1);
+            }
             setKeystrokeLog((prev) => [
                 ...prev,
                 { key, timestamp: getTimestamp(), correct, index: newValue.length - 1 },
@@ -553,7 +558,7 @@ const TypingPractice: React.FC<TypingPracticeProps> = ({
                 clearTimeout(scrollTimeoutRef.current);
             }
         };
-    }, [userInput, endMode, timeLimit, elapsedTime, fullTextLength, currentIndex, totalWordsToUse, renderedWordCount, BUFFER_WORDS, INITIAL_WORDS]);
+    }, [userInput, endMode, timeLimit, elapsedTime, fullTextLength, currentIndex, totalWordsToUse, renderedWordCount, BUFFER_WORDS, INITIAL_WORDS, getCurrentWordIndex]);
 
     useEffect(() => {
         const container = scrollRef.current;
@@ -576,7 +581,7 @@ const TypingPractice: React.FC<TypingPracticeProps> = ({
         const accuracy = correctCount + errorCount === 0 ? 100 : (correctCount / (correctCount + errorCount)) * 100;
         onStatsChange?.({ wpm, cpm, raw, accuracy, errors: errorCount, elapsed: elapsedTime, words: getCurrentWordIndex(currentIndex) });
         setTypingStats({ wpm, cpm, raw, accuracy, errors: errorCount, elapsed: elapsedTime, words: getCurrentWordIndex(currentIndex) });
-    }, [correctCount, errorCount, elapsedTime, currentIndex, onStatsChange]);
+    }, [correctCount, errorCount, elapsedTime, currentIndex, onStatsChange, getCurrentWordIndex]);
 
     const getTypingAreaHeight = (textSize: TextSize) => {
         const textHeightMap: Record<TextSize, number> = {
@@ -619,7 +624,7 @@ const TypingPractice: React.FC<TypingPracticeProps> = ({
                 <span className="text-lg">{getCurrentWordIndex(currentIndex)} / {totalWordsToUse}</span>
             </div>
         </div>
-    ), [typingStats, elapsedTime, timeLimit, currentIndex, totalWords]);
+    ), [typingStats, elapsedTime, timeLimit, currentIndex, totalWords, getCurrentWordIndex, totalWordsToUse]);
 
     const { isAuthenticated, user, accessToken } = useAuth();
     const { languageCode } = useTheme();
@@ -627,7 +632,7 @@ const TypingPractice: React.FC<TypingPracticeProps> = ({
     useEffect(() => {
         if (isFinished && keystrokeLog.length > 0 && isAuthenticated && user && accessToken && languageCode) {
             const data = {
-                sessionType: 'practice',
+                sessionType: 'PRACTICE',
                 languageCode: languageCode,
                 modeName: state?.modeName,
                 useConfig: state?.config || {},

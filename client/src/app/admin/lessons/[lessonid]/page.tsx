@@ -7,7 +7,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/RadioGroup";
 import { use, useState } from "react";
 import Input from "@/components/Input";
 
-const AdminSingleLessonPage: React.FC<PageProps<'/admin/lessons/[lessonNumber]'>> = ({
+const AdminSingleLessonPage: React.FC<PageProps<"/admin/lessons/[lessonid]">> = ({
     params
 }) => {
     const testOptions = [
@@ -16,7 +16,7 @@ const AdminSingleLessonPage: React.FC<PageProps<'/admin/lessons/[lessonNumber]'>
         { value: 'fr', label: 'French' },
     ]
 
-    const { lessonNumber } = use(params);
+    const { lessonid } = use(params);
 
     const [selectedRadio, setSelectedRadio] = useState("two-hand");
     const [lessonTitle, setLessonTitle] = useState("");
@@ -35,7 +35,7 @@ const AdminSingleLessonPage: React.FC<PageProps<'/admin/lessons/[lessonNumber]'>
                             placeholder="Nhập nội dung bài học cần chỉnh sửa..."
                             className={`p-4 border-2 border-border rounded-lg h-full bg-background text-foreground`}
                         />
-                        <span className="text-sm text-muted-foreground">Lưu ý: Nội dung bài học có quan tâm dấu xuống dòng ("\n") và dấu tab ("\t").</span>
+                        <span className="text-sm text-muted-foreground">{`Lưu ý: Nội dung bài học có quan tâm dấu xuống dòng ("\\n") và dấu tab ("\\t").`}</span>
                     </div>
                     <div className="flex flex-row-reverse justify-between">
                         <Button variant="primary" size="medium" className="w-45">Lưu chỉnh sửa</Button>

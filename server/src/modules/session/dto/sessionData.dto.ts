@@ -1,9 +1,14 @@
-import { IsString, IsNotEmpty, IsNumber, IsObject } from 'class-validator';
+import { IsString, IsNotEmpty, IsNumber, IsObject, IsEnum } from 'class-validator';
+import { SessionType } from 'src/modules/mongoose/schemas/session.schema';
 
 export class sessionDataDto {
     @IsString()
     @IsNotEmpty()
     languageCode: string;
+
+    @IsEnum(SessionType)
+    @IsNotEmpty()
+    sessionType: SessionType;
 
     @IsString()
     @IsNotEmpty()
