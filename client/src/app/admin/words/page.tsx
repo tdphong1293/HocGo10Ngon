@@ -132,7 +132,7 @@ const AdminWordsPage = () => {
             return;
         }
 
-        if (!selectedLanguage) {
+        if (!selectedLanguage || selectedLanguage.trim() === "") {
             toast.warn("Vui lòng chọn ngôn ngữ trước khi thêm từ.");
             return;
         }

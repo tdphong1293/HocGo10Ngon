@@ -2,6 +2,7 @@ import { BadRequestException, Injectable, NotFoundException } from '@nestjs/comm
 import { PrismaService } from 'src/modules/prisma/prisma.service';
 import { NewLessonDto } from './dto/newLesson.dto';
 import { UpdateLessonDto } from './dto/updateLesson.dto';
+import { categorizedParagraphByRowKey } from 'src/utils/categorizedParagraph';
 
 @Injectable()
 export class LessonService {
@@ -133,7 +134,7 @@ export class LessonService {
                     orderNumber: data.orderNumber,
                     lessonType: data.lessonType,
                     heldKey: data.heldKey,
-                    rowType: data.rowType,
+                    rowType: categorizedParagraphByRowKey(data.lessonContent),
                     lessonContent: data.lessonContent,
                     languageid: data.languageid,
                 }

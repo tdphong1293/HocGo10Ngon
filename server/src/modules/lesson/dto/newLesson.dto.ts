@@ -10,10 +10,6 @@ export class NewLessonDto {
     @IsNotEmpty()
     orderNumber: number;
 
-    @IsEnum(RowType)
-    @IsNotEmpty()
-    rowType: RowType;
-
     @IsEnum(LessonType)
     @IsNotEmpty()
     lessonType: LessonType;

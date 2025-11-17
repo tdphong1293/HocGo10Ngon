@@ -121,37 +121,42 @@ const AdminParagraphsPage = () => {
         setErrors({});
     }
 
-    const validateInput = () => {
+    const validateInputs = () => {
         clearAllErrors();
         let isValid = true;
-        if (!author) {
+        if (!author || author.trim() === "") {
             setErrors(prev => ({ ...prev, author: "Vui lòng nhập tác giả." }));
             isValid = false;
         }
-        if (!source) {
+        if (!source || source.trim() === "") {
             setErrors(prev => ({ ...prev, source: "Vui lòng nhập nguồn." }));
             isValid = false;
         }
-        const textRegex = /^[a-zA-ZÀ-ỹ0-9\s.,'-_]+$/u;
+        const textRegex = /^[a-zA-ZÀ-ỹ0-9\s.,'"!?()-_]{1,100}$/u;
         if (author && !textRegex.test(author)) {
-            setErrors(prev => ({ ...prev, author: "Tác giả chỉ được chứa chữ cái, số và các ký tự: . , ' - _" }));
+            setErrors(prev => ({ ...prev, author: "Tác giả chỉ được chứa chữ cái, số, khoảng trắng và các ký tự: . , ' \" ! ? ( ) - _, tối đa 100 ký tự." }));
             isValid = false;
         }
-        if (source && !textRegex.test(source)) {
-            setErrors(prev => ({ ...prev, source: "Nguồn chỉ được chứa chữ cái, số và các ký tự: . , ' - _" }));
+        const textRegex1 = /^[a-zA-ZÀ-ỹ0-9\s.,'"!?()-_]{1,500}$/u;
+        if (source && !textRegex1.test(source)) {
+            setErrors(prev => ({ ...prev, source: "Nguồn chỉ được chứa chữ cái, số, khoảng trắng và các ký tự: . , ' \" ! ? ( ) - _, tối đa 500 ký tự." }));
             isValid = false;
         }
         return isValid;
     }
 
     const handleCreateParagraph = async () => {
-        if (!validateInput()) return;
-        if (paragraphText.trim() === "") {
+        if (!validateInputs()) return;
+        if (!selectedLanguage || selectedLanguage.trim() === "") {
+            toast.warn("Vui lòng chọn ngôn ngữ cho đoạn văn bản.");
+            return;
+        }
+        if (!paragraphText || paragraphText.trim() === "") {
             toast.warn("Vui lòng nhập đoạn văn bản cần thêm.");
             return;
         }
-        const paragraphRegex = /^(?=.*\S)[\u0009\u000A\u000D\u0020-\u007E\u00A0-\u024F]{1,5000}$/;
-        if (!paragraphRegex.test(paragraphText)) {
+        const paragraphRegex = /^(?=.*\S)[\u0009\u000A\u000D\u2028\u2029\u0020-\u007E\u00A0-\u024F]{1,5000}$/;
+        if (paragraphText && !paragraphRegex.test(paragraphText)) {
             toast.warn("Đoạn văn bản chỉ được chứa chữ cái, số, dấu câu và các ký tự khoảng trắng hợp lệ, tối đa 5000 ký tự.");
             return;
         }

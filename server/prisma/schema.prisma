@@ -115,20 +115,19 @@ enum LessonType {
 }
 
 model Lesson {
-    lessonid      String           @id @default(cuid())
+    lessonid      String       @id @default(cuid())
     title         String
-    orderNumber   Int              @unique
-    rowType       RowType
+    orderNumber   Int          @unique
+    rowType       RowType?
     lessonType    LessonType
-    heldKey      String?
+    heldKey       String?
     lessonContent String
-    language      Language         @relation(fields: [languageid], references: [languageid])
+    language      Language     @relation(fields: [languageid], references: [languageid])
     languageid    String
     UserLesson    UserLesson[]
 
     @@map("lessons")
 }
-
 
 model UserLesson {
     userid   String

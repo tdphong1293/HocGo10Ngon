@@ -20,7 +20,7 @@ export class LessonController {
     }
     
     @Post()
-    async addLesson(newLessonDto: NewLessonDto) {
+    async addLesson(@Body() newLessonDto: NewLessonDto) {
         return await this.lessonService.addLesson(newLessonDto);
     }
 
