@@ -12,12 +12,66 @@ import Textarea from '@/components/Textarea';
 import Select from '@/components/Select';
 import { RadioGroup, RadioGroupItem } from '@/components/RadioGroup';
 
+import {
+	DndContext,
+	closestCenter,
+	KeyboardSensor,
+	PointerSensor,
+	useSensor,
+	useSensors,
+} from '@dnd-kit/core';
+import {
+	arrayMove,
+	SortableContext,
+	sortableKeyboardCoordinates,
+	verticalListSortingStrategy,
+} from '@dnd-kit/sortable';
+
+import { Droppable } from '@/components/Droppable';
+import { Draggable } from '@/components/Draggable';
+import { SortableItem } from '@/components/SortableItem';
+
 export default function Home() {
 	const { theme, font } = useTheme();
 	const [inputValue, setInputValue] = useState('');
 	const [switchState, setSwitchState] = useState(false);
 	const [selectedOption, setSelectedOption] = useState<string>('banana');
 	const [selectedRadio, setSelectedRadio] = useState<string>('option1');
+
+	const containers = ['A', 'B', 'C'];
+	const [parent, setParent] = useState(null);
+	const draggableMarkup = (
+		<Draggable id="draggable">Drag me</Draggable>
+	);
+
+	const [items, setItems] = useState([1, 2, 3]);
+	const sensors = useSensors(
+		useSensor(PointerSensor),
+		useSensor(KeyboardSensor, {
+			coordinateGetter: sortableKeyboardCoordinates,
+		})
+	);
+
+	const handleDragEnd = (event: any) => {
+		const { over } = event;
+
+		// If the item is dropped over a container, set it as the parent
+		// otherwise reset the parent to `null`
+		setParent(over ? over.id : null);
+	}
+
+	const handleDragEndSort = (event: any) => {
+		const { active, over } = event;
+
+		if (active.id !== over.id) {
+			setItems((items) => {
+				const oldIndex = items.indexOf(active.id);
+				const newIndex = items.indexOf(over.id);
+
+				return arrayMove(items, oldIndex, newIndex);
+			});
+		}
+	}
 
 	return (
 		<div className="min-h-screen p-8 pb-20 gap-16 sm:p-20">
@@ -228,6 +282,34 @@ export default function Home() {
 					<RadioGroupItem value="option2">Option 2</RadioGroupItem>
 					<RadioGroupItem value="option3" disabled>Option 3 (Disabled)</RadioGroupItem>
 				</RadioGroup>
+				<div className="w-full max-w-4xl bg-card p-6 rounded-lg border border-border">
+					<DndContext onDragEnd={handleDragEnd}>
+						{parent === null ? draggableMarkup : null}
+
+						{containers.map((id) => (
+							// We updated the Droppable component so it would accept an `id`
+							// prop and pass it to `useDroppable`
+							<Droppable key={id} id={id}>
+								{parent === id ? draggableMarkup : 'Drop here'}
+							</Droppable>
+						))}
+					</DndContext>
+				</div>
+				<div className="w-full max-w-4xl bg-card p-6 rounded-lg border border-border">
+					<DndContext
+						sensors={sensors}
+						collisionDetection={closestCenter}
+						onDragEnd={handleDragEndSort}
+					>
+						<SortableContext
+							items={items}
+							strategy={verticalListSortingStrategy}
+						>
+							{items.map(id => <SortableItem key={id} id={id} 
+							>Item {id}</SortableItem>)}
+						</SortableContext>
+					</DndContext>
+				</div>
 				<footer className="text-center text-muted-foreground">
 					<p>Click the customize button in the top right to change themes and fonts!</p>
 					<p className="text-xs mt-2">Font changes are applied instantly to the entire page</p>

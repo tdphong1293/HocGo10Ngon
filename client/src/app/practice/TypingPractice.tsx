@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState, useMemo } from 'react';
+import { useEffect, useRef, useState, useMemo, useCallback } from 'react';
 import Keyboard, { keyboardSizes } from '@/components/Keyboard';
 import { Icon } from '@iconify/react';
 import type { TextSize } from '@/config/typingUi';
@@ -83,9 +83,8 @@ const TypingPractice: React.FC<TypingPracticeProps> = ({
     const scrollTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
     // Lazy rendering state
-    const INITIAL_WORDS = 80;
-    const BUFFER_WORDS = 10;
-    const [renderedWordCount, setRenderedWordCount] = useState(INITIAL_WORDS); // Initial render count
+    const BUFFER_WORDS = 100;
+    const [renderedWordCount, setRenderedWordCount] = useState(BUFFER_WORDS); // Initial render count
 
     // Typing metrics
     const [startTime, setStartTime] = useState<number | null>(null);
@@ -138,11 +137,11 @@ const TypingPractice: React.FC<TypingPracticeProps> = ({
     }
 
     // Get current word index based on character position
-    const getCurrentWordIndex = (charIndex: number) => {
+    const getCurrentWordIndex = useCallback((charIndex: number) => {
         const fullTextLocal = wordsToUse.join(' ');
         const textUpToCursor = fullTextLocal.slice(0, charIndex);
         return wordCount(textUpToCursor);
-    }
+    }, [wordsToUse]);
 
     // Local option state (used when uncontrolled)
     const [localTextSize, setLocalTextSize] = useState<TextSize>('normal');
@@ -196,7 +195,7 @@ const TypingPractice: React.FC<TypingPracticeProps> = ({
         setKeystrokeLog([]);
         setInputHistory('');
         setIsFinished(false);
-        setRenderedWordCount(INITIAL_WORDS); // Reset rendered word count
+        setRenderedWordCount(BUFFER_WORDS); // Reset rendered word count
     }
 
     useEffect(() => {
@@ -286,12 +285,37 @@ const TypingPractice: React.FC<TypingPracticeProps> = ({
             return;
         }
 
-        const getTimestamp = () => {
-            if (!startTime) return 0;
-            return Date.now() - startTime;
+        const timestamp = startTime ? Date.now() - startTime : 0;
+
+        const commitChar = (char: string) => {
+            if (!timerRunning) {
+                setTimerRunning(true);
+                setStartTime(Date.now());
+            }
+
+            const newValue = userInput + char;
+            const index = newValue.length - 1;
+            const expected = displayText[index];
+            const correct = expected === char;
+
+            setUserInput(newValue);
+            setCurrentIndex(newValue.length);
+            setInputHistory(prev => prev + char);
+            playSound(correct ? "correct" : "incorrect");
+
+            if (correct) setCorrectCount(p => p + 1);
+            else setErrorCount(p => p + 1);
+
+            setKeystrokeLog(prev => [
+                ...prev,
+                { key: char, timestamp, correct, index }
+            ]);
         };
 
-        if (key === 'Backspace') {
+        // -----------------------
+        // BACKSPACE
+        // -----------------------
+        if (key === "Backspace") {
             if (heldKey && !isHoldingKey) {
                 isProcessingRef.current = false;
                 return;
@@ -300,68 +324,48 @@ const TypingPractice: React.FC<TypingPracticeProps> = ({
                 const newValue = userInput.slice(0, -1);
                 setUserInput(newValue);
                 setCurrentIndex(newValue.length);
-                playSound('correct');
-                if (startTime) {
-                    setKeystrokeLog((prev) => [
-                        ...prev,
-                        { key: 'Backspace', timestamp: getTimestamp(), correct: true, index: newValue.length },
-                    ]);
-                }
+
+                playSound("correct");
+
+                setKeystrokeLog(prev => [
+                    ...prev,
+                    { key: "Backspace", timestamp, correct: true, index: newValue.length }
+                ]);
             }
+
             isProcessingRef.current = false;
             return;
         }
 
-        if (key === 'Enter') {
+        // -----------------------
+        // ENTER
+        // -----------------------
+        if (key === "Enter") {
             if (heldKey && !isHoldingKey) {
                 isProcessingRef.current = false;
                 return;
             }
-            if (!timerRunning) {
-                setTimerRunning(true);
-                setStartTime(Date.now());
-            }
-            const newValue = userInput + '\n';
-            setUserInput(newValue);
-            setCurrentIndex(newValue.length);
-            setInputHistory(prev => prev + '\n'); // Add to history
-            const expectedChar = displayText[newValue.length - 1];
-            const correct = expectedChar === '\n';
-            playSound(correct ? 'correct' : 'incorrect');
-            correct ? setCorrectCount((p) => p + 1) : setErrorCount((p) => p + 1);
-            setKeystrokeLog((prev) => [
-                ...prev,
-                { key: 'Enter', timestamp: getTimestamp(), correct, index: newValue.length - 1 },
-            ]);
+            commitChar("\n");
             isProcessingRef.current = false;
             return;
         }
 
-        if (key === 'Tab') {
+        // -----------------------
+        // TAB
+        // -----------------------
+        if (key === "Tab") {
             if (heldKey && !isHoldingKey) {
                 isProcessingRef.current = false;
                 return;
             }
-            if (!timerRunning) {
-                setTimerRunning(true);
-                setStartTime(Date.now());
-            }
-            const newValue = userInput + '\t';
-            setUserInput(newValue);
-            setCurrentIndex(newValue.length);
-            setInputHistory(prev => prev + '\t');
-            const expectedChar = displayText[newValue.length - 1];
-            const correct = expectedChar === '\t';
-            playSound(correct ? 'correct' : 'incorrect');
-            correct ? setCorrectCount((p) => p + 1) : setErrorCount((p) => p + 1);
-            setKeystrokeLog((prev) => [
-                ...prev,
-                { key: 'Tab', timestamp: getTimestamp(), correct, index: newValue.length - 1 },
-            ]);
+            commitChar("\t");
             isProcessingRef.current = false;
             return;
         }
 
+        // -----------------------
+        // Normal characters
+        // -----------------------
         if (key.length === 1) {
             if (heldKey && heldKey === key) {
                 setIsHoldingKey(true);
@@ -376,27 +380,13 @@ const TypingPractice: React.FC<TypingPracticeProps> = ({
                 isProcessingRef.current = false;
                 return;
             }
-            if (!timerRunning) {
-                setTimerRunning(true);
-                setStartTime(Date.now());
+            // Cho phép chữ cái, số, dấu câu (?!,'"`~,...) và khoảng trắng
+            if (!/^[\p{L}\p{N}\p{P}\p{Zs}]$/u.test(key)) {
+                isProcessingRef.current = false;
+                return;
             }
-            const newValue = userInput + key;
-            setUserInput(newValue);
-            setCurrentIndex(newValue.length);
-            setInputHistory(prev => prev + key); // Add to history
-            const expectedChar = displayText[newValue.length - 1];
-            const correct = key === expectedChar;
-            playSound(correct ? 'correct' : 'incorrect');
-            if (correct) {
-                setCorrectCount((p) => p + 1);
-            }
-            else {
-                setErrorCount((p) => p + 1);
-            }
-            setKeystrokeLog((prev) => [
-                ...prev,
-                { key, timestamp: getTimestamp(), correct, index: newValue.length - 1 },
-            ]);
+
+            commitChar(key);
         }
 
         // Reset processing flag
@@ -500,23 +490,16 @@ const TypingPractice: React.FC<TypingPracticeProps> = ({
         );
     };
 
+    const renderedTextMemo = useMemo(() => renderText(), [renderedWordCount, userInput, currentIndex, textSizeToUse]);
+
     useEffect(() => {
         // Dynamic word rendering: adjust rendered word count based on typing position
-        const currentWordIndex = getCurrentWordIndex(currentIndex);
+        const wordsTyped = getCurrentWordIndex(currentIndex);
 
-        // Progressive rendering: Append BUFFER_WORDS after every BUFFER_WORDS typed
-        // Example: BUFFER_WORDS=10, INITIAL=80 → after typing word 10, append 10 (90 total); after word 20, append 10 (100), etc.
-        const wordsTyped = currentWordIndex;
-        const expectedRendered = INITIAL_WORDS + Math.ceil(wordsTyped / BUFFER_WORDS) * BUFFER_WORDS;
+        const targetRender = Math.min(totalWordsToUse, wordsTyped + BUFFER_WORDS);
 
-        // Append if we've typed enough words and haven't rendered enough yet
-        if (wordsTyped > 0 && wordsTyped % BUFFER_WORDS === 0 && renderedWordCount < expectedRendered && renderedWordCount < totalWordsToUse) {
-            setRenderedWordCount(Math.min(expectedRendered, totalWordsToUse));
-        }
-        // If backspacing significantly, remove words (keep at least INITIAL_WORDS)
-        else if (wordsTyped < renderedWordCount - INITIAL_WORDS + BUFFER_WORDS && renderedWordCount > INITIAL_WORDS) {
-            // Remove words back to current position + buffer
-            setRenderedWordCount(Math.max(wordsTyped + INITIAL_WORDS, INITIAL_WORDS));
+        if (targetRender !== renderedWordCount) {
+            setRenderedWordCount(targetRender);
         }
 
         // Debounce scroll updates to reduce performance impact
@@ -558,7 +541,7 @@ const TypingPractice: React.FC<TypingPracticeProps> = ({
                 clearTimeout(scrollTimeoutRef.current);
             }
         };
-    }, [userInput, endMode, timeLimit, elapsedTime, fullTextLength, currentIndex, totalWordsToUse, renderedWordCount, BUFFER_WORDS, INITIAL_WORDS, getCurrentWordIndex]);
+    }, [userInput, endMode, timeLimit, elapsedTime, fullTextLength, currentIndex, totalWordsToUse, renderedWordCount, BUFFER_WORDS, getCurrentWordIndex]);
 
     useEffect(() => {
         const container = scrollRef.current;
@@ -581,7 +564,7 @@ const TypingPractice: React.FC<TypingPracticeProps> = ({
         const accuracy = correctCount + errorCount === 0 ? 100 : (correctCount / (correctCount + errorCount)) * 100;
         onStatsChange?.({ wpm, cpm, raw, accuracy, errors: errorCount, elapsed: elapsedTime, words: getCurrentWordIndex(currentIndex) });
         setTypingStats({ wpm, cpm, raw, accuracy, errors: errorCount, elapsed: elapsedTime, words: getCurrentWordIndex(currentIndex) });
-    }, [correctCount, errorCount, elapsedTime, currentIndex, onStatsChange, getCurrentWordIndex]);
+    }, [correctCount, errorCount, elapsedTime, currentIndex, onStatsChange, getCurrentWordIndex, setTypingStats]);
 
     const getTypingAreaHeight = (textSize: TextSize) => {
         const textHeightMap: Record<TextSize, number> = {
@@ -719,7 +702,7 @@ const TypingPractice: React.FC<TypingPracticeProps> = ({
                             onMouseDown={(e) => e.preventDefault()}
                             onDragStart={(e) => e.preventDefault()}
                         >
-                            {renderText()}
+                            {renderedTextMemo}
                         </div>
                         <div
                             onBlur={() => setIsFocused(false)}
