@@ -242,12 +242,14 @@ const AdminParagraphsPage = () => {
                     <div className="flex flex-col gap-6">
                         <Input
                             label="Tác giả"
+                            placeholder="Nhập tên tác giả"
                             value={author}
                             onChange={(val) => setAuthor(val)}
                             error={errors.author}
                         />
                         <Input
                             label="Nguồn"
+                            placeholder="Nhập nguồn đoạn văn bản"
                             value={source}
                             onChange={(val) => setSource(val)}
                             error={errors.source}

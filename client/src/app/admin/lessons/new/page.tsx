@@ -261,6 +261,7 @@ const AdminNewLessonPage = () => {
                         </div>
                         <Input
                             label="Số thứ tự bài học"
+                            placeholder="Nhập số thứ tự bài học mới"
                             value={lessonOrder}
                             onChange={(val) => setLessonOrder(val)}
                             error={errors.lessonOrder}
@@ -271,6 +272,7 @@ const AdminNewLessonPage = () => {
                     </div>
                     <Input
                         label="Tiêu đề bài học"
+                        placeholder="Nhập tiêu đề bài học mới"
                         value={lessonTitle}
                         onChange={(val) => setLessonTitle(val)}
                         error={errors.lessonTitle}
