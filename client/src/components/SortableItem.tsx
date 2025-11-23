@@ -9,11 +9,13 @@ export function SortableItem(props: any) {
         setNodeRef,
         transform,
         transition,
+        isDragging
     } = useSortable({ id: props.id });
 
     const style = {
         transform: CSS.Transform.toString(transform),
         transition,
+        opacity: isDragging ? 0 : 1,
     };
 
     return (

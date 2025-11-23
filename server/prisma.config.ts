@@ -1,7 +1,7 @@
 import type { PrismaConfig } from "prisma/config";
-import "dotenv-expand/config";
 
 export default {
+    schema: "prisma/schema.prisma",
     migrations: {
         seed: `npx tsx prisma/seed.ts`,
     },

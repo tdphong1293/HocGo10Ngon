@@ -32,6 +32,36 @@ export class LessonService {
         return lesson;
     }
 
+    async getLessonsByLanguageCode(languageCode: string) {
+        return await this.prisma.lesson.findMany({
+            where: {
+                language: {
+                    languageCode
+                }
+            },
+            orderBy: {
+                orderNumber: 'asc',
+            }
+        });
+    }
+
+    async getLessonsByLanguageAndTitle(languageCode: string, searchTitle: string) {
+        return await this.prisma.lesson.findMany({
+            where: {
+                language: {
+                    languageCode
+                },
+                title: {
+                    contains: searchTitle,
+                    mode: "insensitive",
+                }
+            },
+            orderBy: {
+                orderNumber: 'asc',
+            }
+        });
+    }
+
     async getLessonLastOrder() {
         return await this.prisma.lesson.count();
     }

@@ -1,12 +1,29 @@
 import { ApiResponse } from "@/lib/ApiResponse";
+import { NextRequest } from "next/server";
 
 const API_URL = `http://${process.env.SERVER_HOST || 'localhost'}:${process.env.SERVER_PORT || '8080'}`;
 
-export async function GET(request: Request) {
+export async function GET(request: NextRequest) {
+    const { searchParams } = request.nextUrl;
+    const languageCode = searchParams.get('languageCode');
+    const searchTitle = searchParams.get('searchTitle');
+    const validLanguageCode = languageCode && languageCode !== 'null' && languageCode !== 'undefined';
+    const validSearchTitle = searchTitle && searchTitle !== 'null' && searchTitle !== 'undefined';
+
     try {
         const access_token = request.headers.get('Authorization')?.split(' ')[1];
 
-        const response = await fetch(`${API_URL}/api/v1/lessons`, {
+        let url = `${API_URL}/api/v1/lessons`;
+        if (validLanguageCode && validSearchTitle) {
+            url += `?languageCode=${languageCode}&searchTitle=${searchTitle}`;
+        }
+        else if (validLanguageCode) {
+            url += `?languageCode=${languageCode}`;
+        }
+        else if (validSearchTitle) {
+            url += `?searchTitle=${searchTitle}`;
+        }
+        const response = await fetch(url, {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json',
