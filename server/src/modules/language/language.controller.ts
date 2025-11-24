@@ -1,6 +1,7 @@
 import { Controller, Get, Post, Body } from '@nestjs/common';
 import { LanguageService } from './language.service';
 import { Public } from '../auth/auth.guard';
+import { Roles, Role } from 'src/modules/auth/roles.guard';
 
 @Controller('languages')
 export class LanguageController {
@@ -19,6 +20,7 @@ export class LanguageController {
     }
 
     @Post()
+    @Roles(Role.ADMIN)
     async createLanguage(
         @Body('languageName') languageName: string,
         @Body('languageCode') languageCode: string

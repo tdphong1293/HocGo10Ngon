@@ -1,5 +1,6 @@
 import { Controller, Post, Body, Delete } from '@nestjs/common';
 import { WordService } from './word.service';
+import { Roles, Role } from 'src/modules/auth/roles.guard';
 
 @Controller('words')
 export class WordController {
@@ -8,6 +9,7 @@ export class WordController {
     ) { }
 
     @Post()
+    @Roles(Role.ADMIN)
     async addWords(
         @Body('words') words: string[],
         @Body('languageid') languageid: string,
@@ -20,6 +22,7 @@ export class WordController {
     }
 
     @Delete()
+    @Roles(Role.ADMIN)
     async deleteWords(
         @Body('words') words: string[],
     ) {
