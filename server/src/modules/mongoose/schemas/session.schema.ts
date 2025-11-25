@@ -31,7 +31,7 @@ export class Session {
     @Prop({ required: true })
     languageCode: string;
 
-    @Prop({ required: true })
+    @Prop()
     modeName: string;
 
     @Prop({ type: Object, default: {} })

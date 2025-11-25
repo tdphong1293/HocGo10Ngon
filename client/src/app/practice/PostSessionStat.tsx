@@ -1,5 +1,5 @@
 import PostSessionLineChart from './PostSessionLineChart';
-import { Keystroke, TypingStats } from './TypingPractice';
+import { Keystroke, TypingStats } from '@/components/TypingPractice';
 import { Icon } from '@iconify/react';
 
 interface PostSessionStatProps {

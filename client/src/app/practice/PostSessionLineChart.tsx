@@ -2,7 +2,7 @@
 
 import { LineChart, XAxis, YAxis, CartesianGrid, Tooltip, Legend, Line, ResponsiveContainer, ReferenceLine } from 'recharts';
 import { useState } from 'react';
-import { Keystroke } from './TypingPractice';
+import { Keystroke } from '@/components/TypingPractice';
 
 export interface ChartDataPoint {
     time: number;

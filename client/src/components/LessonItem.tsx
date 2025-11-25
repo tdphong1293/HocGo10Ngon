@@ -7,6 +7,7 @@ interface LessonItemProps {
     lessonTitle: string;
     isLearned?: boolean;
     disabled?: boolean;
+    isAdmin?: boolean;
 }
 
 const LessonItem: React.FC<LessonItemProps> = ({
@@ -15,6 +16,7 @@ const LessonItem: React.FC<LessonItemProps> = ({
     lessonTitle,
     isLearned = false,
     disabled = false,
+    isAdmin = false,
 }) => {
     const content = (
         <div className="flex flex-col gap-1.5 w-fit h-fit group relative">
@@ -45,7 +47,7 @@ const LessonItem: React.FC<LessonItemProps> = ({
     else {
         return (
             <Link
-                href={`/admin/lessons/${id}`}
+                href={isAdmin ? `/admin/lessons/${id}` : `/lessons/${id}`}
             >
                 {content}
             </Link >

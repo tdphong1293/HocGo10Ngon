@@ -5,14 +5,15 @@ import Keyboard, { keyboardSizes } from '@/components/Keyboard';
 import { Icon } from '@iconify/react';
 import type { TextSize } from '@/config/typingUi';
 import { textSizeClass, wrongTextClass } from '@/config/typingUi';
-import TypingOptionMenu from './TypingOptionMenu';
+import TypingOptionMenu from '@/app/practice/TypingOptionMenu';
 import { AnimatePresence, motion } from 'framer-motion';
-import PostSessionStat from './PostSessionStat';
+import PostSessionStat from '@/app/practice/PostSessionStat';
 import { storeTypingSessionResult } from '@/services/session.services';
 import { useAuth } from '@/hooks/useAuth';
 import { useTheme } from '@/hooks/useTheme';
-import { TypingMode } from './TypingModeMenu';
+import { TypingMode } from '@/app/practice/TypingModeMenu';
 import Tooltip from '@/components/Tooltip';
+import LoadingSpinner from '@/components/LoadingSpinner';
 
 export interface Keystroke {
     key: string;
@@ -31,8 +32,7 @@ export interface TypingStats {
 }
 
 interface TypingPracticeProps {
-    text?: string,
-    words?: string[];
+    words: string[];
     totalWords?: number;
     author?: string | null;
     source?: string | null;
@@ -53,7 +53,6 @@ interface TypingPracticeProps {
 }
 
 const TypingPractice: React.FC<TypingPracticeProps> = ({
-    text,
     words,
     totalWords,
     author,
@@ -106,31 +105,24 @@ const TypingPractice: React.FC<TypingPracticeProps> = ({
 
     const [isFinished, setIsFinished] = useState(false);
     const [textAnimationKey, setTextAnimationKey] = useState(0);
-
-    // If `text` prop provided, use it; otherwise use `words` prop.
-    const wordsToUse = useMemo(() => {
-        if (typeof text === 'string' && text.trim().length > 0) {
-            return text.trim().split(/\s+/).filter(Boolean);
-        }
-        return words ?? [];
-    }, [text, words]);
+    const isInitialMount = useRef(true);
 
     // Compute full text from words array for rendering up to renderedWordCount
     const displayText = useMemo(() => {
-        return wordsToUse.slice(0, renderedWordCount).join(' ');
-    }, [wordsToUse, renderedWordCount]);
+        return words.slice(0, renderedWordCount).join(' ');
+    }, [words, renderedWordCount, textAnimationKey]);
 
     // Total text length for completion check
     const fullTextLength = useMemo(() => {
-        return wordsToUse.join(' ').length;
-    }, [wordsToUse]);
+        return words.join(' ').length;
+    }, [words]);
 
     // Full text for PostSessionStat analysis
     const fullText = useMemo(() => {
-        return wordsToUse.join(' ');
-    }, [wordsToUse]);
+        return words.join(' ');
+    }, [words]);
 
-    const totalWordsToUse = totalWords ?? wordsToUse.length;
+    const totalWordsToUse = totalWords ?? words.length;
 
     const wordCount = (text: string) => {
         return text.trim().split(/\s+/).filter(word => word.length > 0).length;
@@ -138,13 +130,13 @@ const TypingPractice: React.FC<TypingPracticeProps> = ({
 
     // Get current word index based on character position
     const getCurrentWordIndex = useCallback((charIndex: number) => {
-        const fullTextLocal = wordsToUse.join(' ');
+        const fullTextLocal = words.join(' ');
         const textUpToCursor = fullTextLocal.slice(0, charIndex);
         return wordCount(textUpToCursor);
-    }, [wordsToUse]);
+    }, [words]);
 
     // Local option state (used when uncontrolled)
-    const [localTextSize, setLocalTextSize] = useState<TextSize>('normal');
+    const [localTextSize, setLocalTextSize] = useState<TextSize>('large');
     const [localKeyboardSize, setLocalKeyboardSize] = useState<keyboardSizes>('small');
     const [localShowKeyboard, setLocalShowKeyboard] = useState<boolean>(true);
     const [localHintMode, setLocalHintMode] = useState<boolean>(true);
@@ -161,7 +153,7 @@ const TypingPractice: React.FC<TypingPracticeProps> = ({
             enableSounds: ls ? JSON.parse(ls.getItem('enableSounds') ?? 'true') as boolean : true,
         };
 
-        setLocalTextSize(textSize ?? saved.textSize ?? 'normal');
+        setLocalTextSize(textSize ?? saved.textSize ?? 'large');
         setLocalKeyboardSize(keyboardSize ?? saved.keyboardSize ?? 'small');
         setLocalShowKeyboard(showKeyboard ?? saved.showKeyboard ?? true);
         setLocalHintMode(hintMode ?? saved.hintMode ?? true);
@@ -184,7 +176,7 @@ const TypingPractice: React.FC<TypingPracticeProps> = ({
     const hintModeToUse = hintMode ?? localHintMode;
     const enableSoundsToUse = (typeof enableSounds === 'boolean') ? enableSounds : localEnableSounds;
 
-    const resetSession = () => {
+    const resetSession = useCallback(() => {
         setUserInput('');
         setCurrentIndex(0);
         setStartTime(null);
@@ -196,16 +188,25 @@ const TypingPractice: React.FC<TypingPracticeProps> = ({
         setInputHistory('');
         setIsFinished(false);
         setRenderedWordCount(BUFFER_WORDS); // Reset rendered word count
-    }
+        setTextAnimationKey(key => key + 1);
+    }, []);
 
     useEffect(() => {
-        resetSession();
-        setTextAnimationKey(key => key + 1);
-        // Delay focus to after animation starts
-        setTimeout(() => {
+        if (!words || words.length === 0) return;
+
+        // Skip animation on initial mount
+        if (isInitialMount.current) {
+            isInitialMount.current = false;
             inputRef.current?.focus();
-        }, 100);
-    }, [text, words]);
+            return;
+        }
+
+        resetSession();
+        const timer = setTimeout(() => {
+            inputRef.current?.focus();
+        }, 10);
+        return () => clearTimeout(timer);
+    }, [words, resetSession]);
 
     useEffect(() => {
         if (!timerRunning) return;
@@ -238,11 +239,10 @@ const TypingPractice: React.FC<TypingPracticeProps> = ({
             // Ctrl + Enter => Lấy text gõ mới (refresh text)
             if (e.ctrlKey && !e.shiftKey && !e.altKey && key === 'Enter') {
                 e.preventDefault();
-                (async () => {
-                    await refreshText?.();
-                    setTextAnimationKey(key => key + 1);
-                    setTimeout(() => inputRef.current?.focus(), 100);
-                })();
+                refreshText?.();
+                setTimeout(() => {
+                    inputRef.current?.focus();
+                }, 10);
                 return;
             }
 
@@ -250,8 +250,9 @@ const TypingPractice: React.FC<TypingPracticeProps> = ({
             if (e.ctrlKey && !e.shiftKey && !e.altKey && key.toLowerCase() === 'r') {
                 e.preventDefault(); // stop browser refresh
                 resetSession();
-                setTextAnimationKey(key => key + 1);
-                setTimeout(() => inputRef.current?.focus(), 100);
+                setTimeout(() => {
+                    inputRef.current?.focus();
+                }, 10);
                 return;
             }
         };
@@ -451,12 +452,12 @@ const TypingPractice: React.FC<TypingPracticeProps> = ({
     };
 
     const renderText = () => {
-        // Use wordsToUse array directly - only render up to renderedWordCount
+        // Use words array directly - only render up to renderedWordCount
         let globalIndex = 0;
         const renderedContent: React.ReactElement[] = [];
 
-        for (let i = 0; i < renderedWordCount && i < wordsToUse.length; i++) {
-            const word = wordsToUse[i];
+        for (let i = 0; i < renderedWordCount && i < words.length; i++) {
+            const word = words[i];
 
             // Render each character in the word
             const wordEls = word.split('').map((char, charIndex) => {
@@ -472,7 +473,7 @@ const TypingPractice: React.FC<TypingPracticeProps> = ({
             );
 
             // Add space after word (except last word or last character is newline/tab)
-            if (i < renderedWordCount - 1 && i < wordsToUse.length - 1 && displayText[globalIndex] !== '\n' && displayText[globalIndex] !== '\t') {
+            if (i < renderedWordCount - 1 && i < words.length - 1 && displayText[globalIndex] !== '\n' && displayText[globalIndex] !== '\t') {
                 const spaceEl = renderCharacter(' ', globalIndex);
                 globalIndex++;
                 renderedContent.push(
@@ -490,7 +491,7 @@ const TypingPractice: React.FC<TypingPracticeProps> = ({
         );
     };
 
-    const renderedTextMemo = useMemo(() => renderText(), [renderedWordCount, userInput, currentIndex, textSizeToUse]);
+    const renderedTextMemo = useMemo(() => renderText(), [renderedWordCount, userInput, currentIndex, textSizeToUse, textAnimationKey]);
 
     useEffect(() => {
         // Dynamic word rendering: adjust rendered word count based on typing position
@@ -609,7 +610,7 @@ const TypingPractice: React.FC<TypingPracticeProps> = ({
         </div>
     ), [typingStats, elapsedTime, timeLimit, currentIndex, totalWords, getCurrentWordIndex, totalWordsToUse]);
 
-    const { isAuthenticated, user, accessToken } = useAuth();
+    const { isAuthenticated, user, accessToken, loading } = useAuth();
     const { languageCode } = useTheme();
 
     useEffect(() => {
@@ -635,6 +636,14 @@ const TypingPractice: React.FC<TypingPracticeProps> = ({
         }
     }, [isFinished, keystrokeLog, isAuthenticated, user, accessToken, languageCode, typingStats, state, inputHistory]);
 
+    if (loading) {
+        return (
+            <div className="w-full h-full flex justify-center items-center">
+                <LoadingSpinner />
+            </div>
+        );
+    }
+
     return (
         <div className="flex flex-col gap-5 items-center h-fit w-full">
             {/* Stats + Options */}
@@ -655,74 +664,74 @@ const TypingPractice: React.FC<TypingPracticeProps> = ({
                     />
                 </div>
             )}
-            {!isFinished && (
-                <motion.div
-                    key={textAnimationKey}
-                    className="w-full bg-background relative"
-                    initial={{ opacity: 0, scale: 0.9 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    exit={{ opacity: 0, scale: 0.9 }}
-                    transition={{ duration: 0.35, ease: 'easeOut' }}
-                >
-                    <div
-                        className={`absolute inset-0 bg-accent/50 rounded-md mx-10 text-accent-foreground z-10 flex flex-col justify-center items-center gap-4 backdrop-blur-sm transition-opacity duration-300 ${isFocused ? 'opacity-0 pointer-events-none' : 'opacity-100 pointer-events-auto'}`}
-                        onClick={() => inputRef.current?.focus()}
-                    >
-                        Nhấn vào đây để tiếp tục gõ
-                    </div>
-                    <div
-                        className={`absolute inset-0 bg-accent/50 rounded-md mx-10 text-accent-foreground z-10 flex flex-col justify-center items-center gap-4 backdrop-blur-sm transition-opacity duration-300 pointer-events-none ${isHoldingKey || !heldKey ? 'opacity-0' : 'opacity-100'}`}
-                    >
-                        <div className="flex gap-3 justify-center items-center text-2xl">
-                            Vui lòng giữ phím
-                            <span className="w-10 h-10 bg-primary/20 rounded-md flex justify-center items-center border-2 border-primary-foreground text-primary-foreground animate-bounce">{heldKey}</span>
-                            để tiếp tục
-                        </div>
-                    </div>
 
-                    {/* Typing Area */}
-                    <div
-                        ref={scrollRef}
-                        className={`relative overflow-y-hidden flex justify-center items-start`}
-                        style={{ height: `${getTypingAreaHeight(textSizeToUse)}vh` }}
+            <AnimatePresence mode="popLayout">
+                {!isFinished && (
+                    <motion.div
+                        key={textAnimationKey}
+                        className="w-full bg-background relative"
+                        initial={{ opacity: 0, scale: 0.95 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        exit={{ opacity: 0, y: 20 }}
+                        transition={{ duration: 0.3, ease: 'easeOut' }}
                     >
                         <div
-                            className="w-full px-10 cursor-text whitespace-pre-wrap break-words select-none"
-                            style={{
-                                fontFeatureSettings: '"liga" 0, "calt" 0',
-                            }}
-                            onClick={() => {
-                                inputRef.current?.focus();
-                                setIsFocused(true);
-                            }}
-                            onFocus={() => {
-                                inputRef.current?.focus();
-                                setIsFocused(true);
-                            }}
-                            onMouseDown={(e) => e.preventDefault()}
-                            onDragStart={(e) => e.preventDefault()}
+                            className={`absolute inset-0 bg-accent/50 rounded-md mx-10 text-accent-foreground z-10 flex flex-col justify-center items-center gap-4 backdrop-blur-sm transition-opacity duration-300 ${isFocused ? 'opacity-0 pointer-events-none' : 'opacity-100 pointer-events-auto'}`}
+                            onClick={() => inputRef.current?.focus()}
                         >
-                            {renderedTextMemo}
+                            Nhấn vào đây để tiếp tục gõ
                         </div>
                         <div
-                            onBlur={() => setIsFocused(false)}
-                            onFocus={() => setIsFocused(true)}
-                            ref={inputRef}
-                            tabIndex={0}
-                            onKeyDown={handleKeyDown}
-                            onKeyUp={handleKeyUp}
-                            className="absolute opacity-0 top-4 left-4 pointer-events-none"
-                        />
-                    </div>
-                </motion.div>
-            )}
+                            className={`absolute inset-0 bg-accent/50 rounded-md mx-10 text-accent-foreground z-10 flex flex-col justify-center items-center gap-4 backdrop-blur-sm transition-opacity duration-300 pointer-events-none ${isHoldingKey || !heldKey ? 'opacity-0' : 'opacity-100'}`}
+                        >
+                            <div className="flex gap-3 justify-center items-center text-2xl">
+                                Vui lòng giữ phím
+                                <span className="w-10 h-10 bg-primary/20 rounded-md flex justify-center items-center border-2 border-primary-foreground text-primary-foreground animate-bounce">{heldKey}</span>
+                                để tiếp tục
+                            </div>
+                        </div>
+
+                        {/* Typing Area */}
+                        <div
+                            ref={scrollRef}
+                            className={`relative overflow-y-hidden flex justify-center items-start`}
+                            style={{ height: `${getTypingAreaHeight(textSizeToUse)}vh` }}
+                        >
+                            <div
+                                className="w-full px-10 cursor-text whitespace-pre-wrap break-words select-none"
+                                style={{
+                                    fontFeatureSettings: '"liga" 0, "calt" 0',
+                                }}
+                                onClick={() => inputRef.current?.focus()}
+                                onMouseDown={(e) => e.preventDefault()}
+                                onDragStart={(e) => e.preventDefault()}
+                            >
+                                {renderedTextMemo}
+                            </div>
+                            <div
+                                onBlur={() => {
+                                    setIsFocused(false);
+                                    isProcessingRef.current = false;
+                                    setActiveKeys([]);
+                                }}
+                                onFocus={() => setIsFocused(true)}
+                                ref={inputRef}
+                                tabIndex={0}
+                                onKeyDown={handleKeyDown}
+                                onKeyUp={handleKeyUp}
+                                className="absolute opacity-0 top-4 left-4 pointer-events-none"
+                            />
+                        </div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
 
             <AnimatePresence>
                 {showKeyboardToUse && !isFinished && (
                     <motion.div
-                        initial={{ opacity: 0, y: 30 }}
+                        initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: 30 }}
+                        exit={{ opacity: 0, y: 20 }}
                         transition={{ duration: 0.3, ease: 'easeOut' }}
                     >
                         <Keyboard
@@ -735,10 +744,10 @@ const TypingPractice: React.FC<TypingPracticeProps> = ({
             <AnimatePresence>
                 {isFinished && keystrokeLog.length > 0 && (
                     <motion.div
-                        initial={{ opacity: 0, y: 50 }}
+                        initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: 50 }}
-                        transition={{ duration: 0.5, ease: 'easeOut' }}
+                        exit={{ opacity: 0, y: 20 }}
+                        transition={{ duration: 0.3, ease: 'easeOut' }}
                         className="w-full"
                     >
                         <PostSessionStat

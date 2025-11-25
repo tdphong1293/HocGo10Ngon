@@ -215,6 +215,7 @@ const AdminLessonsPage = () => {
                                                     id={lesson.lessonid}
                                                     lessonOrder={lesson.orderNumber}
                                                     lessonTitle={lesson.title}
+                                                    isAdmin={true}
                                                 />
                                             </motion.div>
                                         );
@@ -228,7 +229,7 @@ const AdminLessonsPage = () => {
                                     exit={{ opacity: 0 }}
                                     className="text-center text-muted-foreground mt-10"
                                 >
-                                    Không có bài học nào
+                                    Hiện chưa có bài học nào
                                 </motion.div>
                             )}
                         </div>

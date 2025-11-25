@@ -15,6 +15,7 @@ const SortableLessonItem: React.FC<React.ComponentProps<typeof LessonItem>> = ({
                 lessonTitle={lessonTitle}
                 isLearned={isLearned}
                 disabled={true}
+                isAdmin={true}
             />
         </SortableItem>
     );
