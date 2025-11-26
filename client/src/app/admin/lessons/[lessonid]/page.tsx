@@ -29,14 +29,21 @@ const AdminSingleLessonPage: React.FC<PageProps<"/admin/lessons/[lessonid]">> = 
     const { lessonid } = use(params);
 
     const fetchLessonData = async () => {
-        const response = await getLessonById(accessToken!, lessonid);
-        if (response.ok) {
-            const { data } = await response.json();
-            setDefaultLessonData(data);
-        }
-        else if (response.status === 404) {
-            toast.error("Không tìm thấy bài học.");
-            router.push("/admin/lessons");
+        try {
+            const response = await getLessonById(accessToken!, lessonid);
+            if (response.ok) {
+                const { data } = await response.json();
+                setDefaultLessonData(data);
+            }
+            else if (response.status === 404) {
+                toast.error("Không tìm thấy bài học.");
+                router.push("/admin/lessons");
+            }
+            else {
+                toast.error("Đã có lỗi xảy ra khi tải bài học.");
+            }
+        } catch (err) {
+            toast.error("Đã có lỗi xảy ra khi tải bài học.");
         }
     }
 

@@ -28,6 +28,7 @@ const PracticePage = ({ }) => {
             />
             <TypingPractice
                 words={words}
+                sessionType="PRACTICE"
                 totalWords={totalWords}
                 endMode={endMode}
                 state={state}

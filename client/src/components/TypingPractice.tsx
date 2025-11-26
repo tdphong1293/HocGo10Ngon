@@ -14,6 +14,7 @@ import { useTheme } from '@/hooks/useTheme';
 import { TypingMode } from '@/app/practice/TypingModeMenu';
 import Tooltip from '@/components/Tooltip';
 import LoadingSpinner from '@/components/LoadingSpinner';
+import Link from 'next/link';
 
 export interface Keystroke {
     key: string;
@@ -33,9 +34,11 @@ export interface TypingStats {
 
 interface TypingPracticeProps {
     words: string[];
+    sessionType: 'PRACTICE' | 'LESSON';
     totalWords?: number;
     author?: string | null;
     source?: string | null;
+    nextLessonId?: string | null;
     // Controlled (optional)
     textSize?: TextSize;
     keyboardSize?: keyboardSizes;
@@ -54,9 +57,11 @@ interface TypingPracticeProps {
 
 const TypingPractice: React.FC<TypingPracticeProps> = ({
     words,
+    sessionType,
     totalWords,
     author,
     source,
+    nextLessonId,
     textSize,
     keyboardSize,
     showKeyboard,
@@ -125,7 +130,7 @@ const TypingPractice: React.FC<TypingPracticeProps> = ({
     const totalWordsToUse = totalWords ?? words.length;
 
     const wordCount = (text: string) => {
-        return text.trim().split(/\s+/).filter(word => word.length > 0).length;
+        return text.trim().split(/\s+/).filter(word => word.trim().length > 0).length;
     }
 
     // Get current word index based on character position
@@ -616,7 +621,7 @@ const TypingPractice: React.FC<TypingPracticeProps> = ({
     useEffect(() => {
         if (isFinished && keystrokeLog.length > 0 && isAuthenticated && user && accessToken && languageCode) {
             const data = {
-                sessionType: 'PRACTICE',
+                sessionType,
                 languageCode: languageCode,
                 modeName: state?.modeName,
                 useConfig: state?.config || {},
@@ -759,7 +764,20 @@ const TypingPractice: React.FC<TypingPracticeProps> = ({
                             source={source}
                         />
                         <div className="flex justify-center gap-10 mt-6">
-                            <Tooltip text="Gõ lại với văn bản hiện tại" shortcut="Ctrl+R" side="left">
+                            {nextLessonId && (
+                                <Tooltip text="Quay về danh sách bài học" side="left">
+                                    <Link href={`/lessons`}>
+                                        <div
+                                            className="p-2 cursor-pointer border-2 border-border rounded-md hover:bg-accent hover:text-accent-foreground transition-colors"
+                                        >
+                                            <Icon
+                                                icon="line-md:arrow-left" className="text-2xl"
+                                            />
+                                        </div>
+                                    </Link>
+                                </Tooltip>
+                            )}
+                            <Tooltip text="Gõ lại với văn bản hiện tại" shortcut="Ctrl+R" side={nextLessonId ? 'top' : 'left'}>
                                 <div className="p-2 cursor-pointer border-2 border-border rounded-md hover:bg-accent hover:text-accent-foreground transition-colors">
                                     <Icon
                                         icon="ri:reset-left-fill" className="text-2xl"
@@ -767,14 +785,29 @@ const TypingPractice: React.FC<TypingPracticeProps> = ({
                                     />
                                 </div>
                             </Tooltip>
-                            <Tooltip text="Phiên gõ mới" shortcut="Ctrl+Enter" side="right">
-                                <div className="p-2 cursor-pointer border-2 border-border rounded-md hover:bg-accent hover:text-accent-foreground transition-colors">
-                                    <Icon
-                                        icon="ooui:next-ltr" className="text-2xl"
-                                        onClick={async () => { await refreshText?.(); }}
-                                    />
-                                </div>
-                            </Tooltip>
+                            {refreshText && (
+                                <Tooltip text="Phiên gõ mới" shortcut="Ctrl+Enter" side={nextLessonId ? 'top' : 'right'}>
+                                    <div className="p-2 cursor-pointer border-2 border-border rounded-md hover:bg-accent hover:text-accent-foreground transition-colors">
+                                        <Icon
+                                            icon="ooui:next-ltr" className="text-2xl"
+                                            onClick={async () => { await refreshText?.(); }}
+                                        />
+                                    </div>
+                                </Tooltip>
+                            )}
+                            {nextLessonId && (
+                                <Tooltip text="Bài học tiếp theo" side="right">
+                                    <Link href={`/lessons/${nextLessonId}`}>
+                                        <div
+                                            className="p-2 cursor-pointer border-2 border-border rounded-md hover:bg-accent hover:text-accent-foreground transition-colors"
+                                        >
+                                            <Icon
+                                                icon="line-md:arrow-right" className="text-2xl"
+                                            />
+                                        </div>
+                                    </Link>
+                                </Tooltip>
+                            )}
                         </div>
                     </motion.div>
                 )}
