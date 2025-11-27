@@ -54,7 +54,7 @@ const LessonPage: React.FC<PageProps<"/lessons/[lessonid]">> = ({
         }
     }, [loading, isAuthenticated, accessToken, user, router]);
 
-    if (!isAuthenticated || !accessToken || !user) {
+    if (!isAuthenticated || !accessToken || !user || !lessonData || loading) {
         return null;
     }
 
@@ -66,7 +66,9 @@ const LessonPage: React.FC<PageProps<"/lessons/[lessonid]">> = ({
                 sessionType="LESSON"
                 totalWords={words.length}
                 endMode={"length"}
-                nextLessonId={"abc"}
+                heldKey={lessonData?.heldKey}
+                lessonid={lessonid}
+                nextLessonId={lessonData?.nextLessonId}
             />
         </div>
     );

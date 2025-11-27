@@ -11,7 +11,7 @@ export class SessionService {
     constructor(
         @InjectModel(Session.name) private sessionModel: Model<SessionDocument>,
         @InjectModel(SessionMode.name) private sessionModeModel: Model<SessionModeDocument>,
-        private prismaService: PrismaService,
+        private readonly prismaService: PrismaService,
     ) { }
 
     async getSessionMode() {
@@ -243,17 +243,39 @@ export class SessionService {
     }
 
     async storeSession(userid: string, sessionDataDto: sessionDataDto) {
+        const { lessonid } = sessionDataDto;
         try {
-            const result = await this.sessionModel.create({ userid, ...sessionDataDto });
+            const createdSession = await this.sessionModel.create({ userid, ...sessionDataDto });
+            if (createdSession && lessonid) {
+                const isSuccess = await this.storeUserLesson(userid, lessonid);
+                if (!isSuccess) {
+                    const deletResult = await this.sessionModel.deleteOne({ _id: createdSession._id }).exec();
+                    throw new InternalServerErrorException('Lỗi khi ghi nhận hoàn thành bài học cho người dùng');
+                }
+            }
             return {
                 message: 'Lưu trữ dữ liệu phiên gõ thành công',
-                sessionid: result._id,
+                sessionid: createdSession._id,
             }
         } catch (error) {
             if (error instanceof HttpException) {
                 throw error;
             }
             throw new InternalServerErrorException('Lỗi khi lưu trữ dữ liệu phiên gõ');
+        }
+    }
+
+    async storeUserLesson(userid: string, lessonid: string) {
+        try {
+            await this.prismaService.userLesson.create({
+                data: {
+                    userid,
+                    lessonid,
+                }
+            });
+            return true;
+        } catch (error) {
+            return false;
         }
     }
 }

@@ -80,3 +80,13 @@ export const updateLessonOrder = async (accessToken: string, lessonid: string, n
         body: JSON.stringify({ lessonid, newOrder }),
     });
 }
+
+export const getUserLesson = async (accessToken: string) => {
+    return await fetch(`/api/lessons/user`, {
+        method: 'GET',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${accessToken}`,
+        },
+    });
+}

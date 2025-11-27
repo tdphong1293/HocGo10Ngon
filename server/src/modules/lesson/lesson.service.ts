@@ -29,7 +29,24 @@ export class LessonService {
             throw new NotFoundException('Không tìm thấy mã bài học');
         }
 
-        return lesson;
+        const nextLessonId = await this.prisma.lesson.findFirst({
+            where: {
+                orderNumber: {
+                    gt: lesson.orderNumber,
+                }
+            },
+            orderBy: {
+                orderNumber: 'asc',
+            },
+            select: {
+                lessonid: true,
+            }
+        });
+
+        return {
+            ...lesson,
+            ...(nextLessonId ? { nextLessonId: nextLessonId.lessonid } : {})
+        }
     }
 
     async getLessonsByLanguageCode(languageCode: string) {
@@ -209,5 +226,19 @@ export class LessonService {
             },
             data: dataToUpdate
         });
+    }
+
+    async getUserLesson(userid: string) {
+        const lessons = await this.prisma.userLesson.findMany({
+            where: {
+                userid
+            },
+            select: {
+                lessonid: true,
+            },
+            distinct: ['lessonid']
+        });
+
+        return lessons.map(lesson => lesson.lessonid);
     }
 }

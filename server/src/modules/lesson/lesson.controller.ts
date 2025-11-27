@@ -1,8 +1,9 @@
-import { Controller, Get, Post, Put, Patch, Body, Param, Query } from '@nestjs/common';
+import { Controller, Get, Post, Put, Patch, Body, Param, Query, Req } from '@nestjs/common';
 import { LessonService } from './lesson.service';
 import { NewLessonDto } from './dto/newLesson.dto';
 import { UpdateLessonDto } from './dto/updateLesson.dto';
 import { Roles, Role } from 'src/modules/auth/roles.guard';
+import type { AuthenticatedRequest } from '../auth/auth.guard';
 
 @Controller('lessons')
 export class LessonController {
@@ -19,7 +20,6 @@ export class LessonController {
             return await this.lessonService.getLessonsByLanguageCode(languageCode);
         }
         else {
-            console.log("No filters applied");
             return await this.lessonService.getAllLessons();
         }
     }
@@ -28,6 +28,12 @@ export class LessonController {
     @Roles(Role.ADMIN)
     async getLessonLastOrder() {
         return await this.lessonService.getLessonLastOrder();
+    }
+
+    @Get('user')
+    async getUserLesson(@Req() req: AuthenticatedRequest) {
+        const { sub } = req.user;
+        return await this.lessonService.getUserLesson(sub);
     }
 
     @Post()

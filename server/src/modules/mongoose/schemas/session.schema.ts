@@ -30,6 +30,9 @@ export class Session {
 
     @Prop({ required: true })
     languageCode: string;
+    
+    @Prop()
+    lessonid: string;
 
     @Prop()
     modeName: string;

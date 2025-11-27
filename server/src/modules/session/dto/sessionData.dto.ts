@@ -1,4 +1,4 @@
-import { IsString, IsNotEmpty, IsNumber, IsObject, IsEnum } from 'class-validator';
+import { IsString, IsNotEmpty, IsNumber, IsObject, IsEnum, IsOptional } from 'class-validator';
 import { SessionType } from 'src/modules/mongoose/schemas/session.schema';
 
 export class sessionDataDto {
@@ -11,31 +11,43 @@ export class sessionDataDto {
     sessionType: SessionType;
 
     @IsString()
-    @IsNotEmpty()
+    @IsOptional()
+    lessonid: string;
+
+    @IsString()
+    @IsOptional()
     modeName: string;
 
     @IsObject()
+    @IsOptional()
     usedConfig: Record<string, any>;
 
     @IsObject()
+    @IsOptional()
     usedSubConfig: Record<string, any>;
 
     @IsNumber()
+    @IsOptional()
     CPM: number;
 
     @IsNumber()
+    @IsOptional()
     WPM: number;
 
     @IsNumber()
+    @IsOptional()
     accuracy: number;
 
     @IsNumber()
+    @IsOptional()
     errorCount: number;
 
     @IsNumber()
+    @IsOptional()
     duration: number;
 
     @IsString()
+    @IsOptional()
     rawInput: string;
 
     @IsObject({ each: true })

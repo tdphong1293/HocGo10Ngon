@@ -1,7 +1,7 @@
 'use client';
 import { useState, useEffect } from 'react';
 import Input from '@/components/Input';
-import { getLessonsByLanguageCode, getLessonsByLanguageAndTitle } from '@/services/lesson.services';
+import { getLessonsByLanguageCode, getLessonsByLanguageAndTitle, getUserLesson } from '@/services/lesson.services';
 import LessonItem from "@/components/LessonItem";
 import { useAuth } from "@/hooks/useAuth";
 import { useTheme } from "@/hooks/useTheme";
@@ -16,6 +16,7 @@ const LessonsPage = () => {
 
     const [searchLessonTitle, setSearchLessonTitle] = useState<string>("");
     const [lessons, setLessons] = useState<any[]>([]);
+    const [learnedLessons, setLearnedLessons] = useState<Set<string>>(new Set());
 
     const fetchLessons = async (accessToken: string) => {
         try {
@@ -40,31 +41,63 @@ const LessonsPage = () => {
                 return;
             }
 
-            const timeoutId = setTimeout(() => {
-                if (searchLessonTitle === "") {
-                    fetchLessons(accessToken);
-                } else {
-                    const fetchLessonsByTitle = async () => {
-                        try {
-                            const response = await getLessonsByLanguageAndTitle(accessToken, languageCode || "en", searchLessonTitle);
-                            if (response.ok) {
-                                const { data } = await response.json();
-                                setLessons(data);
-                            }
-                            else {
-                                toast.error("Đã có lỗi xảy ra khi tải danh sách bài học");
-                            }
-                        } catch (error) {
-                            toast.error("Đã có lỗi xảy ra khi tải danh sách bài học");
-                        }
+            const fetchLessonsByTitle = async () => {
+                try {
+                    const response = await getLessonsByLanguageAndTitle(accessToken, languageCode || "en", searchLessonTitle);
+                    if (response.ok) {
+                        const { data } = await response.json();
+                        setLessons(data);
                     }
-                    fetchLessonsByTitle();
+                    else {
+                        toast.error("Đã có lỗi xảy ra khi tải danh sách bài học");
+                    }
+                } catch (error) {
+                    toast.error("Đã có lỗi xảy ra khi tải danh sách bài học");
                 }
-            }, 300);
+            }
 
-            return () => clearTimeout(timeoutId);
+            let timeoutId: NodeJS.Timeout | undefined;
+
+            if (searchLessonTitle === "") {
+                fetchLessons(accessToken);
+            } else {
+                timeoutId = setTimeout(() => {
+                    fetchLessonsByTitle();
+                }, 300);
+            }
+
+            return () => {
+                if (timeoutId) {
+                    clearTimeout(timeoutId);
+                }
+            };
         }
     }, [user, isAuthenticated, accessToken, loading, router, searchLessonTitle, languageCode]);
+
+    useEffect(() => {
+        if (!loading) {
+            if (!isAuthenticated || !accessToken || !user) {
+                router.push('/');
+                toast.info("Vui lòng đăng nhập để truy cập trang này");
+                return;
+            }
+            const fetchUserLesson = async () => {
+                try {
+                    const response = await getUserLesson(accessToken);
+                    if (response.ok) {
+                        const { data } = await response.json();
+                        setLearnedLessons(new Set(data || []));
+                    }
+                    else {
+                        toast.error("Đã có lỗi xảy ra khi tải tiến độ học của bạn");
+                    }
+                } catch (error) {
+                    toast.error("Đã có lỗi xảy ra khi tải tiến độ học của bạn");
+                }
+            }
+            fetchUserLesson();
+        }
+    }, [user, isAuthenticated, accessToken, loading, router, languageCode]);
 
     if (!isAuthenticated || !accessToken || !user) {
         return null;
@@ -101,6 +134,7 @@ const LessonsPage = () => {
                                     id={lesson.lessonid}
                                     lessonOrder={lesson.orderNumber}
                                     lessonTitle={lesson.title}
+                                    isLearned={learnedLessons.has(lesson.lessonid)}
                                 />
                             </motion.div>
                         ))

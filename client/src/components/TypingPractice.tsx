@@ -38,6 +38,7 @@ interface TypingPracticeProps {
     totalWords?: number;
     author?: string | null;
     source?: string | null;
+    lessonid?: string | null;
     nextLessonId?: string | null;
     // Controlled (optional)
     textSize?: TextSize;
@@ -61,6 +62,7 @@ const TypingPractice: React.FC<TypingPracticeProps> = ({
     totalWords,
     author,
     source,
+    lessonid,
     nextLessonId,
     textSize,
     keyboardSize,
@@ -619,26 +621,28 @@ const TypingPractice: React.FC<TypingPracticeProps> = ({
     const { languageCode } = useTheme();
 
     useEffect(() => {
-        if (isFinished && keystrokeLog.length > 0 && isAuthenticated && user && accessToken && languageCode) {
-            const data = {
-                sessionType,
-                languageCode: languageCode,
-                modeName: state?.modeName,
-                useConfig: state?.config || {},
-                useSubConfig: state?.subConfig || {},
-                wpm: typingStats.wpm,
-                cpm: typingStats.cpm,
-                accuracy: typingStats.accuracy,
-                errorCount: typingStats.errors,
-                duration: typingStats.elapsed,
-                rawInput: inputHistory,
-                keystrokes: keystrokeLog,
-            };
+        const storeSessionResult = async () => {
+            if (isFinished && keystrokeLog.length > 0 && isAuthenticated && user && accessToken && languageCode) {
+                const data = {
+                    sessionType,
+                    languageCode: languageCode,
+                    lessonid: sessionType === 'LESSON' && lessonid ? lessonid : undefined,
+                    modeName: state?.modeName,
+                    useConfig: state?.config || {},
+                    useSubConfig: state?.subConfig || {},
+                    wpm: typingStats.wpm,
+                    cpm: typingStats.cpm,
+                    accuracy: typingStats.accuracy,
+                    errorCount: typingStats.errors,
+                    duration: typingStats.elapsed,
+                    rawInput: inputHistory,
+                    keystrokes: keystrokeLog,
+                };
 
-            (async () => {
                 await storeTypingSessionResult(accessToken, data);
-            })();
-        }
+            }
+        };
+        storeSessionResult();
     }, [isFinished, keystrokeLog, isAuthenticated, user, accessToken, languageCode, typingStats, state, inputHistory]);
 
     if (loading) {
@@ -714,17 +718,18 @@ const TypingPractice: React.FC<TypingPracticeProps> = ({
                                 {renderedTextMemo}
                             </div>
                             <div
+                                contentEditable
                                 onBlur={() => {
                                     setIsFocused(false);
                                     isProcessingRef.current = false;
                                     setActiveKeys([]);
                                 }}
                                 onFocus={() => setIsFocused(true)}
-                                ref={inputRef}
+                                ref={inputRef} 
                                 tabIndex={0}
                                 onKeyDown={handleKeyDown}
                                 onKeyUp={handleKeyUp}
-                                className="absolute opacity-0 top-4 left-4 pointer-events-none"
+                                className="absolute opacity-0 w-px h-px top-4 left-4 pointer-events-none"
                             />
                         </div>
                     </motion.div>
@@ -764,7 +769,7 @@ const TypingPractice: React.FC<TypingPracticeProps> = ({
                             source={source}
                         />
                         <div className="flex justify-center gap-10 mt-6">
-                            {nextLessonId && (
+                            {lessonid && (
                                 <Tooltip text="Quay về danh sách bài học" side="left">
                                     <Link href={`/lessons`}>
                                         <div
@@ -777,7 +782,7 @@ const TypingPractice: React.FC<TypingPracticeProps> = ({
                                     </Link>
                                 </Tooltip>
                             )}
-                            <Tooltip text="Gõ lại với văn bản hiện tại" shortcut="Ctrl+R" side={nextLessonId ? 'top' : 'left'}>
+                            <Tooltip text="Gõ lại với văn bản hiện tại" shortcut="Ctrl+R" side={lessonid ? ( nextLessonId ? 'top' : 'right' ) : 'left'}>
                                 <div className="p-2 cursor-pointer border-2 border-border rounded-md hover:bg-accent hover:text-accent-foreground transition-colors">
                                     <Icon
                                         icon="ri:reset-left-fill" className="text-2xl"
