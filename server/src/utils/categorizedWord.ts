@@ -1,4 +1,4 @@
-import { LengthType, RowType } from "src/generated/client/enums";
+import { LengthType, RowType } from "src/generated/enums";
 
 export const categorizedWordByLength = (word: string) => {
     if (word.length <= 4) {

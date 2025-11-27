@@ -1,4 +1,4 @@
-import { LengthType, RowType } from "src/generated/client/enums";
+import { LengthType, RowType } from "src/generated/enums";
 
 export const categorizedParagraphByLength = (text: string) => {
     const wordCount = text.trim().split(/\s+/).length;

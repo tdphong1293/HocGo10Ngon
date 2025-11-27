@@ -1,10 +1,14 @@
-import { PrismaClient } from "src/generated/client/client";
+import { PrismaClient } from "../src/generated/client";
+import { PrismaPg } from '@prisma/adapter-pg'
 import { categorizedWordByRowKey } from "src/utils/categorizedWord";
 import fs from "fs";
 
 import bcrypt from "bcryptjs";
+import "dotenv-expand/config";
 
-const prisma = new PrismaClient();
+const connectionString = `${process.env.POSTGRES_URL}` || '';
+const adapter = new PrismaPg({ connectionString });
+const prisma = new PrismaClient({ adapter });
 
 async function main() {
     async function deleteAllData(tableList: string[]) {
@@ -75,7 +79,7 @@ async function main() {
     const englishLanguage = await prisma.language.findUnique({
         where: { languageCode: 'en' },
     })
-    
+
     if (!englishLanguage) {
         throw new Error('Không tìm thấy ngôn ngữ English');
     }

@@ -1,11 +1,10 @@
 datasource db {
     provider = "postgresql"
-    url      = env("POSTGRES_URL")
 }
 
 generator client {
     provider     = "prisma-client"
-    output       = "../src/generated/client"
+    output       = "../src/generated"
     moduleFormat = "commonjs"
 }
 
@@ -130,10 +129,11 @@ model Lesson {
 }
 
 model UserLesson {
-    userid   String
-    user     User   @relation(fields: [userid], references: [userid])
-    lessonid String
-    lesson   Lesson @relation(fields: [lessonid], references: [lessonid])
+    userid         String
+    user           User   @relation(fields: [userid], references: [userid])
+    lessonid       String
+    lesson         Lesson @relation(fields: [lessonid], references: [lessonid])
+    timesCompleted Int    @default(1)
 
     @@id([userid, lessonid])
     @@map("user_lessons")
