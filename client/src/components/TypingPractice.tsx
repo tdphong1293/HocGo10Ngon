@@ -134,7 +134,7 @@ const TypingPractice: React.FC<TypingPracticeProps> = ({
     const totalWordsToUse = totalWords ?? words.length;
 
     const wordCount = (text: string) => {
-        return text.trim().split(/\s+/).filter(word => word.trim().length > 0).length;
+        return text.trim().split(" ").filter(word => word.trim().length > 0).length;
     }
 
     const getCurrentWordIndex = useCallback((charIndex: number) => {
