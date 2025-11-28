@@ -26,7 +26,7 @@ const LessonPage: React.FC<PageProps<"/lessons/[lessonid]">> = ({
                 setLessonData(data);
                 const content = data.lessonContent || "";
                 if (content.length > 0) {
-                    setWords(content.trim().split(/\s+/).filter((word: string) => word.trim().length > 0));
+                    setWords(content.trim().split(" ").filter((word: string) => word.trim().length > 0));
                 }
             }
             else if (response.status === 404) {

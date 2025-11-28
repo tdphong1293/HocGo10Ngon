@@ -155,7 +155,7 @@ const AdminParagraphsPage = () => {
             toast.warn("Vui lòng nhập đoạn văn bản cần thêm.");
             return;
         }
-        const paragraphRegex = /^(?=.*\S)[\u0009\u000A\u000D\u2028\u2029\u0020-\u007E\u00A0-\u024F]{1,5000}$/;
+        const paragraphRegex = /^(?=.*\S)[\p{L}\p{M}\p{N}\p{P}\p{Z}\t\r\n]{1,5000}$/u;
         if (paragraphText && !paragraphRegex.test(paragraphText)) {
             toast.warn("Đoạn văn bản chỉ được chứa chữ cái, số, dấu câu và các ký tự khoảng trắng hợp lệ, tối đa 5000 ký tự.");
             return;

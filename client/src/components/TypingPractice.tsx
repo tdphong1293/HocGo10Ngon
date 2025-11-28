@@ -15,6 +15,7 @@ import { TypingMode } from '@/app/practice/TypingModeMenu';
 import Tooltip from '@/components/Tooltip';
 import LoadingSpinner from '@/components/LoadingSpinner';
 import Link from 'next/link';
+import { toast } from 'react-toastify';
 
 export interface Keystroke {
     key: string;
@@ -82,7 +83,7 @@ const TypingPractice: React.FC<TypingPracticeProps> = ({
     const [isFocused, setIsFocused] = useState(false);
     const [isHoldingKey, setIsHoldingKey] = useState(false);
 
-    const inputRef = useRef<HTMLDivElement>(null);
+    const typingContainerRef = useRef<HTMLDivElement>(null);
     const scrollRef = useRef<HTMLDivElement>(null);
     const cursorRef = useRef<HTMLSpanElement>(null);
     const isProcessingRef = useRef(false);
@@ -204,13 +205,13 @@ const TypingPractice: React.FC<TypingPracticeProps> = ({
         // Skip animation on initial mount
         if (isInitialMount.current) {
             isInitialMount.current = false;
-            inputRef.current?.focus();
+            setIsFocused(true);
             return;
         }
 
         resetSession();
         const timer = setTimeout(() => {
-            inputRef.current?.focus();
+            setIsFocused(true);
         }, 10);
         return () => clearTimeout(timer);
     }, [words, resetSession]);
@@ -231,50 +232,12 @@ const TypingPractice: React.FC<TypingPracticeProps> = ({
         audio.play();
     };
 
-    // Clear active keys on window blur
-    useEffect(() => {
-        const handleBlur = () => setActiveKeys([]);
-        window.addEventListener('blur', handleBlur);
-        return () => window.removeEventListener('blur', handleBlur);
-    }, []);
-
-    // Global keyboard shortcuts - works even when finished
-    useEffect(() => {
-        const handleGlobalKeyDown = (e: KeyboardEvent) => {
-            const key = e.key;
-
-            // Ctrl + Enter => Lấy text gõ mới (refresh text)
-            if (e.ctrlKey && !e.shiftKey && !e.altKey && key === 'Enter') {
-                e.preventDefault();
-                refreshText?.();
-                setTimeout(() => {
-                    inputRef.current?.focus();
-                }, 10);
-                return;
-            }
-
-            // Ctrl + R => reset lại session gõ hiện tại (reset session)
-            if (e.ctrlKey && !e.shiftKey && !e.altKey && key.toLowerCase() === 'r') {
-                e.preventDefault(); // stop browser refresh
-                resetSession();
-                setTimeout(() => {
-                    inputRef.current?.focus();
-                }, 10);
-                return;
-            }
-        };
-
-        window.addEventListener('keydown', handleGlobalKeyDown, { capture: true });
-        return () => window.removeEventListener('keydown', handleGlobalKeyDown, { capture: true });
-    }, [refreshText, resetSession]);
-
-    const handleKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
-        if (isProcessingRef.current) return; // Prevent recursive calls
-        if (isFinished) return; // Disable typing when finished
+    const handleKeyDown = useCallback((e: KeyboardEvent) => {
+        if (isProcessingRef.current) return;
+        if (isFinished) return;
         isProcessingRef.current = true;
 
         const keyCode = e.code;
-
         setActiveKeys((prev) => {
             if (prev.includes(keyCode)) return prev;
             return [...prev, keyCode];
@@ -332,9 +295,7 @@ const TypingPractice: React.FC<TypingPracticeProps> = ({
                 const newValue = userInput.slice(0, -1);
                 setUserInput(newValue);
                 setCurrentIndex(newValue.length);
-
                 playSound("correct");
-
                 setKeystrokeLog(prev => [
                     ...prev,
                     { key: "Backspace", timestamp, correct: true, index: newValue.length }
@@ -375,7 +336,7 @@ const TypingPractice: React.FC<TypingPracticeProps> = ({
         // Normal characters
         // -----------------------
         if (key.length === 1) {
-            if (heldKey && heldKey === key) {
+            if (heldKey && heldKey.toLowerCase() === key.toLocaleLowerCase()) {
                 setIsHoldingKey(true);
                 isProcessingRef.current = false;
                 return;
@@ -399,13 +360,104 @@ const TypingPractice: React.FC<TypingPracticeProps> = ({
 
         // Reset processing flag
         isProcessingRef.current = false;
-    };
+    }, [isFinished, userInput, displayText, startTime, timerRunning, heldKey, isHoldingKey, playSound]);
 
-    const handleKeyUp = (e: React.KeyboardEvent<HTMLDivElement>) => {
+    const handleKeyUp = useCallback((e: KeyboardEvent) => {
         const keyCode = e.code;
         setActiveKeys((prev) => prev.filter((k) => k !== keyCode));
-        if (heldKey && heldKey === e.key) setIsHoldingKey(false);
-    };
+        if (heldKey && heldKey.toLowerCase() === e.key.toLowerCase()) {
+            setIsHoldingKey(false);
+        }
+    }, [heldKey]);
+
+    // Detect clicks outside typing area to unfocus
+    useEffect(() => {
+        const handleClickOutside = (e: MouseEvent) => {
+            if (typingContainerRef.current && !typingContainerRef.current.contains(e.target as Node)) {
+                setIsFocused(false);
+            }
+        };
+
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, []);
+
+    // Clear active keys on window blur
+    useEffect(() => {
+        const handleBlur = () => setActiveKeys([]);
+        window.addEventListener('blur', handleBlur);
+        return () => window.removeEventListener('blur', handleBlur);
+    }, []);
+
+    // Global keyboard shortcuts and typing handlers
+    useEffect(() => {
+        const handleGlobalKeyDown = (e: KeyboardEvent) => {
+            // Check if user is typing in another input/textarea
+            const target = e.target as HTMLElement;
+            const isTypingElsewhere =
+                target.tagName === 'INPUT' ||
+                target.tagName === 'TEXTAREA' ||
+                target.isContentEditable;
+
+            // If typing elsewhere, ignore
+            if (isTypingElsewhere) {
+                return;
+            }
+
+            const key = e.key;
+
+            // Ctrl + Enter => Lấy text gõ mới (refresh text)
+            if (e.ctrlKey && !e.shiftKey && !e.altKey && key === 'Enter') {
+                e.preventDefault();
+                refreshText?.();
+                setTimeout(() => {
+                    setIsFocused(true);
+                }, 10);
+                return;
+            }
+
+            // Ctrl + R => reset lại session gõ hiện tại (reset session)
+            if (e.ctrlKey && !e.shiftKey && !e.altKey && key.toLowerCase() === 'r') {
+                e.preventDefault(); // stop browser refresh
+                resetSession();
+                setTimeout(() => {
+                    setIsFocused(true);
+                }, 10);
+                return;
+            }
+
+            // Handle typing if focused on typing area (not finished)
+            if (isFocused && !isFinished) {
+                handleKeyDown(e);
+            }
+        };
+
+        const handleGlobalKeyUp = (e: KeyboardEvent) => {
+            // Check if user is typing in another input/textarea
+            const target = e.target as HTMLElement;
+            const isTypingElsewhere =
+                target.tagName === 'INPUT' ||
+                target.tagName === 'TEXTAREA' ||
+                target.isContentEditable;
+
+            // If typing elsewhere, ignore
+            if (isTypingElsewhere) {
+                return;
+            }
+
+            if (isFocused && !isFinished) {
+                handleKeyUp(e);
+            }
+        };
+
+        window.addEventListener('keydown', handleGlobalKeyDown);
+        window.addEventListener('keyup', handleGlobalKeyUp);
+
+        return () => {
+            window.removeEventListener('keydown', handleGlobalKeyDown);
+            window.removeEventListener('keyup', handleGlobalKeyUp);
+        };
+    }, [refreshText, resetSession, isFocused, isFinished, handleKeyDown, handleKeyUp]);
 
     const renderCharacter = (char: string, index: number) => {
         const typedChar = userInput[index];
@@ -417,7 +469,7 @@ const TypingPractice: React.FC<TypingPracticeProps> = ({
 
         // Optimize symbol rendering - reuse objects
         const renderSymbol = (c: string) => {
-            if (c === ' ') return '\u00A0'; // Non-breaking space as string
+            if (c === ' ') return ' ';
             if (c === '\n')
                 return <Icon icon="fluent:arrow-enter-left-24-regular" className="inline-block align-middle" />;
             if (c === '\t')
@@ -459,46 +511,29 @@ const TypingPractice: React.FC<TypingPracticeProps> = ({
     };
 
     const renderText = () => {
-        // Use words array directly - only render up to renderedWordCount
-        let globalIndex = 0;
-        const renderedContent: React.ReactElement[] = [];
-
-        for (let i = 0; i < renderedWordCount && i < words.length; i++) {
-            const word = words[i];
-
-            // Render each character in the word
-            const wordEls = word.split('').map((char, charIndex) => {
-                const el = renderCharacter(char, globalIndex);
-                globalIndex++;
-                return el;
-            });
-
-            renderedContent.push(
-                <span key={`word-${i}`} className="inline-block">
-                    {wordEls}
-                </span>
-            );
-
-            // Add space after word (except last word or last character is newline/tab)
-            if (i < renderedWordCount - 1 && i < words.length - 1 && displayText[globalIndex] !== '\n' && displayText[globalIndex] !== '\t') {
-                const spaceEl = renderCharacter(' ', globalIndex);
-                globalIndex++;
-                renderedContent.push(
-                    <span key={`space-${i}`} className="inline-block">
-                        {spaceEl}
+        const content: React.ReactElement[] = [];
+        for (let i = 0; i < displayText.length; i++) {
+            const ch = displayText[i];
+            if (ch === '\n') {
+                content.push(
+                    <span key={`nl-${i}`} className="inline-flex items-center">
+                        {renderCharacter('\n', i)}
                     </span>
                 );
+                content.push(<br key={`br-${i}`} />);
+                continue;
             }
+            content.push(renderCharacter(ch, i));
         }
 
         return (
-            <div className={`flex flex-wrap gap-0 ${textSizeClass[textSizeToUse]} leading-loose`}>
-                {renderedContent}
+            <div className={`${textSizeClass[textSizeToUse]} leading-loose`}>
+                {content}
             </div>
         );
     };
 
-    const renderedTextMemo = useMemo(() => renderText(), [renderedWordCount, userInput, currentIndex, textSizeToUse, textAnimationKey]);
+    const renderedTextMemo = useMemo(() => renderText(), [displayText, renderedWordCount, userInput, currentIndex, textSizeToUse, textAnimationKey]);
 
     useEffect(() => {
         // Dynamic word rendering: adjust rendered word count based on typing position
@@ -623,6 +658,12 @@ const TypingPractice: React.FC<TypingPracticeProps> = ({
     useEffect(() => {
         const storeSessionResult = async () => {
             if (isFinished && keystrokeLog.length > 0 && isAuthenticated && user && accessToken && languageCode) {
+                setIsFocused(false);
+                setActiveKeys([]);
+                if (heldKey) {
+                    setIsHoldingKey(false);
+                }
+
                 const data = {
                     sessionType,
                     languageCode: languageCode,
@@ -639,7 +680,11 @@ const TypingPractice: React.FC<TypingPracticeProps> = ({
                     keystrokes: keystrokeLog,
                 };
 
-                await storeTypingSessionResult(accessToken, data);
+                const response = await storeTypingSessionResult(accessToken, data);
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    toast.error(errorData.message || 'Lỗi khi lưu kết quả phiên gõ!');
+                }
             }
         };
         storeSessionResult();
@@ -678,6 +723,7 @@ const TypingPractice: React.FC<TypingPracticeProps> = ({
                 {!isFinished && (
                     <motion.div
                         key={textAnimationKey}
+                        ref={typingContainerRef}
                         className="w-full bg-background relative"
                         initial={{ opacity: 0, scale: 0.95 }}
                         animate={{ opacity: 1, scale: 1 }}
@@ -686,12 +732,12 @@ const TypingPractice: React.FC<TypingPracticeProps> = ({
                     >
                         <div
                             className={`absolute inset-0 bg-accent/50 rounded-md mx-10 text-accent-foreground z-10 flex flex-col justify-center items-center gap-4 backdrop-blur-sm transition-opacity duration-300 ${isFocused ? 'opacity-0 pointer-events-none' : 'opacity-100 pointer-events-auto'}`}
-                            onClick={() => inputRef.current?.focus()}
+                            onClick={() => setIsFocused(true)}
                         >
                             Nhấn vào đây để tiếp tục gõ
                         </div>
                         <div
-                            className={`absolute inset-0 bg-accent/50 rounded-md mx-10 text-accent-foreground z-10 flex flex-col justify-center items-center gap-4 backdrop-blur-sm transition-opacity duration-300 pointer-events-none ${isHoldingKey || !heldKey ? 'opacity-0' : 'opacity-100'}`}
+                            className={`absolute inset-0 bg-accent/50 rounded-md mx-10 text-accent-foreground z-20 flex flex-col justify-center items-center gap-4 backdrop-blur-sm transition-opacity duration-300 pointer-events-none ${isHoldingKey || !heldKey ? 'opacity-0' : 'opacity-100'}`}
                         >
                             <div className="flex gap-3 justify-center items-center text-2xl">
                                 Vui lòng giữ phím
@@ -711,26 +757,12 @@ const TypingPractice: React.FC<TypingPracticeProps> = ({
                                 style={{
                                     fontFeatureSettings: '"liga" 0, "calt" 0',
                                 }}
-                                onClick={() => inputRef.current?.focus()}
+                                onClick={() => setIsFocused(true)}
                                 onMouseDown={(e) => e.preventDefault()}
                                 onDragStart={(e) => e.preventDefault()}
                             >
                                 {renderedTextMemo}
                             </div>
-                            <div
-                                contentEditable
-                                onBlur={() => {
-                                    setIsFocused(false);
-                                    isProcessingRef.current = false;
-                                    setActiveKeys([]);
-                                }}
-                                onFocus={() => setIsFocused(true)}
-                                ref={inputRef} 
-                                tabIndex={0}
-                                onKeyDown={handleKeyDown}
-                                onKeyUp={handleKeyUp}
-                                className="absolute opacity-0 w-px h-px top-4 left-4 pointer-events-none"
-                            />
                         </div>
                     </motion.div>
                 )}
@@ -782,7 +814,7 @@ const TypingPractice: React.FC<TypingPracticeProps> = ({
                                     </Link>
                                 </Tooltip>
                             )}
-                            <Tooltip text="Gõ lại với văn bản hiện tại" shortcut="Ctrl+R" side={lessonid ? ( nextLessonId ? 'top' : 'right' ) : 'left'}>
+                            <Tooltip text="Gõ lại với văn bản hiện tại" shortcut="Ctrl+R" side={lessonid ? (nextLessonId ? 'top' : 'right') : 'left'}>
                                 <div className="p-2 cursor-pointer border-2 border-border rounded-md hover:bg-accent hover:text-accent-foreground transition-colors">
                                     <Icon
                                         icon="ri:reset-left-fill" className="text-2xl"

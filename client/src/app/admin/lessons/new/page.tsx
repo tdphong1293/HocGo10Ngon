@@ -109,6 +109,20 @@ const AdminNewLessonPage = () => {
         }
     }
 
+    const fetchLastOrder = async () => {
+        if (isAuthenticated && accessToken && user && user.role === 'ADMIN') {
+            const response = await getLessonLastOrder(accessToken);
+            if (response.ok) {
+                const { data: lastOrder } = await response.json();
+                setLastOrder(lastOrder);
+                setLessonOrder((lastOrder + 1).toString());
+            }
+        }
+    }
+    useEffect(() => {
+        fetchLastOrder();
+    }, [isAuthenticated, accessToken, user]);
+
     const clearAllErrors = () => {
         setErrors({});
     }
@@ -151,7 +165,7 @@ const AdminNewLessonPage = () => {
             toast.warn("Vui lòng nhập nội dung bài học.");
             return;
         }
-        const lessonContentRegex = /^(?=.*\S)[\u0009\u000A\u000D\u2028\u2029\u0020-\u007E\u00A0-\u024F]{1,5000}$/;
+        const lessonContentRegex = /^(?=.*\S)[\p{L}\p{M}\p{N}\p{P}\p{Z}\t\r\n]{1,5000}$/u;
         if (lessonContent && !lessonContentRegex.test(lessonContent)) {
             toast.warn("Nội dung bài học chỉ được chứa chữ cái, số, dấu câu và các ký tự khoảng trắng hợp lệ, tối đa 5000 ký tự.");
             return;
@@ -171,6 +185,7 @@ const AdminNewLessonPage = () => {
             if (response.ok) {
                 toast.success("Đã thêm bài học mới thành công.");
                 clearAllInputs();
+                await fetchLastOrder();
             } else {
                 const errorData = await response.json();
                 toast.error(errorData.message || "Đã có lỗi xảy ra khi thêm bài học.");
@@ -180,20 +195,6 @@ const AdminNewLessonPage = () => {
             toast.error("Đã có lỗi xảy ra khi thêm bài học.");
         }
     }
-
-    useEffect(() => {
-        const fetchLastOrder = async () => {
-            if (isAuthenticated && accessToken && user && user.role === 'ADMIN') {
-                const response = await getLessonLastOrder(accessToken);
-                if (response.ok) {
-                    const { data: lastOrder } = await response.json();
-                    setLastOrder(lastOrder);
-                    setLessonOrder((lastOrder + 1).toString());
-                }
-            }
-        }
-        fetchLastOrder();
-    }, [isAuthenticated, accessToken, user]);
 
     if (!isAuthenticated || !accessToken || !user || user.role !== 'ADMIN') {
         return null;

@@ -267,8 +267,17 @@ export class SessionService {
 
     async storeUserLesson(userid: string, lessonid: string) {
         try {
-            await this.prismaService.userLesson.create({
-                data: {
+            await this.prismaService.userLesson.upsert({
+                where: {
+                    userid_lessonid: {
+                        userid,
+                        lessonid,
+                    }
+                },
+                update: {
+                    timesCompleted: { increment: 1 },
+                },
+                create: {
                     userid,
                     lessonid,
                 }

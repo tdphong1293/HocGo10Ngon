@@ -183,7 +183,7 @@ const AdminSingleLessonPage: React.FC<PageProps<"/admin/lessons/[lessonid]">> = 
             toast.warn("Vui lòng nhập nội dung bài học.");
             return;
         }
-        const lessonContentRegex = /^(?=.*\S)[\u0009\u000A\u000D\u2028\u2029\u0020-\u007E\u00A0-\u024F]{1,5000}$/;
+        const lessonContentRegex = /^(?=.*\S)[\p{L}\p{M}\p{N}\p{P}\p{Z}\t\r\n]{1,5000}$/u;
         if (lessonContent && !lessonContentRegex.test(lessonContent)) {
             toast.warn("Nội dung bài học chỉ được chứa chữ cái, số, dấu câu và các ký tự khoảng trắng hợp lệ, tối đa 5000 ký tự.");
             return;
