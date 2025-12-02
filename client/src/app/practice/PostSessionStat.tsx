@@ -1,6 +1,8 @@
 import PostSessionLineChart from './PostSessionLineChart';
 import { Keystroke, TypingStats } from '@/components/TypingPractice';
 import { Icon } from '@iconify/react';
+import { useMemo, JSX } from 'react';
+import { diff_match_patch, DIFF_DELETE, DIFF_EQUAL, DIFF_INSERT } from 'diff-match-patch';
 
 interface PostSessionStatProps {
     keystrokeLog: Keystroke[];
@@ -26,6 +28,42 @@ const PostSessionStat: React.FC<PostSessionStatProps> = ({
     author,
     source,
 }) => {
+    const diffs = useMemo(() => {
+        const dmp = new diff_match_patch();
+        const d = dmp.diff_main(text, inputHistory);
+        dmp.diff_cleanupSemantic(d);
+        return d;
+    }, [text, inputHistory]);
+
+    const renderChar = (char: string, isCorrect: boolean, i: number) => {
+        if (char === ' ') {
+            return (
+                <span key={`s-${i}`} className={`inline-block w-[1ch] ${isCorrect ? 'bg-green-500/20' : 'bg-red-500/20'}`}>
+                    &nbsp;
+                </span>
+            );
+        }
+        if (char === '\n') {
+            return (
+                <span key={`n-${i}`} className={isCorrect ? 'text-green-500' : 'text-red-500'}>
+                    <Icon icon="fluent:arrow-enter-left-24-regular" className="inline-block align-middle" />
+                </span>
+            );
+        }
+        if (char === '\t') {
+            return (
+                <span key={`t-${i}`} className={isCorrect ? 'text-green-500' : 'text-red-500'}>
+                    <Icon icon="fluent:keyboard-tab-24-regular" className="inline-block align-middle" />
+                </span>
+            );
+        }
+        return (
+            <span key={`c-${i}`} className={isCorrect ? 'text-green-500' : 'text-red-500 font-bold'}>
+                {char}
+            </span>
+        );
+    };
+
     return (
         <div className="w-full px-10 flex flex-col gap-0">
             <div className={`flex gap-2 ${!author || !source ? 'items-center' : 'items-start'}`}>
@@ -81,43 +119,24 @@ const PostSessionStat: React.FC<PostSessionStatProps> = ({
                 <span className="font-semibold text-lg">Lịch sử gõ:</span>
                 <div className="bg-accent/30 rounded-lg p-4 border border-border">
                     <div className="font-mono text-md whitespace-pre-wrap break-words text-accent-foreground leading-loose">
-                        {inputHistory.split('').map((char, i) => {
-                            const expectedChar = text[i];
-                            const isCorrect = char === expectedChar;
-
-                            if (char === ' ') {
-                                return (
-                                    <span
-                                        key={i}
-                                        className={`inline-block w-[1ch] ${isCorrect ? 'bg-green-500/20' : 'bg-red-500/20'}`}
-                                    >
-                                        &nbsp;
-                                    </span>
-                                );
-                            }
-                            if (char === '\n') {
-                                return <span key={i} className={isCorrect ? 'text-green-500' : 'text-red-500'}>
-                                    <Icon icon="fluent:arrow-enter-left-24-regular" className="inline-block align-middle" />
-                                </span>;
-
-                            }
-                            if (char === '\t') {
-                                return (
-                                    <span key={i} className={isCorrect ? 'text-green-500' : 'text-red-500'}>
-                                        <Icon icon="fluent:keyboard-tab-24-regular" className="inline-block align-middle" />
-                                    </span>
-                                );
-                            }
-
-                            return (
-                                <span
-                                    key={i}
-                                    className={isCorrect ? 'text-green-500' : 'text-red-500 font-bold'}
-                                >
-                                    {char}
-                                </span>
-                            );
-                        })}
+                        {(() => {
+                            let outIndex = 0;
+                            const nodes: JSX.Element[] = [];
+                            diffs.forEach(([op, data], idx) => {
+                                if (op === DIFF_EQUAL) {
+                                    for (let j = 0; j < data.length; j++) {
+                                        nodes.push(renderChar(data[j], true, outIndex++));
+                                    }
+                                } else if (op === DIFF_INSERT) {
+                                    for (let j = 0; j < data.length; j++) {
+                                        nodes.push(renderChar(data[j], false, outIndex++));
+                                    }
+                                } else if (op === DIFF_DELETE) {
+                                    // Skips expected-but-not-typed chars in the input history view
+                                }
+                            });
+                            return nodes;
+                        })()}
                     </div>
                 </div>
             </div>
