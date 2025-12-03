@@ -1,103 +1,320 @@
-import Image from "next/image";
+'use client';
+
+import { useTheme } from '@/hooks/useTheme';
+import { TypingTestDemo } from '@/components/TypingTestDemo';
+import { ToastColorDemo } from '@/components/ToastSystem';
+import { FontTestDemo } from '@/components/FontTestDemo';
+import Keyboard from '@/components/Keyboard';
+import Input from '@/components/Input';
+import { useState } from 'react';
+import Switch from '@/components/Switch';
+import Textarea from '@/components/Textarea';
+import Select from '@/components/Select';
+import { RadioGroup, RadioGroupItem } from '@/components/RadioGroup';
+
+import {
+	DndContext,
+	closestCenter,
+	KeyboardSensor,
+	PointerSensor,
+	useSensor,
+	useSensors,
+} from '@dnd-kit/core';
+import {
+	arrayMove,
+	SortableContext,
+	sortableKeyboardCoordinates,
+	verticalListSortingStrategy,
+} from '@dnd-kit/sortable';
+
+import { Droppable } from '@/components/Droppable';
+import { Draggable } from '@/components/Draggable';
+import { SortableItem } from '@/components/SortableItem';
 
 export default function Home() {
-  return (
-    <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="font-mono list-inside list-decimal text-sm/6 text-center sm:text-left">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] font-mono font-semibold px-1 py-0.5 rounded">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+	const { theme, font } = useTheme();
+	const [inputValue, setInputValue] = useState('');
+	const [switchState, setSwitchState] = useState(false);
+	const [selectedOption, setSelectedOption] = useState<string>('banana');
+	const [selectedRadio, setSelectedRadio] = useState<string>('option1');
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
-        </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
-    </div>
-  );
+	const containers = ['A', 'B', 'C'];
+	const [parent, setParent] = useState(null);
+	const draggableMarkup = (
+		<Draggable id="draggable">Drag me</Draggable>
+	);
+
+	const [items, setItems] = useState([1, 2, 3]);
+	const sensors = useSensors(
+		useSensor(PointerSensor),
+		useSensor(KeyboardSensor, {
+			coordinateGetter: sortableKeyboardCoordinates,
+		})
+	);
+
+	const handleDragEnd = (event: any) => {
+		const { over } = event;
+
+		// If the item is dropped over a container, set it as the parent
+		// otherwise reset the parent to `null`
+		setParent(over ? over.id : null);
+	}
+
+	const handleDragEndSort = (event: any) => {
+		const { active, over } = event;
+
+		if (active.id !== over.id) {
+			setItems((items) => {
+				const oldIndex = items.indexOf(active.id);
+				const newIndex = items.indexOf(over.id);
+
+				return arrayMove(items, oldIndex, newIndex);
+			});
+		}
+	}
+
+	return (
+		<div className="min-h-screen p-8 pb-20 gap-16 sm:p-20">
+			<main className="flex flex-col gap-8 items-center">
+				<div className="text-center">
+					<h1 className="text-4xl font-bold text-foreground mb-4">
+						Typing Test Theme Showcase
+					</h1>
+					<p className="text-lg text-muted-foreground mb-8">
+						Experience beautiful themes and fonts optimized for typing tests
+					</p>
+					<div className="flex gap-4 items-center justify-center text-sm text-muted-foreground">
+						<span className="px-3 py-1 bg-secondary rounded-full">
+							Current Theme: <span className="font-medium text-secondary-foreground capitalize">{theme}</span>
+						</span>
+						<span className="px-3 py-1 bg-secondary rounded-full">
+							Current Font: <span className="font-medium text-secondary-foreground capitalize">{font}</span>
+						</span>
+					</div>
+				</div>
+
+				{/* Typing Test Demo */}
+				<div className="w-full max-w-4xl">
+					<TypingTestDemo />
+				</div>
+
+				{/* Font Test Demo */}
+				<div className="w-full max-w-4xl">
+					<FontTestDemo />
+				</div>
+
+				{/* Toast Color Demo */}
+				<div className="w-full max-w-4xl">
+					<ToastColorDemo />
+				</div>
+
+				{/* Feature Cards */}
+				<div className="grid grid-cols-1 md:grid-cols-3 gap-6 w-full max-w-4xl">
+					<div className="bg-card p-6 rounded-lg border border-border hover:border-border-hover transition-colors">
+						<h3 className="text-xl font-semibold text-card-foreground mb-3">Typing-Optimized Themes</h3>
+						<p className="text-muted-foreground mb-4">
+							7 beautiful themes with distinct colors for correct, incorrect, untyped, and current character states.
+						</p>
+						<div className="flex gap-2">
+							<div className="w-4 h-4 rounded-full bg-correct"></div>
+							<div className="w-4 h-4 rounded-full bg-incorrect"></div>
+							<div className="w-4 h-4 rounded-full bg-untyped"></div>
+							<div className="w-4 h-4 rounded-full bg-cursor"></div>
+						</div>
+					</div>
+
+					<div className="bg-card p-6 rounded-lg border border-border hover:border-border-hover transition-colors">
+						<h3 className="text-xl font-semibold text-card-foreground mb-3">Optimized Fonts</h3>
+						<p className="text-muted-foreground mb-4">
+							12 carefully selected fonts for optimal typing experience, including monospace options.
+						</p>
+						<div className="text-primary font-medium">The quick brown fox</div>
+					</div>
+
+					<div className="bg-card p-6 rounded-lg border border-border hover:border-border-hover transition-colors">
+						<h3 className="text-xl font-semibold text-card-foreground mb-3">Smart Notifications</h3>
+						<p className="text-muted-foreground mb-4">
+							Context-aware toast notifications with theme-consistent colors for success, error, warning, and info states.
+						</p>
+						<div className="flex gap-1">
+							<div className="w-3 h-3 rounded bg-toast-success"></div>
+							<div className="w-3 h-3 rounded bg-toast-error"></div>
+							<div className="w-3 h-3 rounded bg-toast-warning"></div>
+							<div className="w-3 h-3 rounded bg-toast-info"></div>
+						</div>
+					</div>
+				</div>
+
+				{/* Color Reference */}
+				<div className="w-full max-w-4xl">
+					<div className="bg-card p-6 rounded-lg border border-border">
+						<h3 className="text-lg font-semibold text-card-foreground mb-4">Color Reference</h3>
+						<div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+							<div className="space-y-2">
+								<h4 className="font-medium text-card-foreground">Typing States</h4>
+								<div className="space-y-1">
+									<div className="flex items-center gap-2">
+										<div className="w-3 h-3 rounded bg-correct"></div>
+										<span className="text-muted-foreground">Correct</span>
+									</div>
+									<div className="flex items-center gap-2">
+										<div className="w-3 h-3 rounded bg-incorrect"></div>
+										<span className="text-muted-foreground">Incorrect</span>
+									</div>
+									<div className="flex items-center gap-2">
+										<div className="w-3 h-3 rounded bg-untyped"></div>
+										<span className="text-muted-foreground">Untyped</span>
+									</div>
+									<div className="flex items-center gap-2">
+										<div className="w-3 h-3 rounded bg-cursor"></div>
+										<span className="text-muted-foreground">Cursor</span>
+									</div>
+								</div>
+							</div>
+
+							<div className="space-y-2">
+								<h4 className="font-medium text-card-foreground">Notifications</h4>
+								<div className="space-y-1">
+									<div className="flex items-center gap-2">
+										<div className="w-3 h-3 rounded bg-toast-success"></div>
+										<span className="text-muted-foreground">Success</span>
+									</div>
+									<div className="flex items-center gap-2">
+										<div className="w-3 h-3 rounded bg-toast-error"></div>
+										<span className="text-muted-foreground">Error</span>
+									</div>
+									<div className="flex items-center gap-2">
+										<div className="w-3 h-3 rounded bg-toast-warning"></div>
+										<span className="text-muted-foreground">Warning</span>
+									</div>
+									<div className="flex items-center gap-2">
+										<div className="w-3 h-3 rounded bg-toast-info"></div>
+										<span className="text-muted-foreground">Info</span>
+									</div>
+								</div>
+							</div>
+
+							<div className="space-y-2">
+								<h4 className="font-medium text-card-foreground">Interface</h4>
+								<div className="space-y-1">
+									<div className="flex items-center gap-2">
+										<div className="w-3 h-3 rounded bg-primary"></div>
+										<span className="text-muted-foreground">Primary</span>
+									</div>
+									<div className="flex items-center gap-2">
+										<div className="w-3 h-3 rounded bg-secondary"></div>
+										<span className="text-muted-foreground">Secondary</span>
+									</div>
+									<div className="flex items-center gap-2">
+										<div className="w-3 h-3 rounded bg-accent"></div>
+										<span className="text-muted-foreground">Accent</span>
+									</div>
+									<div className="flex items-center gap-2">
+										<div className="w-3 h-3 rounded bg-muted"></div>
+										<span className="text-muted-foreground">Muted</span>
+									</div>
+								</div>
+							</div>
+
+							<div className="space-y-2">
+								<h4 className="font-medium text-card-foreground">System</h4>
+								<div className="space-y-1">
+									<div className="flex items-center gap-2">
+										<div className="w-3 h-3 rounded bg-background border border-border"></div>
+										<span className="text-muted-foreground">Background</span>
+									</div>
+									<div className="flex items-center gap-2">
+										<div className="w-3 h-3 rounded bg-foreground"></div>
+										<span className="text-muted-foreground">Foreground</span>
+									</div>
+									<div className="flex items-center gap-2">
+										<div className="w-3 h-3 rounded bg-border"></div>
+										<span className="text-muted-foreground">Border</span>
+									</div>
+									<div className="flex items-center gap-2">
+										<div className="w-3 h-3 rounded bg-destructive"></div>
+										<span className="text-muted-foreground">Destructive</span>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+				<Keyboard activeKeys={['LShift', 'A']} />
+				<div className="w-full max-w-4xl bg-card p-6 rounded-lg border border-border">
+					<div className="text-lg font-semibold mb-4 text-card-foreground">Input demo</div>
+					<Input
+						value={inputValue}
+						onChange={(val) => setInputValue(val)}
+						placeholder="Type here..."
+						className=""
+						label="Test label"
+					/>
+				</div>
+				<Switch
+					state={switchState}
+					setState={setSwitchState}
+				/>
+				<Textarea
+					className="w-full max-w-4xl h-32 p-4 border border-border rounded-lg bg-background text-foreground"
+					placeholder="This is a textarea. Press Tab to insert a tab character."
+				/>
+				<Select
+					options={[
+						{ value: "apple", label: "Apple BUN 🍎 BANANA BUN BAN BAN ADFASDF SADF SADFS ADFSA DFS  " },
+						{ value: "banana", label: "Banana" },
+						{ value: "cherry", label: "Cherry" },
+					]}
+					placeholder="Choose fruit..."
+					value={selectedOption}
+					onChange={(v) => {
+						setSelectedOption(v);
+					}}
+				/>
+				<RadioGroup
+					name="example"
+					value={selectedRadio}
+					onValueChange={(v) => {
+						setSelectedRadio(v);
+					}}
+				>
+					<RadioGroupItem value="option1">Option 1</RadioGroupItem>
+					<RadioGroupItem value="option2">Option 2</RadioGroupItem>
+					<RadioGroupItem value="option3" disabled>Option 3 (Disabled)</RadioGroupItem>
+				</RadioGroup>
+				<div className="w-full max-w-4xl bg-card p-6 rounded-lg border border-border">
+					<DndContext onDragEnd={handleDragEnd}>
+						{parent === null ? draggableMarkup : null}
+
+						{containers.map((id) => (
+							// We updated the Droppable component so it would accept an `id`
+							// prop and pass it to `useDroppable`
+							<Droppable key={id} id={id}>
+								{parent === id ? draggableMarkup : 'Drop here'}
+							</Droppable>
+						))}
+					</DndContext>
+				</div>
+				<div className="w-full max-w-4xl bg-card p-6 rounded-lg border border-border">
+					<DndContext
+						sensors={sensors}
+						collisionDetection={closestCenter}
+						onDragEnd={handleDragEndSort}
+					>
+						<SortableContext
+							items={items}
+							strategy={verticalListSortingStrategy}
+						>
+							{items.map(id => <SortableItem key={id} id={id} 
+							>Item {id}</SortableItem>)}
+						</SortableContext>
+					</DndContext>
+				</div>
+				<footer className="text-center text-muted-foreground">
+					<p>Click the customize button in the top right to change themes and fonts!</p>
+					<p className="text-xs mt-2">Font changes are applied instantly to the entire page</p>
+				</footer>
+			</main>
+		</div>
+	);
 }

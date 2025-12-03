@@ -1,0 +1,150 @@
+datasource db {
+    provider = "postgresql"
+}
+
+generator client {
+    provider     = "prisma-client"
+    output       = "../src/generated"
+    moduleFormat = "commonjs"
+}
+
+enum Role {
+    USER
+    ADMIN
+}
+
+model User {
+    userid                String         @id @default(cuid())
+    username              String         @unique
+    email                 String         @unique
+    password              String
+    role                  Role           @default(USER)
+    bestCPM               Decimal        @default(0)
+    avgCPM                Decimal        @default(0)
+    bestWPM               Decimal        @default(0)
+    avgWPM                Decimal        @default(0)
+    preferredTheme        String?
+    preferredFont         String?
+    preferredLanguageCode String?
+    createdAt             DateTime       @default(now())
+    updatedAt             DateTime       @updatedAt
+    userLessons           UserLesson[]
+    refreshTokens         RefreshToken[]
+
+    @@map("users")
+}
+
+model Language {
+    languageid   String      @id @default(cuid())
+    languageName String      @unique
+    languageCode String      @unique
+    paragraphs   Paragraph[]
+    words        Word[]
+    lessons      Lesson[]
+
+    @@map("languages")
+}
+
+enum LengthType {
+    SHORT
+    MEDIUM
+    LONG
+}
+
+enum ContentType {
+    PARAGRAPH
+    QUOTE
+}
+
+model Paragraph {
+    paragraphid      String      @id @default(cuid())
+    lengthType       LengthType?
+    paragraphContent String
+    contentType      ContentType @default(PARAGRAPH)
+    author           String?
+    source           String?
+    externalid       String?
+    language         Language    @relation(fields: [languageid], references: [languageid])
+    languageid       String
+
+    @@unique([source, externalid])
+    @@map("paragraphs")
+}
+
+model Word {
+    wordid      String      @id @default(cuid())
+    lengthType  LengthType?
+    rowType     RowType?
+    normalForm  String      @unique
+    capitalForm String?
+    language    Language    @relation(fields: [languageid], references: [languageid])
+    languageid  String
+
+    @@map("words")
+}
+
+model Number {
+    numberid String @id @default(cuid())
+    minValue Int
+    maxValue Int
+
+    @@map("numbers")
+}
+
+model Punctuation {
+    punctuationid     String @id @default(cuid())
+    punctuationSymbol String @unique
+
+    @@map("punctuations")
+}
+
+enum RowType {
+    HOME
+    TOP
+    BOTTOM
+    HOME_TOP
+    HOME_BOTTOM
+    TOP_BOTTOM
+    ALL
+}
+
+enum LessonType {
+    ONE_HANDED
+    BOTH_HANDS
+}
+
+model Lesson {
+    lessonid      String       @id @default(cuid())
+    title         String
+    orderNumber   Int          @unique
+    rowType       RowType?
+    lessonType    LessonType
+    heldKey       String?
+    lessonContent String
+    language      Language     @relation(fields: [languageid], references: [languageid])
+    languageid    String
+    UserLesson    UserLesson[]
+
+    @@map("lessons")
+}
+
+model UserLesson {
+    userid         String
+    user           User   @relation(fields: [userid], references: [userid])
+    lessonid       String
+    lesson         Lesson @relation(fields: [lessonid], references: [lessonid])
+    timesCompleted Int    @default(1)
+
+    @@id([userid, lessonid])
+    @@map("user_lessons")
+}
+
+model RefreshToken {
+    token     String   @id
+    revoked   Boolean  @default(false)
+    userid    String
+    user      User     @relation(fields: [userid], references: [userid])
+    expiresAt DateTime
+
+    @@map("refresh_tokens")
+}

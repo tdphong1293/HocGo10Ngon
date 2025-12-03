@@ -1,10 +1,38 @@
 import { Module } from '@nestjs/common';
+import { ConfigModule } from '@nestjs/config';
+import { PrismaModule } from './modules/prisma/prisma.module';
+import { DatabaseModule } from './modules/mongoose/database.module';
+import { CacheModule } from './modules/cache/cache.module';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
+import { AuthModule } from './modules/auth/auth.module';
+import { UserModule } from './modules/user/user.module';
+import { SessionModule } from './modules/session/session.module';
+import { ScheduleModule } from '@nestjs/schedule';
+import { LanguageModule } from './modules/language/language.module';
+import { WordModule } from './modules/word/word.module';
+import { ParagraphModule } from './modules/paragraph/paragraph.module';
+import { LessonModule } from './modules/lesson/lesson.module';
 
 @Module({
-  imports: [],
-  controllers: [AppController],
-  providers: [AppService],
+	imports: [
+		ConfigModule.forRoot({
+			isGlobal: true,
+			expandVariables: true,
+		}),
+		ScheduleModule.forRoot(),
+		PrismaModule,
+		DatabaseModule,
+		CacheModule,
+		AuthModule,
+		UserModule,
+		SessionModule,
+		LanguageModule,
+		WordModule,
+		ParagraphModule,
+		LessonModule,
+	],
+	controllers: [AppController],
+	providers: [AppService],
 })
-export class AppModule {}
+export class AppModule { }
