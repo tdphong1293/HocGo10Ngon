@@ -3,8 +3,11 @@ import { NextRequest } from "next/server";
 
 const API_URL = `http://${process.env.SERVER_HOST || 'localhost'}:${process.env.SERVER_PORT || '8080'}`;
 
-export async function GET(request: NextRequest, { params }: { params: { lessonid: string } }) {
-    const { lessonid } = await params;
+export async function GET(
+    request: NextRequest,
+    context: { params: Promise<{ lessonid: string }> }
+) {
+    const { lessonid } = await context.params;
 
     try {
         const access_token = request.headers.get('Authorization')?.split(' ')[1];
@@ -35,8 +38,11 @@ export async function GET(request: NextRequest, { params }: { params: { lessonid
     }
 }
 
-export async function PATCH(request: NextRequest, { params }: { params: { lessonid: string } }) {
-    const { lessonid } = await params;
+export async function PATCH(
+    request: NextRequest,
+    context: { params: Promise<{ lessonid: string }> }
+) {
+    const { lessonid } = await context.params;
 
     try {
         const body = await request.json();
