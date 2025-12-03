@@ -26,6 +26,7 @@ import Navbar from "@/components/Navbar";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { Bounce, ToastContainer } from "react-toastify";
 import Script from "next/script";
+import { SpeedInsights } from "@vercel/speed-insights/next"
 
 const geistSans = Geist({
     variable: "--font-geist",
@@ -180,6 +181,7 @@ export default function RootLayout({
             <body
                 className={`antialiased min-h-screen grid grid-rows-[auto_1fr]`}
             >
+                <SpeedInsights />
                 <AuthProvider>
                     <ThemeProvider>
                         <Navbar
