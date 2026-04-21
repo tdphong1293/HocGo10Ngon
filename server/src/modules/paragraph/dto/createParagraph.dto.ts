@@ -1,14 +1,9 @@
-import { IsString, IsNotEmpty, IsEnum } from 'class-validator';
-import { ContentType } from 'src/generated/enums';
+import { IsString, IsNotEmpty } from 'class-validator';
 
 export class createParagraphDto {
     @IsString()
     @IsNotEmpty()
     paragraphContent: string;
-
-    @IsEnum(ContentType)
-    @IsNotEmpty()
-    contentType: ContentType;
 
     @IsString()
     @IsNotEmpty()

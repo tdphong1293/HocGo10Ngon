@@ -3,7 +3,6 @@
 import Textarea from "@/components/Textarea";
 import Select from "@/components/Select";
 import Button from "@/components/Button";
-import { RadioGroup, RadioGroupItem } from "@/components/RadioGroup";
 import { useState, useEffect, useRef } from "react";
 import Input from "@/components/Input";
 import { useAuth } from "@/hooks/useAuth";
@@ -103,7 +102,6 @@ const AdminParagraphsPage = () => {
         }
     }
 
-    const [selectedRadio, setSelectedRadio] = useState("PARAGRAPH");
     const [paragraphText, setParagraphText] = useState("");
     const [author, setAuthor] = useState("");
     const [source, setSource] = useState("");
@@ -111,7 +109,6 @@ const AdminParagraphsPage = () => {
 
     const clearAllInputs = () => {
         setSelectedLanguage("");
-        setSelectedRadio("PARAGRAPH");
         setParagraphText("");
         setAuthor("");
         setSource("");
@@ -164,7 +161,6 @@ const AdminParagraphsPage = () => {
         try {
             const dataToSend = {
                 languageid: selectedLanguage,
-                contentType: selectedRadio,
                 paragraphContent: paragraphText,
                 author: author,
                 source: source
@@ -226,19 +222,6 @@ const AdminParagraphsPage = () => {
                         allowCreate={true}
                         className="w-full"
                     />
-                    <div className="flex flex-col gap-1">
-                        <label>Loại văn bản</label>
-                        <RadioGroup
-                            value={selectedRadio}
-                            onValueChange={setSelectedRadio}
-                            className="space-y-2"
-                        >
-                            <div className="flex gap-5 items-center">
-                                <RadioGroupItem value="PARAGRAPH">Đoạn văn</RadioGroupItem>
-                                <RadioGroupItem value="QUOTE">Câu trích dẫn</RadioGroupItem>
-                            </div>
-                        </RadioGroup>
-                    </div>
                     <div className="flex flex-col gap-6">
                         <Input
                             label="Tác giả"

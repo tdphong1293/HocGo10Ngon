@@ -11,12 +11,11 @@ export class ParagraphService {
     ) { }
 
     async createParagraph(data: createParagraphDto) {
-        const { paragraphContent, contentType, languageid, source, author } = data;
+        const { paragraphContent, languageid, source, author } = data;
 
         return this.prisma.paragraph.create({
             data: {
                 paragraphContent,
-                contentType,
                 languageid,
                 source,
                 author,

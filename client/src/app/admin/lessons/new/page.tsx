@@ -48,7 +48,8 @@ const AdminNewLessonPage = () => {
 
     const [selectedLanguage, setSelectedLanguage] = useState<string>("");
     const [lessonContent, setLessonContent] = useState("");
-    const [selectedRadio, setSelectedRadio] = useState("BOTH_HANDS");
+    const [lessonHandType, setLessonHandType] = useState("BOTH_HANDS");
+    const [lessonType, setLessonType] = useState("PRACTICE");
     const [lessonTitle, setLessonTitle] = useState("");
     const [lessonOrder, setLessonOrder] = useState("");
     const [lastOrder, setLastOrder] = useState(0);
@@ -128,7 +129,8 @@ const AdminNewLessonPage = () => {
     }
 
     const clearAllInputs = () => {
-        setSelectedRadio("BOTH_HANDS");
+        setLessonHandType("BOTH_HANDS");
+        setLessonType("PRACTICE");
         setSelectedLanguage("");
         setLessonContent("");
         setLessonTitle("");
@@ -177,8 +179,9 @@ const AdminNewLessonPage = () => {
                 title: lessonTitle,
                 lessonContent,
                 orderNumber: parseInt(lessonOrder, 10),
-                lessonType: selectedRadio === "BOTH_HANDS" ? "BOTH_HANDS" : "ONE_HANDED",
-                ...(selectedRadio === "LEFT_HAND" ? { heldKey: "j" } : (selectedRadio === "RIGHT_HAND" ? { heldKey: "f" } : {})),
+                lessonHandType: (lessonHandType === "BOTH_HANDS" ? "BOTH_HANDS" : "ONE_HANDED"),
+                lessonType: lessonType,
+                ...(lessonHandType === "LEFT_HAND" ? { heldKey: "j" } : (lessonHandType === "RIGHT_HAND" ? { heldKey: "f" } : {})),
             };
 
             const response = await addLesson(accessToken!, lessonData);
@@ -279,10 +282,23 @@ const AdminNewLessonPage = () => {
                         error={errors.lessonTitle}
                     />
                     <div className="flex flex-col gap-1">
+                        <label>Loại bài học</label>
+                        <RadioGroup
+                            value={lessonType}
+                            onValueChange={setLessonType}
+                            className="space-y-2"
+                        >
+                            <div className="flex gap-5 items-center">
+                                <RadioGroupItem value="PRACTICE">Luyện tập phím</RadioGroupItem>
+                                <RadioGroupItem value="KEY_LESSON">Phím mới</RadioGroupItem>
+                            </div>
+                        </RadioGroup>
+                    </div>
+                    <div className="flex flex-col gap-1">
                         <label>Chế độ gõ</label>
                         <RadioGroup
-                            value={selectedRadio}
-                            onValueChange={setSelectedRadio}
+                            value={lessonHandType}
+                            onValueChange={setLessonHandType}
                             className="space-y-2"
                         >
                             <RadioGroupItem value="BOTH_HANDS">Cả hai tay</RadioGroupItem>

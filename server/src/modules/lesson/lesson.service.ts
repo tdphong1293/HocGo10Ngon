@@ -179,6 +179,7 @@ export class LessonService {
                 data: {
                     title: data.title,
                     orderNumber: data.orderNumber,
+                    lessonHandType: data.lessonHandType,
                     lessonType: data.lessonType,
                     heldKey: data.heldKey,
                     rowType: categorizedParagraphByRowKey(data.lessonContent),

@@ -22,6 +22,7 @@ const AdminSingleLessonPage: React.FC<PageProps<"/admin/lessons/[lessonid]">> = 
         lessonContent: string;
         orderNumber: number;
         lessonType: string;
+        lessonHandType: string;
         heldKey?: string;
     } | null>(null);
     const router = useRouter();
@@ -82,7 +83,8 @@ const AdminSingleLessonPage: React.FC<PageProps<"/admin/lessons/[lessonid]">> = 
 
     const [selectedLanguage, setSelectedLanguage] = useState<string>("");
     const [lessonContent, setLessonContent] = useState("");
-    const [selectedRadio, setSelectedRadio] = useState("BOTH_HANDS");
+    const [lessonType, setLessonType] = useState("PRACTICE");
+    const [lessonHandType, setLessonHandType] = useState("BOTH_HANDS");
     const [lessonTitle, setLessonTitle] = useState("");
     const [lessonOrder, setLessonOrder] = useState("");
     const [lastOrder, setLastOrder] = useState(0);
@@ -94,11 +96,12 @@ const AdminSingleLessonPage: React.FC<PageProps<"/admin/lessons/[lessonid]">> = 
         if (lessonContent !== defaultLessonData.lessonContent) return true;
         if (lessonTitle !== defaultLessonData.title) return true;
         if (lessonOrder !== defaultLessonData.orderNumber.toString()) return true;
-        if (defaultLessonData.lessonType === "BOTH_HANDS" && selectedRadio !== "BOTH_HANDS") return true;
-        if (defaultLessonData.lessonType === "ONE_HANDED") {
-            if (defaultLessonData.heldKey === "j" && selectedRadio !== "LEFT_HAND") return true;
-            if (defaultLessonData.heldKey === "f" && selectedRadio !== "RIGHT_HAND") return true;
+        if (defaultLessonData.lessonHandType === "BOTH_HANDS" && lessonHandType !== "BOTH_HANDS") return true;
+        if (defaultLessonData.lessonHandType === "ONE_HANDED") {
+            if (defaultLessonData.heldKey === "j" && lessonHandType !== "LEFT_HAND") return true;
+            if (defaultLessonData.heldKey === "f" && lessonHandType !== "RIGHT_HAND") return true;
         }
+        if (lessonType !== defaultLessonData.lessonType) return true;
         return false;
     }
 
@@ -108,13 +111,14 @@ const AdminSingleLessonPage: React.FC<PageProps<"/admin/lessons/[lessonid]">> = 
             setLessonContent(defaultLessonData.lessonContent);
             setLessonTitle(defaultLessonData.title);
             setLessonOrder(defaultLessonData.orderNumber.toString());
-            if (defaultLessonData.lessonType === "BOTH_HANDS") {
-                setSelectedRadio("BOTH_HANDS");
-            } else if (defaultLessonData.lessonType === "ONE_HANDED" && defaultLessonData.heldKey === "j") {
-                setSelectedRadio("LEFT_HAND");
-            } else if (defaultLessonData.lessonType === "ONE_HANDED" && defaultLessonData.heldKey === "k") {
-                setSelectedRadio("RIGHT_HAND");
+            if (defaultLessonData.lessonHandType === "BOTH_HANDS") {
+                setLessonHandType("BOTH_HANDS");
+            } else if (defaultLessonData.lessonHandType === "ONE_HANDED" && defaultLessonData.heldKey === "j") {
+                setLessonHandType("LEFT_HAND");
+            } else if (defaultLessonData.lessonHandType === "ONE_HANDED" && defaultLessonData.heldKey === "f") {
+                setLessonHandType("RIGHT_HAND");
             }
+            setLessonType(defaultLessonData.lessonType);
         }
     }
 
@@ -207,29 +211,25 @@ const AdminSingleLessonPage: React.FC<PageProps<"/admin/lessons/[lessonid]">> = 
         if (lessonOrder !== defaultLessonData.orderNumber.toString()) {
             differenceData.orderNumber = parseInt(lessonOrder, 10);
         }
-        if (defaultLessonData.lessonType === "BOTH_HANDS" && selectedRadio !== "BOTH_HANDS") {
-            differenceData.lessonType = "ONE_HANDED";
-            differenceData.heldKey = selectedRadio === "LEFT_HAND" ? "j" : "f";
+        if (defaultLessonData.lessonType !== lessonType) {
+            differenceData.lessonType = lessonType;
         }
-        if (defaultLessonData.lessonType === "ONE_HANDED") {
-            if (defaultLessonData.heldKey === "j" && selectedRadio !== "LEFT_HAND") {
-                if (selectedRadio === "BOTH_HANDS") {
-                    differenceData.lessonType = "BOTH_HANDS";
-                    differenceData.heldKey = null;
-                }
-                else if (selectedRadio === "RIGHT_HAND") {
-                    differenceData.heldKey = "f";
-                }
+        if (defaultLessonData.lessonHandType === "BOTH_HANDS" && lessonHandType !== "BOTH_HANDS") {
+            differenceData.lessonHandType = "ONE_HANDED";
+            differenceData.heldKey = lessonHandType === "LEFT_HAND" ? "j" : "f";
+        }
+        if (defaultLessonData.lessonHandType === "ONE_HANDED") {
+            if (lessonHandType === "BOTH_HANDS") {
+                differenceData.lessonHandType = "BOTH_HANDS";
+                differenceData.heldKey = null;
             }
-            else if (defaultLessonData.heldKey === "f" && selectedRadio !== "RIGHT_HAND") {
-                if (selectedRadio === "BOTH_HANDS") {
-                    differenceData.lessonType = "BOTH_HANDS";
-                    differenceData.heldKey = null;
-                }
-                else if (selectedRadio === "LEFT_HAND") {
-                    differenceData.heldKey = "j";
-                }
+            else if (defaultLessonData.heldKey === "j" && lessonHandType !== "LEFT_HAND") {
+                differenceData.heldKey = "f";
             }
+            else if (defaultLessonData.heldKey === "f" && lessonHandType !== "RIGHT_HAND") {
+                differenceData.heldKey = "j";
+            }
+
         }
 
         if (Object.keys(differenceData).length === 0) {
@@ -351,10 +351,23 @@ const AdminSingleLessonPage: React.FC<PageProps<"/admin/lessons/[lessonid]">> = 
                         error={errors.lessonTitle}
                     />
                     <div className="flex flex-col gap-1">
+                        <label>Loại bài học</label>
+                        <RadioGroup
+                            value={lessonType}
+                            onValueChange={setLessonType}
+                            className="space-y-2"
+                        >
+                            <div className="flex gap-5 items-center">
+                                <RadioGroupItem value="PRACTICE">Luyện tập phím</RadioGroupItem>
+                                <RadioGroupItem value="KEY_LESSON">Phím mới</RadioGroupItem>
+                            </div>
+                        </RadioGroup>
+                    </div>
+                    <div className="flex flex-col gap-1">
                         <label>Chế độ gõ</label>
                         <RadioGroup
-                            value={selectedRadio}
-                            onValueChange={setSelectedRadio}
+                            value={lessonHandType}
+                            onValueChange={setLessonHandType}
                             className="space-y-2"
                         >
                             <RadioGroupItem value="BOTH_HANDS">Cả hai tay</RadioGroupItem>

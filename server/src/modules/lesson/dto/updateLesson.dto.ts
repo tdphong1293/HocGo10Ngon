@@ -1,5 +1,5 @@
 import { IsString, IsNumber, IsEnum, IsNotEmpty, IsOptional } from 'class-validator';
-import { RowType, LessonType } from 'src/generated/enums';
+import { RowType, LessonHandType, LessonType } from 'src/generated/enums';
 
 export class UpdateLessonDto {
     @IsString()
@@ -14,9 +14,13 @@ export class UpdateLessonDto {
     @IsOptional()
     rowType?: RowType;
 
-    @IsEnum(LessonType)
+    @IsEnum(LessonHandType)
     @IsOptional()
-    lessonType?: LessonType;
+    lessonHandType?: LessonHandType;
+
+    @IsEnum(LessonType)
+    @IsNotEmpty()
+    lessonType: LessonType;
 
     @IsString()
     @IsOptional()

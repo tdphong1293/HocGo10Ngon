@@ -102,9 +102,14 @@ enum RowType {
     ALL
 }
 
-enum LessonType {
+enum LessonHandType {
     ONE_HANDED
     BOTH_HANDS
+}
+
+enum LessonType {
+    PRACTICE
+    KEY_LESSON
 }
 
 model Lesson {
@@ -112,6 +117,7 @@ model Lesson {
     title         String
     orderNumber   Int          @unique
     rowType       RowType?
+    lessonHandType    LessonHandType
     lessonType    LessonType
     heldKey       String?
     lessonContent String

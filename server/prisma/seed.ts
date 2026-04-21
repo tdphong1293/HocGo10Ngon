@@ -22,7 +22,7 @@ async function main() {
         'refresh_tokens',
         'users',
         'lessons',
-        // 'paragraphs', // Không xóa bảng này để giữ lại dữ liệu câu trích dẫn đã có
+        'paragraphs',
         'words',
         'numbers',
         'punctuations',
