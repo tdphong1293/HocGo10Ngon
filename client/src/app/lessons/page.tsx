@@ -13,10 +13,24 @@ const LessonsPage = () => {
     const { isAuthenticated, accessToken, user, loading } = useAuth();
     const { languageCode } = useTheme();
     const router = useRouter();
+    const isGuest = !isAuthenticated || !accessToken || !user;
 
     const [searchLessonTitle, setSearchLessonTitle] = useState<string>("");
     const [lessons, setLessons] = useState<any[]>([]);
     const [learnedLessons, setLearnedLessons] = useState<Set<string>>(new Set());
+
+    useEffect(() => {
+        if (loading) {
+            return;
+        }
+
+        if (isGuest) {
+            router.push('/');
+            toast.info("Vui lòng đăng nhập để truy cập trang này", {
+                toastId: 'lessons-auth-required',
+            });
+        }
+    }, [loading, isGuest, router]);
 
     const fetchLessons = async (accessToken: string) => {
         try {
@@ -34,13 +48,7 @@ const LessonsPage = () => {
     }
 
     useEffect(() => {
-        if (!loading) {
-            if (!isAuthenticated || !accessToken || !user) {
-                router.push('/');
-                toast.info("Vui lòng đăng nhập để truy cập trang này");
-                return;
-            }
-
+        if (!loading && !isGuest) {
             const fetchLessonsByTitle = async () => {
                 try {
                     const response = await getLessonsByLanguageAndTitle(accessToken, languageCode || "en", searchLessonTitle);
@@ -72,15 +80,10 @@ const LessonsPage = () => {
                 }
             };
         }
-    }, [user, isAuthenticated, accessToken, loading, router, searchLessonTitle, languageCode]);
+    }, [accessToken, loading, isGuest, searchLessonTitle, languageCode]);
 
     useEffect(() => {
-        if (!loading) {
-            if (!isAuthenticated || !accessToken || !user) {
-                router.push('/');
-                toast.info("Vui lòng đăng nhập để truy cập trang này");
-                return;
-            }
+        if (!loading && !isGuest) {
             const fetchUserLesson = async () => {
                 try {
                     const response = await getUserLesson(accessToken);
@@ -97,7 +100,7 @@ const LessonsPage = () => {
             }
             fetchUserLesson();
         }
-    }, [user, isAuthenticated, accessToken, loading, router, languageCode]);
+    }, [accessToken, loading, isGuest, languageCode]);
 
     if (!isAuthenticated || !accessToken || !user) {
         return null;

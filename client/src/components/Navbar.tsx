@@ -19,6 +19,7 @@ const Navbar: React.FC<NavbarProps> = ({
     const { signOut, accessToken, isAuthenticated, user } = useAuth();
     const [isHovered, setIsHovered] = useState<boolean>(false);
     const [activeMenu, setActiveMenu] = useState<string | null>(null);
+    const activeSubmenu = menuConfig?.[user?.role || Role.USER].find((item) => item.title === activeMenu)?.submenu;
 
     return (
         <div className="w-full sticky top-0 z-50 flex flex-col">
@@ -109,18 +110,35 @@ const Navbar: React.FC<NavbarProps> = ({
                     </Link>
                 )}
             </div>
-            {activeMenu && menuConfig?.[user?.role || Role.USER].find(item => item.title === activeMenu)?.submenu && (
-                <div className="bg-accent border-t-2 border-b-2 border-border flex justify-between items-center gap-10 px-10 py-2 text-accent-foreground">
-                    {menuConfig?.[user?.role || Role.USER].find(item => item.title === activeMenu)?.submenu?.map((subitem: MenuItem) => (
-                        <Link
-                            key={`submenu-${subitem.title}`}
-                            href={subitem.href}
-                            className="hover:text-primary transition-all"
-                        >
-                            {subitem.title}
-                        </Link>
-                    ))}
-                </div>
+            {activeMenu && activeSubmenu && (
+                <AnimatePresence>
+                    <motion.div
+                        className="bg-accent border-t-2 border-b-2 border-border flex justify-between items-center gap-10 px-10 py-2 text-accent-foreground"
+                        initial={{ opacity: 0, scaleY: 0, y: -8 }}
+                        animate={{ opacity: 1, scaleY: 1, y: 0 }}
+                        exit={{ opacity: 0, scaleY: 0, y: -8 }}
+                        transition={{ duration: 0.35, ease: 'easeInOut' }}
+                        style={{ transformOrigin: 'top' }}
+                    >
+                        {activeSubmenu.map((subitem: MenuItem) => (
+                            <motion.div
+                                key={`submenu-${subitem.title}`}
+                                initial={{ opacity: 0, y: -6 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                exit={{ opacity: 0, y: -6 }}
+                                transition={{ duration: 0.2, ease: 'easeOut' }}
+                            >
+                                <Link
+                                    href={subitem.href}
+                                    className="hover:text-primary font-bold transition-all"
+                                    onClick={() => setActiveMenu(null)}
+                                >
+                                    {subitem.title}
+                                </Link>
+                            </motion.div>
+                        ))}
+                    </motion.div>
+                </AnimatePresence>
             )}
         </div >
     );
