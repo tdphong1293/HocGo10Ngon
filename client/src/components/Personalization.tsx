@@ -1,5 +1,3 @@
-'use client';
-
 import { Theme, Font } from '@/contexts/ThemeContext';
 import { useTheme } from '@/hooks/useTheme';
 import ThemePreview from '@/components/ThemePreview';
@@ -43,7 +41,7 @@ const fonts: { value: Font; label: string; description: string; sample: string }
     { value: 'workSans', label: 'Work Sans', description: 'Clean geometric sans', sample: 'The quick brown fox' },
 ];
 
-const PreferencesPage = () => {
+const Personalization: React.FC = () => {
     const { theme, font, setTheme, setFont } = useTheme();
     const { accessToken, isAuthenticated, user, refreshToken } = useAuth();
 
@@ -72,47 +70,41 @@ const PreferencesPage = () => {
     }
 
     return (
-        <div className="p-4 flex flex-col gap-4">
-            <span className="text-3xl font-semibold">Tùy chỉnh giao diện</span>
-            <div className="w-full h-1 rounded-lg bg-primary"></div>
-            <div className="bg-card text-card-foreground border-3 border-border rounded-lg flex flex-col gap-4 p-4 items-center">
-                <span className="text-xl font-semibold">Màu chủ đề (Theme)</span>
-                <div className="flex gap-4 flex-wrap justify-center">
-                    {themes.map((themeOption) => (
-                        <div key={themeOption.value} className="flex flex-col gap-2">
-                            <ThemePreview
-                                theme={themeOption.value}
-                                isActive={theme === themeOption.value}
-                                onClick={() => handleThemeChange(themeOption.value)}
-                            />
-                            <div className="text-center">
-                                <div className="text-xs font-medium text-foreground">{themeOption.label}</div>
-                                <div className="text-xs text-muted-foreground">{themeOption.description}</div>
-                            </div>
+        <div className="flex flex-col gap-2 w-full h-full bg-card text-card-foreground border-3 border-border rounded-lg p-2 overflow-auto">
+            <span className="text-lg font-semibold">Màu chủ đề (Theme)</span>
+            <div className="flex gap-3 flex-wrap justify-center">
+                {themes.map((themeOption) => (
+                    <div key={themeOption.value} className="flex flex-col gap-2">
+                        <ThemePreview
+                            theme={themeOption.value}
+                            isActive={theme === themeOption.value}
+                            onClick={() => handleThemeChange(themeOption.value)}
+                        />
+                        <div className="text-center">
+                            <div className="text-xs font-medium text-foreground">{themeOption.label}</div>
+                            <div className="text-xs text-muted-foreground">{themeOption.description}</div>
                         </div>
-                    ))}
-                </div>
+                    </div>
+                ))}
             </div>
-            <div className="w-full h-1 rounded-lg bg-primary"></div>
-            <div className="bg-card text-card-foreground border-3 border-border rounded-lg flex flex-col gap-4 p-4 items-center">
-                <span className="text-xl font-semibold">Kiểu chữ (Font)</span>
-                <div className="flex gap-4 flex-wrap justify-center">
-                    {fonts.map((fontOption) => (
-                        <div key={fontOption.value}>
-                            <FontPreview
-                                font={fontOption.value}
-                                label={fontOption.label}
-                                description={fontOption.description}
-                                sample={fontOption.sample}
-                                isActive={font === fontOption.value}
-                                onClick={() => handleFontChange(fontOption.value)}
-                            />
-                        </div>
-                    ))}
-                </div>
+            <div className="w-full h-1 shrink-0 rounded-lg bg-primary"></div>
+            <span className="text-lg font-semibold">Kiểu chữ (Font)</span>
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-2">
+                {fonts.map((fontOption) => (
+                    <div key={fontOption.value}>
+                        <FontPreview
+                            font={fontOption.value}
+                            label={fontOption.label}
+                            description={fontOption.description}
+                            sample={fontOption.sample}
+                            isActive={font === fontOption.value}
+                            onClick={() => handleFontChange(fontOption.value)}
+                        />
+                    </div>
+                ))}
             </div>
         </div>
     );
-};
+}
 
-export default PreferencesPage;
+export default Personalization;

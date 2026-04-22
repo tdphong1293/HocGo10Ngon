@@ -20,7 +20,7 @@ const FontPreview: React.FC<FontPreviewProps> = ({
     return (
         <div
             onClick={onClick}
-            className={`w-full p-3 rounded-lg border text-left transition-all hover:scale-102 ${isActive
+            className={`w-full h-full p-2 rounded-lg border text-left transition-all hover:scale-102 ${isActive
                 ? 'border-primary bg-primary/10 text-primary'
                 : 'border-border hover:border-border-hover hover:text-accent-foreground hover:bg-accent'
                 }`}
@@ -33,7 +33,7 @@ const FontPreview: React.FC<FontPreviewProps> = ({
                     </svg>
                 )}
             </div>
-            <div className="text-sm text-muted-foreground mb-2">{description}</div>
+            <div className="text-sm text-muted-foreground mb-1">{description}</div>
             <div
                 data-font={font}
                 className="text-md text-foreground"

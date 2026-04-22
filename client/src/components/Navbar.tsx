@@ -6,8 +6,9 @@ import { Icon } from "@iconify/react";
 import Button from "./Button";
 import Logo from "./Logo";
 import { useAuth } from "@/hooks/useAuth";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from 'framer-motion';
+import Personalization from './Personalization';
 
 interface NavbarProps {
     menuConfig?: typeof menuConfig;
@@ -20,6 +21,28 @@ const Navbar: React.FC<NavbarProps> = ({
     const [isHovered, setIsHovered] = useState<boolean>(false);
     const [activeMenu, setActiveMenu] = useState<string | null>(null);
     const activeSubmenu = menuConfig?.[user?.role || Role.USER].find((item) => item.title === activeMenu)?.submenu;
+    const [personalizationOpen, setPersonalizationOpen] = useState<boolean>(false);
+    const personalizationRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent | TouchEvent) => {
+            if (!personalizationRef.current) {
+                return;
+            }
+
+            if (!personalizationRef.current.contains(event.target as Node)) {
+                setPersonalizationOpen(false);
+            }
+        };
+
+        document.addEventListener('mousedown', handleClickOutside);
+        document.addEventListener('touchstart', handleClickOutside);
+
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
+            document.removeEventListener('touchstart', handleClickOutside);
+        };
+    }, []);
 
     return (
         <div className="w-full sticky top-0 z-50 flex flex-col">
@@ -44,71 +67,100 @@ const Navbar: React.FC<NavbarProps> = ({
                         </Link>
                     ))}
                 </div>
-                {isAuthenticated && accessToken && user ? (
+                <div className="flex gap-3 items-center">
                     <div
-                        className="flex gap-2 items-center relative cursor-pointer hover:text-primary"
-                        onMouseEnter={() => setIsHovered(true)}
-                        onMouseLeave={() => setIsHovered(false)}
+                        ref={personalizationRef}
+                        className="relative"
                     >
-                        <div className="border-2 border-border rounded-full p-2 bg-primary">
+                        <div
+                            className="rounded-full p-1 bg-background border-2 border-primary text-foreground hover:text-primary-foreground hover:bg-primary/80 transition-colors cursor-pointer"
+                            onClick={() => setPersonalizationOpen(!personalizationOpen)}
+                        >
                             <Icon
-                                icon="mingcute:user-2-fill"
-                                width={20} height={20}
-                                className="text-primary-foreground"
+                                icon="fluent:draw-text-24-filled"
+                                className="size-7"
                             />
                         </div>
-                        <span className="text-xl">{user?.username}</span>
                         <AnimatePresence>
-                            {isHovered && (
+                            {personalizationOpen && (
                                 <motion.div
-                                    className="absolute top-full right-0 bg-accent border-2 border-border rounded-lg shadow-lg z-100 flex flex-col text-accent-foreground w-48"
-                                    initial={{ opacity: 0, height: 0 }}
-                                    animate={{ opacity: 1, height: 'auto' }}
-                                    exit={{ opacity: 0, height: 0 }}
+                                    className="absolute mt-0.5 top-full right-0 z-50 w-[80vw] sm:w-[70vw] md:w-[60vw] lg:w-[50vw] xl:w-[30vw] h-[85vh] transition-all"
+                                    initial={{ opacity: 0, y: -10 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    exit={{ opacity: 0, y: -10 }}
                                     transition={{ duration: 0.2, ease: 'easeInOut' }}
                                 >
-                                    <div
-                                        className={`px-2 py-1 flex gap-2 hover:text-primary cursor-pointer hover:bg-primary-foreground rounded-md items-center`}
-                                    >
-                                        <Icon
-                                            icon="material-symbols:settings-rounded"
-                                            className="text-md"
-                                        />
-                                        <Link
-                                            href="/account-settings"
-                                        >
-                                            Cài đặt tài khoản
-                                        </Link>
-                                    </div>
-                                    <div
-                                        className={`px-2 py-1 flex gap-1 hover:text-primary cursor-pointer hover:bg-primary-foreground rounded-md items-center`}
-                                    >
-                                        <Icon
-                                            icon="material-symbols:logout-rounded"
-                                            className="text-md"
-                                        />
-                                        <div
-                                            className=""
-                                            onClick={async () => {
-                                                await signOut();
-                                            }}
-                                        >
-                                            Đăng xuất
-                                        </div>
-                                    </div>
+                                    <Personalization />
                                 </motion.div>
                             )}
                         </AnimatePresence>
                     </div>
-                ) : (
-                    <Link
-                        href="/authenticate"
-                    >
-                        <Button variant="primary-outline">
-                            Đăng nhập
-                        </Button>
-                    </Link>
-                )}
+                    {isAuthenticated && accessToken && user ? (
+                        <div
+                            className="flex gap-2 items-center relative cursor-pointer hover:text-primary"
+                            onMouseEnter={() => setIsHovered(true)}
+                            onMouseLeave={() => setIsHovered(false)}
+                        >
+                            <div className="border-2 border-border rounded-full p-2 bg-primary">
+                                <Icon
+                                    icon="mingcute:user-2-fill"
+                                    width={20} height={20}
+                                    className="text-primary-foreground"
+                                />
+                            </div>
+                            <span className="text-xl">{user?.username}</span>
+                            <AnimatePresence>
+                                {isHovered && (
+                                    <motion.div
+                                        className="absolute mt-0.5 top-full right-0 bg-accent border-2 border-border rounded-lg shadow-lg z-100 flex flex-col text-accent-foreground w-48"
+                                        initial={{ opacity: 0, height: 0 }}
+                                        animate={{ opacity: 1, height: 'auto' }}
+                                        exit={{ opacity: 0, height: 0 }}
+                                        transition={{ duration: 0.2, ease: 'easeInOut' }}
+                                    >
+                                        <div
+                                            className={`px-2 py-1 flex gap-2 hover:text-primary cursor-pointer hover:bg-primary-foreground rounded-md items-center`}
+                                        >
+                                            <Icon
+                                                icon="material-symbols:settings-rounded"
+                                                className="text-md"
+                                            />
+                                            <Link
+                                                href="/account-settings"
+                                            >
+                                                Cài đặt tài khoản
+                                            </Link>
+                                        </div>
+                                        <div
+                                            className={`px-2 py-1 flex gap-1 hover:text-primary cursor-pointer hover:bg-primary-foreground rounded-md items-center`}
+                                        >
+                                            <Icon
+                                                icon="material-symbols:logout-rounded"
+                                                className="text-md"
+                                            />
+                                            <div
+                                                className=""
+                                                onClick={async () => {
+                                                    await signOut();
+                                                }}
+                                            >
+                                                Đăng xuất
+                                            </div>
+                                        </div>
+                                    </motion.div>
+                                )}
+                            </AnimatePresence>
+                        </div>
+                    ) : (
+                        <Link
+                            href="/authenticate"
+                        >
+                            <Button variant="primary-outline">
+                                Đăng nhập
+                            </Button>
+                        </Link>
+                    )}
+                </div>
             </div>
             {activeMenu && activeSubmenu && (
                 <AnimatePresence>
