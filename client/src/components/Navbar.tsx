@@ -25,7 +25,7 @@ const Navbar: React.FC<NavbarProps> = ({
     const personalizationRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
-        const handleClickOutside = (event: MouseEvent | TouchEvent) => {
+        const handleClickOutside = (event: PointerEvent) => {
             if (!personalizationRef.current) {
                 return;
             }
@@ -35,12 +35,10 @@ const Navbar: React.FC<NavbarProps> = ({
             }
         };
 
-        document.addEventListener('mousedown', handleClickOutside);
-        document.addEventListener('touchstart', handleClickOutside);
+        document.addEventListener('pointerdown', handleClickOutside);
 
         return () => {
-            document.removeEventListener('mousedown', handleClickOutside);
-            document.removeEventListener('touchstart', handleClickOutside);
+            document.removeEventListener('pointerdown', handleClickOutside);
         };
     }, []);
 
@@ -74,7 +72,7 @@ const Navbar: React.FC<NavbarProps> = ({
                     >
                         <div
                             className="rounded-full p-1 bg-background border-2 border-primary text-foreground hover:text-primary-foreground hover:bg-primary/80 transition-colors cursor-pointer"
-                            onClick={() => setPersonalizationOpen(!personalizationOpen)}
+                            onClick={() => setPersonalizationOpen((prev) => !prev)}
                         >
                             <Icon
                                 icon="fluent:draw-text-24-filled"
@@ -85,9 +83,9 @@ const Navbar: React.FC<NavbarProps> = ({
                             {personalizationOpen && (
                                 <motion.div
                                     className="absolute mt-0.5 top-full right-0 z-50 w-[80vw] sm:w-[70vw] md:w-[60vw] lg:w-[50vw] xl:w-[30vw] h-[85vh] transition-all"
-                                    initial={{ opacity: 0, y: -10 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    exit={{ opacity: 0, y: -10 }}
+                                    initial={{ opacity: 0, height: 0 }}
+                                    animate={{ opacity: 1, height: "85vh" }}
+                                    exit={{ opacity: 0, height: 0 }}
                                     transition={{ duration: 0.2, ease: 'easeInOut' }}
                                 >
                                     <Personalization />

@@ -117,31 +117,32 @@ const TypingPractice: React.FC<TypingPracticeProps> = ({
 
     const [isFinished, setIsFinished] = useState(false);
     const [textAnimationKey, setTextAnimationKey] = useState(0);
-    const isInitialMount = useRef(true);
+    const [displayedWords, setDisplayedWords] = useState<string[]>(words);
+    const soundRefs = useRef<Partial<Record<'correct' | 'incorrect', HTMLAudioElement>>>({});
 
     const displayText = useMemo(() => {
-        return words.slice(0, renderedWordCount).join(' ');
-    }, [words, renderedWordCount, textAnimationKey]);
+        return displayedWords.slice(0, renderedWordCount).join(' ');
+    }, [displayedWords, renderedWordCount]);
 
     const fullTextLength = useMemo(() => {
-        return words.join(' ').length;
-    }, [words]);
+        return displayedWords.join(' ').length;
+    }, [displayedWords]);
 
     const fullText = useMemo(() => {
-        return words.join(' ');
-    }, [words]);
+        return displayedWords.join(' ');
+    }, [displayedWords]);
 
-    const totalWordsToUse = totalWords ?? words.length;
+    const totalWordsToUse = totalWords ?? displayedWords.length;
 
     const wordCount = (text: string) => {
         return text.trim().split(" ").filter(word => word.trim().length > 0).length;
     }
 
     const getCurrentWordIndex = useCallback((charIndex: number) => {
-        const fullTextLocal = words.join(' ');
+        const fullTextLocal = displayedWords.join(' ');
         const textUpToCursor = fullTextLocal.slice(0, charIndex);
         return wordCount(textUpToCursor);
-    }, [words]);
+    }, [displayedWords]);
 
     const [localTextSize, setLocalTextSize] = useState<TextSize>('large');
     const [localKeyboardSize, setLocalKeyboardSize] = useState<keyboardSizes>('small');
@@ -203,17 +204,13 @@ const TypingPractice: React.FC<TypingPracticeProps> = ({
     useEffect(() => {
         if (!words || words.length === 0) return;
 
-        if (isInitialMount.current) {
-            isInitialMount.current = false;
-            setIsFocused(true);
-            return;
-        }
-
+        setDisplayedWords(words);
         resetSession();
+
         const timer = setTimeout(() => {
             setIsFocused(true);
-            resetSession();
         }, 10);
+
         return () => clearTimeout(timer);
     }, [words, resetSession]);
 
@@ -228,8 +225,15 @@ const TypingPractice: React.FC<TypingPracticeProps> = ({
     const playSound = (type: 'correct' | 'incorrect') => {
         if (!enableSoundsToUse) return;
         const soundPath = type === 'correct' ? '/sounds/correct.mp3' : '/sounds/incorrect.mp3';
-        const audio = new Audio(soundPath);
+        let audio = soundRefs.current[type];
+        if (!audio) {
+            audio = new Audio(soundPath);
+            audio.preload = 'auto';
+            soundRefs.current[type] = audio;
+        }
         audio.volume = 0.5;
+        audio.pause();
+        audio.currentTime = 0;
         audio.play();
     };
 
@@ -245,6 +249,11 @@ const TypingPractice: React.FC<TypingPracticeProps> = ({
         });
 
         const key = e.key;
+
+        if (e.isComposing || key === 'Dead' || key === 'Process') {
+            isProcessingRef.current = false;
+            return;
+        }
 
         if (e.metaKey || e.ctrlKey || key === 'F12' || key === 'F5' || key === 'Escape') {
             isProcessingRef.current = false;
@@ -342,7 +351,7 @@ const TypingPractice: React.FC<TypingPracticeProps> = ({
                 isProcessingRef.current = false;
                 return;
             }
-            if (!/^[\p{L}\p{N}\p{P}\p{Zs}]$/u.test(key)) {
+            if (!/^[\p{L}\p{N}\p{P}\p{S}\p{Zs}]$/u.test(key)) {
                 isProcessingRef.current = false;
                 return;
             }
@@ -603,7 +612,9 @@ const TypingPractice: React.FC<TypingPracticeProps> = ({
 
     // Memoize stats display to prevent re-renders
     const StatsDisplay = useMemo(() => (
-        <div className="w-full flex justify-start items-center gap-4 text-accent-foreground">
+        <div
+            className="w-full flex justify-start items-center gap-4 text-accent-foreground"
+        >
             <div className="flex flex-col text-right">
                 <span className="text-sm font-bold">WPM:</span>
                 <span className="text-lg">{(typingStats.wpm).toFixed(2)}</span>
@@ -683,169 +694,177 @@ const TypingPractice: React.FC<TypingPracticeProps> = ({
 
     return (
         <div className="flex flex-col gap-5 items-center h-fit w-full">
-            {/* Stats + Options */}
-            {!isFinished && (
-                <div className="flex justify-between w-full gap-10 px-10">
-                    {StatsDisplay}
-                    <TypingOptionMenu
-                        textSize={textSizeToUse}
-                        keyboardSize={keyboardSizeToUse}
-                        setTextSize={setLocalTextSize}
-                        setKeyboardSize={setLocalKeyboardSize}
-                        showKeyboard={showKeyboardToUse}
-                        setShowKeyboard={setLocalShowKeyboard}
-                        hintMode={hintModeToUse}
-                        setHintMode={setLocalHintMode}
-                        enableSounds={enableSoundsToUse}
-                        setEnableSounds={setLocalEnableSounds}
-                    />
-                </div>
-            )}
-
-            <AnimatePresence mode="wait">
-                {!isFinished && (
+            <AnimatePresence mode="wait" initial={false}>
+                {!isFinished ? (
                     <motion.div
-                        key={textAnimationKey}
-                        ref={typingContainerRef}
-                        className="w-full bg-background relative"
-                        initial={{ opacity: 0, scale: 0.95 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        exit={{ opacity: 0, y: 20 }}
-                        transition={{ duration: 0.3, ease: 'easeOut' }}
+                        key="typing-scene"
+                        className="w-full flex flex-col gap-5"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        transition={{ duration: 0.2, ease: 'easeInOut' }}
                     >
-                        <div
-                            className={`absolute inset-0 bg-accent/50 rounded-md mx-10 text-accent-foreground z-10 flex flex-col justify-center items-center gap-4 backdrop-blur-sm transition-opacity duration-300 ${isFocused ? 'opacity-0 pointer-events-none' : 'opacity-100 pointer-events-auto'}`}
-                            onClick={() => setIsFocused(true)}
-                        >
-                            Nhấn vào đây để tiếp tục gõ
-                        </div>
-                        <div
-                            className={`absolute inset-0 bg-accent/50 rounded-md mx-10 text-accent-foreground z-20 flex flex-col justify-center items-center gap-4 backdrop-blur-sm transition-opacity duration-300 pointer-events-none ${isHoldingKey || !heldKey ? 'opacity-0' : 'opacity-100'}`}
-                        >
-                            <div className="flex gap-3 justify-center items-center text-2xl">
-                                Vui lòng giữ phím
-                                <span className="w-10 h-10 bg-primary/20 rounded-md flex justify-center items-center border-2 border-primary-foreground text-primary-foreground animate-bounce">{heldKey}</span>
-                                để tiếp tục
-                            </div>
+                        {/* Stats + Options */}
+                        <div className="flex justify-between w-full gap-10 px-10">
+                            {StatsDisplay}
+                            <TypingOptionMenu
+                                textSize={textSizeToUse}
+                                keyboardSize={keyboardSizeToUse}
+                                setTextSize={setLocalTextSize}
+                                setKeyboardSize={setLocalKeyboardSize}
+                                showKeyboard={showKeyboardToUse}
+                                setShowKeyboard={setLocalShowKeyboard}
+                                hintMode={hintModeToUse}
+                                setHintMode={setLocalHintMode}
+                                enableSounds={enableSoundsToUse}
+                                setEnableSounds={setLocalEnableSounds}
+                            />
                         </div>
 
-                        {/* Typing Area */}
-                        <div
-                            ref={scrollRef}
-                            className={`relative w-full flex justify-center items-start overflow-hidden ${textSizeClass[textSizeToUse]} select-none leading-loose`}
-                            style={{
-                                height: `calc((${VISIBLE_LINES} + ${BOTTOM_EXTRA}) * 1lh)`
-                            }}
+                        <motion.div
+                            key={textAnimationKey}
+                            ref={typingContainerRef}
+                            className="w-full bg-background relative"
+                            initial={{ opacity: 0, scale: 0.9 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            exit={{ opacity: 0, scale: 0.9 }}
+                            transition={{ duration: 0.3, ease: 'easeInOut' }}
                         >
                             <div
-                                className="w-full"
+                                className={`absolute inset-0 bg-accent/50 rounded-md mx-10 text-accent-foreground z-10 flex flex-col justify-center items-center gap-4 backdrop-blur-sm transition-opacity duration-300 ${isFocused ? 'opacity-0 pointer-events-none' : 'opacity-100 pointer-events-auto'}`}
+                                onClick={() => setIsFocused(true)}
+                            >
+                                Nhấn vào đây để tiếp tục gõ
+                            </div>
+                            <div
+                                className={`absolute inset-0 bg-accent/50 rounded-md mx-10 text-accent-foreground z-20 flex flex-col justify-center items-center gap-4 backdrop-blur-sm transition-opacity duration-300 pointer-events-none ${isHoldingKey || !heldKey ? 'opacity-0' : 'opacity-100'}`}
+                            >
+                                <div className="flex gap-3 justify-center items-center text-2xl">
+                                    Vui lòng giữ phím
+                                    <span className="w-10 h-10 bg-primary/20 rounded-md flex justify-center items-center border-2 border-primary-foreground text-primary-foreground animate-bounce">{heldKey}</span>
+                                    để tiếp tục
+                                </div>
+                            </div>
+
+                            {/* Typing Area */}
+                            <div
+                                ref={scrollRef}
+                                className={`relative w-full flex justify-center items-start overflow-hidden ${textSizeClass[textSizeToUse]} select-none leading-loose`}
                                 style={{
-                                    height: `calc(${VISIBLE_LINES} * 1lh)`,
-                                    overflow: 'hidden'
+                                    height: `calc((${VISIBLE_LINES} + ${BOTTOM_EXTRA}) * 1lh)`
                                 }}
                             >
                                 <div
-                                    ref={contentWrapperRef}
-                                    className="w-full px-10 cursor-text whitespace-pre-wrap break-words"
+                                    className="w-full"
                                     style={{
-                                        fontFeatureSettings: '"liga" 0, "calt" 0',
-                                        lineHeight: 'inherit',
-                                        transform: lineHeightPx ? `translateY(-${visibleStartLine * lineHeightPx}px)` : undefined,
-                                        willChange: 'transform',
-                                        transition: skipAnimationRef.current ? 'none' : 'transform 180ms ease-out'
+                                        height: `calc(${VISIBLE_LINES} * 1lh)`,
+                                        overflow: 'hidden'
                                     }}
-                                    onClick={() => setIsFocused(true)}
-                                    onMouseDown={(e) => e.preventDefault()}
-                                    onDragStart={(e) => e.preventDefault()}
                                 >
-                                    {renderedTextMemo}
+                                    <div
+                                        ref={contentWrapperRef}
+                                        className="w-full px-10 cursor-text whitespace-pre-wrap wrap-break-word"
+                                        style={{
+                                            fontFeatureSettings: '"liga" 0, "calt" 0',
+                                            lineHeight: 'inherit',
+                                            transform: lineHeightPx ? `translateY(-${visibleStartLine * lineHeightPx}px)` : undefined,
+                                            willChange: 'transform',
+                                            transition: skipAnimationRef.current ? 'none' : 'transform 180ms ease-out'
+                                        }}
+                                        onClick={() => setIsFocused(true)}
+                                        onMouseDown={(e) => e.preventDefault()}
+                                        onDragStart={(e) => e.preventDefault()}
+                                    >
+                                        {renderedTextMemo}
+                                    </div>
                                 </div>
+                                {/* Bottom extra space for overlays */}
+                                <div aria-hidden style={{ height: `calc(${BOTTOM_EXTRA} * 1lh)` }} />
                             </div>
-                            {/* Bottom extra space for overlays */}
-                            <div aria-hidden style={{ height: `calc(${BOTTOM_EXTRA} * 1lh)` }} />
-                        </div>
-                    </motion.div>
-                )}
-            </AnimatePresence>
+                        </motion.div>
 
-            <AnimatePresence>
-                {showKeyboardToUse && !isFinished && (
-                    <motion.div
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: 20 }}
-                        transition={{ duration: 0.3, ease: 'easeOut' }}
-                    >
-                        <Keyboard
-                            activeKeys={activeKeys}
-                            size={keyboardSizeToUse}
-                        />
+                        {showKeyboardToUse && (
+                            <motion.div
+                                initial={{ opacity: 0, y: 20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                exit={{ opacity: 0, y: 20 }}
+                                transition={{ duration: 0.3, ease: 'easeOut' }}
+                                className="w-full flex justify-center"
+                            >
+                                <Keyboard
+                                    activeKeys={activeKeys}
+                                    size={keyboardSizeToUse}
+                                />
+                            </motion.div>
+                        )}
                     </motion.div>
-                )}
-            </AnimatePresence>
-            <AnimatePresence>
-                {isFinished && keystrokeLog.length > 0 && (
+                ) : (
                     <motion.div
-                        initial={{ opacity: 0, y: 20 }}
+                        key="post-scene"
+                        initial={{ opacity: 0, y: 50 }}
                         animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: 20 }}
-                        transition={{ duration: 0.3, ease: 'easeOut' }}
+                        exit={{ opacity: 0, y: 50 }}
+                        transition={{ duration: 0.5, ease: 'easeOut' }}
                         className="w-full"
                     >
-                        <PostSessionStat
-                            text={fullText}
-                            keystrokeLog={keystrokeLog}
-                            typingStats={typingStats}
-                            inputHistory={inputHistory}
-                            author={author}
-                            source={source}
-                        />
-                        <div className="flex justify-center gap-10 mt-6">
-                            {lessonid && (
-                                <Tooltip text="Quay về danh sách bài học" side="left">
-                                    <Link href={`/lessons`}>
-                                        <div
-                                            className="p-2 cursor-pointer border-2 border-border rounded-md hover:bg-accent hover:text-accent-foreground transition-colors"
-                                        >
+                        {keystrokeLog.length > 0 && (
+                            <>
+                                <PostSessionStat
+                                    text={fullText}
+                                    keystrokeLog={keystrokeLog}
+                                    typingStats={typingStats}
+                                    inputHistory={inputHistory}
+                                    author={author}
+                                    source={source}
+                                />
+                                <div className="flex justify-center gap-10 mt-6">
+                                    {lessonid && (
+                                        <Tooltip text="Quay về danh sách bài học" side="left">
+                                            <Link href={`/lessons`}>
+                                                <div
+                                                    className="p-2 cursor-pointer border-2 border-border rounded-md hover:bg-accent hover:text-accent-foreground transition-colors"
+                                                >
+                                                    <Icon
+                                                        icon="line-md:arrow-left" className="text-2xl"
+                                                    />
+                                                </div>
+                                            </Link>
+                                        </Tooltip>
+                                    )}
+                                    <Tooltip text="Gõ lại với văn bản hiện tại" shortcut="Ctrl+R" side={lessonid ? (nextLessonId ? 'top' : 'right') : 'left'}>
+                                        <div className="p-2 cursor-pointer border-2 border-border rounded-md hover:bg-accent hover:text-accent-foreground transition-colors">
                                             <Icon
-                                                icon="line-md:arrow-left" className="text-2xl"
+                                                icon="ri:reset-left-fill" className="text-2xl"
+                                                onClick={resetSession}
                                             />
                                         </div>
-                                    </Link>
-                                </Tooltip>
-                            )}
-                            <Tooltip text="Gõ lại với văn bản hiện tại" shortcut="Ctrl+R" side={lessonid ? (nextLessonId ? 'top' : 'right') : 'left'}>
-                                <div className="p-2 cursor-pointer border-2 border-border rounded-md hover:bg-accent hover:text-accent-foreground transition-colors">
-                                    <Icon
-                                        icon="ri:reset-left-fill" className="text-2xl"
-                                        onClick={resetSession}
-                                    />
+                                    </Tooltip>
+                                    {refreshText && (
+                                        <Tooltip text="Phiên gõ mới" shortcut="Ctrl+Enter" side={nextLessonId ? 'top' : 'right'}>
+                                            <div className="p-2 cursor-pointer border-2 border-border rounded-md hover:bg-accent hover:text-accent-foreground transition-colors">
+                                                <Icon
+                                                    icon="ooui:next-ltr" className="text-2xl"
+                                                    onClick={async () => { await refreshText?.(); }}
+                                                />
+                                            </div>
+                                        </Tooltip>
+                                    )}
+                                    {nextLessonId && (
+                                        <Tooltip text="Bài học tiếp theo" side="right">
+                                            <Link href={`/lessons/${nextLessonId}`}>
+                                                <div
+                                                    className="p-2 cursor-pointer border-2 border-border rounded-md hover:bg-accent hover:text-accent-foreground transition-colors"
+                                                >
+                                                    <Icon
+                                                        icon="line-md:arrow-right" className="text-2xl"
+                                                    />
+                                                </div>
+                                            </Link>
+                                        </Tooltip>
+                                    )}
                                 </div>
-                            </Tooltip>
-                            {refreshText && (
-                                <Tooltip text="Phiên gõ mới" shortcut="Ctrl+Enter" side={nextLessonId ? 'top' : 'right'}>
-                                    <div className="p-2 cursor-pointer border-2 border-border rounded-md hover:bg-accent hover:text-accent-foreground transition-colors">
-                                        <Icon
-                                            icon="ooui:next-ltr" className="text-2xl"
-                                            onClick={async () => { await refreshText?.(); }}
-                                        />
-                                    </div>
-                                </Tooltip>
-                            )}
-                            {nextLessonId && (
-                                <Tooltip text="Bài học tiếp theo" side="right">
-                                    <Link href={`/lessons/${nextLessonId}`}>
-                                        <div
-                                            className="p-2 cursor-pointer border-2 border-border rounded-md hover:bg-accent hover:text-accent-foreground transition-colors"
-                                        >
-                                            <Icon
-                                                icon="line-md:arrow-right" className="text-2xl"
-                                            />
-                                        </div>
-                                    </Link>
-                                </Tooltip>
-                            )}
-                        </div>
+                            </>
+                        )}
                     </motion.div>
                 )}
             </AnimatePresence>

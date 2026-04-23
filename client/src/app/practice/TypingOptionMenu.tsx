@@ -1,11 +1,12 @@
 'use client';
 
 import { Icon } from '@iconify/react';
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import Switch from '@/components/Switch';
 import type { keyboardSizes } from '@/components/Keyboard';
 import type { TextSize } from '@/config/typingUi';
 import { textSizeOptions, textSizeClass, keyboardSizeOptions } from '@/config/typingUi';
+import { AnimatePresence, motion } from 'framer-motion';
 
 const textSizeText = (size: string) => {
     switch (size) {
@@ -59,22 +60,50 @@ const TypingOptionMenu: React.FC<TypingOptionMenuProps> = ({
     setEnableSounds,
 }) => {
     const [isOpen, setIsOpen] = useState(false);
+    const containerRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        const handleClickOutside = (event: PointerEvent) => {
+            const container = containerRef.current;
+            const target = event.target as Node | null;
+            if (!container || !target) return;
+
+            if (!container.contains(target)) {
+                setIsOpen(false);
+            }
+        };
+
+        document.addEventListener('pointerdown', handleClickOutside, true);
+        return () => {
+            document.removeEventListener('pointerdown', handleClickOutside, true);
+        };
+    }, []);
 
     return (
-        <div className="">
-            <div
-                className="cursor-pointer relative"
-            >
+        <div
+            className="relative"
+            ref={containerRef}
+        >
+            <div className="cursor-pointer">
                 <Icon
                     icon={isOpen ? "fluent:options-28-filled" : "fluent:options-28-regular"}
                     className={`text-card-foreground text-2xl ${isOpen ? '' : ''}`}
-                    onClick={() => setIsOpen(!isOpen)}
+                    onClick={() => setIsOpen((prev) => !prev)}
                 />
+            </div>
+
+            <AnimatePresence>
                 {isOpen && (
-                    <div className="absolute top-full right-0
-                        bg-card shadow-lg rounded-lg p-4 border-2 border-border
-                        flex flex-col gap-5  z-20 w-100
-                    ">
+                    <motion.div
+                        className="absolute mt-0.5 right-0
+                                bg-card shadow-lg rounded-lg p-4 border-2 border-border
+                                flex flex-col gap-5 z-20 w-100
+                            "
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: "auto" }}
+                        exit={{ opacity: 0, height: 0 }}
+                        transition={{ duration: 0.2, ease: "easeInOut" }}
+                    >
                         <div className="flex justify-between gap-5 items-start">
                             <span className="text-sm">Hiển thị chữ đúng ở dưới nếu gõ sai</span>
                             <Switch
@@ -133,9 +162,9 @@ const TypingOptionMenu: React.FC<TypingOptionMenuProps> = ({
                                 ))}
                             </div>
                         </div>
-                    </div>
+                    </motion.div>
                 )}
-            </div>
+            </AnimatePresence>
         </div>
     );
 }

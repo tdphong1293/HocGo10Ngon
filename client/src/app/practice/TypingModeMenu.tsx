@@ -1,4 +1,4 @@
-import { useState, useEffect, use, useCallback } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { getSessionModes, getPracticeTypingText } from '@/services/session.services';
 import { getUserSessionMode, updateUserSessionMode } from "@/services/user.services";
@@ -29,12 +29,11 @@ const createDefaultState = (mode: TypingMode | null) => {
 
     if (!mode) return null;
 
-    // pick first/default values
+    // pick first/default values, empty arrays mean toggles (default false)
     for (const [key, value] of Object.entries(mode.config || {})) {
         configState[key] = Array.isArray(value) && value.length > 0 ? value[0] : false;
     }
 
-    // empty objects mean toggles (default false)
     for (const [subKey, subValue] of Object.entries(mode.subConfig || {})) {
         subConfigState[subKey] = Array.isArray(subValue) && subValue.length > 0 ? subValue[0] : false;
     }
@@ -58,6 +57,7 @@ const TypingMenu: React.FC<TypingMenuProps> = ({
     const [prevState, setPrevState] = useState<TypingMode | null>(null);
     const { languageCode } = useTheme();
     const { isAuthenticated, user, accessToken } = useAuth();
+    const isGuest = !isAuthenticated || !user || !accessToken;
 
     useEffect(() => {
         const fetchModes = async () => {
@@ -65,8 +65,6 @@ const TypingMenu: React.FC<TypingMenuProps> = ({
             const { data } = await response.json();
             if (response.ok) {
                 setSessionModeData(data.sessionModes);
-                setActiveMode(data.sessionModes[0]);
-                setState(createDefaultState(data.sessionModes[0]));
             }
         };
         fetchModes();
@@ -81,10 +79,15 @@ const TypingMenu: React.FC<TypingMenuProps> = ({
                 setState(sessionMode);
             }
         }
-        if (isAuthenticated && user && accessToken) {
+
+        if (!isGuest) {
             fetchUserMode();
         }
-    }, [isAuthenticated, user, accessToken]);
+        else if (isGuest && sessionModeData) {
+            setActiveMode(sessionModeData?.[0] || null);
+            setState(createDefaultState(sessionModeData?.[0] || null));
+        }
+    }, [isGuest, sessionModeData]);
 
     const fetchPracticeText = useCallback(async () => {
         if (state) {
@@ -206,101 +209,105 @@ const TypingMenu: React.FC<TypingMenuProps> = ({
     return (
         <div className="w-full flex justify-center">
             <AnimatePresence>
-                <motion.div
-                    className="text-sm bg-accent text-accent-foreground rounded-lg border-2 border-border px-2 py-1 flex gap-3"
-                    layout
-                    transition={{ duration: 0.3, ease: "easeInOut" }}
-                >
-                    {activeMode?.subConfig && Object.keys(activeMode.subConfig).length > 0 && (
-                        <>
-                            <div className="flex gap-5">
-                                {Object.entries(activeMode.subConfig).map(([subKey, subValue]) => {
-                                    if (Array.isArray(subValue) && subValue.length > 0) {
-                                        // subconfig with multiple options (like wordCount)
-                                        return subValue.map((option: any) => (
+                {sessionModeData && activeMode && state && (
+                    <motion.div
+                        className="text-sm bg-accent text-accent-foreground rounded-lg border-2 border-border px-2 py-1 flex gap-3"
+                        initial={{ opacity: 0, scale: 0.9, y: -20 }}
+                        animate={{ opacity: 1, scale: 1, y: 0 }}
+                        exit={{ opacity: 0, scale: 0.9, y: -20 }}
+                        transition={{ duration: 0.5, ease: "easeInOut" }}
+                    >
+                        {activeMode?.subConfig && Object.keys(activeMode.subConfig).length > 0 && (
+                            <>
+                                <div className="flex gap-5">
+                                    {Object.entries(activeMode.subConfig).map(([subKey, subValue]) => {
+                                        if (Array.isArray(subValue) && subValue.length > 0) {
+                                            // subconfig with multiple options (like wordCount)
+                                            return subValue.map((option: any) => (
+                                                <span
+                                                    key={`subconfig-${subKey}-${option}`}
+                                                    onClick={() => handleSelectSubConfigOption(subKey, option)}
+                                                    className={`cursor-pointer ${state?.subConfig?.[subKey] === option
+                                                        ? "text-primary-foreground"
+                                                        : "hover:text-accent-foreground/50"
+                                                        }`}
+                                                >
+                                                    {option}
+                                                </span>
+                                            ));
+                                        }
+
+                                        return (
                                             <span
-                                                key={`subconfig-${subKey}-${option}`}
-                                                onClick={() => handleSelectSubConfigOption(subKey, option)}
-                                                className={`cursor-pointer ${state?.subConfig?.[subKey] === option
+                                                key={`subconfig-${subKey}`}
+                                                onClick={() => handleToggleSubConfig(subKey)}
+                                                className={`cursor-pointer ${state?.subConfig?.[subKey]
                                                     ? "text-primary-foreground"
                                                     : "hover:text-accent-foreground/50"
                                                     }`}
                                             >
-                                                {option}
+                                                {subKey}
                                             </span>
-                                        ));
-                                    }
+                                        );
+                                    })}
+                                </div>
+                                <div>
+                                    |
+                                </div>
+                            </>
+                        )}
 
-                                    return (
-                                        <span
-                                            key={`subconfig-${subKey}`}
-                                            onClick={() => handleToggleSubConfig(subKey)}
-                                            className={`cursor-pointer ${state?.subConfig?.[subKey]
-                                                ? "text-primary-foreground"
-                                                : "hover:text-accent-foreground/50"
-                                                }`}
-                                        >
-                                            {subKey}
-                                        </span>
-                                    );
-                                })}
-                            </div>
-                            <div>
-                                |
-                            </div>
-                        </>
-                    )}
-
-                    <div className="flex gap-5">
-                        {sessionModeData?.map((mode) => (
-                            <span
-                                key={`mode-${mode.modeName}`}
-                                onClick={() => handleModeChange(mode)}
-                                className={`
+                        <div className="flex gap-5">
+                            {sessionModeData?.map((mode) => (
+                                <span
+                                    key={`mode-${mode.modeName}`}
+                                    onClick={() => handleModeChange(mode)}
+                                    className={`
                                     cursor-pointer
                                     ${activeMode?.modeName === mode.modeName ? 'text-primary-foreground' : 'hover:text-accent-foreground/50'}
                                 `}
-                            >
-                                {mode.modeName}
-                            </span>
-                        ))}
-                    </div>
+                                >
+                                    {mode.modeName}
+                                </span>
+                            ))}
+                        </div>
 
-                    {activeMode?.config && Object.keys(activeMode.config).length > 0 && (
-                        <>
-                            <div>|</div>
-                            <div className="flex gap-5">
-                                {Object.entries(activeMode.config).map(([key, value]) =>
-                                    Array.isArray(value) && value.length > 0 ? (
-                                        value.map((option: any) => (
+                        {activeMode?.config && Object.keys(activeMode.config).length > 0 && (
+                            <>
+                                <div>|</div>
+                                <div className="flex gap-5">
+                                    {Object.entries(activeMode.config).map(([key, value]) =>
+                                        Array.isArray(value) && value.length > 0 ? (
+                                            value.map((option: any) => (
+                                                <span
+                                                    key={`config-${key}-${option}`}
+                                                    onClick={() => handleSelectConfigOption(key, option)}
+                                                    className={`cursor-pointer ${state?.config?.[key] === option
+                                                        ? "text-primary-foreground"
+                                                        : "hover:text-accent-foreground/50"
+                                                        }`}
+                                                >
+                                                    {option}
+                                                </span>
+                                            ))
+                                        ) : (
                                             <span
-                                                key={`config-${key}-${option}`}
-                                                onClick={() => handleSelectConfigOption(key, option)}
-                                                className={`cursor-pointer ${state?.config?.[key] === option
+                                                key={`config-${key}`}
+                                                onClick={() => handleToggleConfig(key)}
+                                                className={`cursor-pointer ${state?.config?.[key]
                                                     ? "text-primary-foreground"
                                                     : "hover:text-accent-foreground/50"
                                                     }`}
                                             >
-                                                {option}
+                                                {key}
                                             </span>
-                                        ))
-                                    ) : (
-                                        <span
-                                            key={`config-${key}`}
-                                            onClick={() => handleToggleConfig(key)}
-                                            className={`cursor-pointer ${state?.config?.[key]
-                                                ? "text-primary-foreground"
-                                                : "hover:text-accent-foreground/50"
-                                                }`}
-                                        >
-                                            {key}
-                                        </span>
-                                    )
-                                )}
-                            </div>
-                        </>
-                    )}
-                </motion.div>
+                                        )
+                                    )}
+                                </div>
+                            </>
+                        )}
+                    </motion.div>
+                )}
             </AnimatePresence>
         </div>
     );
