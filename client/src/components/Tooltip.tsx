@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useLayoutEffect } from 'react';
+import { AnimatePresence, motion } from 'framer-motion';
 
 type TooltipSide = 'top' | 'bottom' | 'left' | 'right';
 type TooltipAlign = 'start' | 'center' | 'end';
@@ -16,12 +17,12 @@ interface TooltipProps {
 
 const Tooltip: React.FC<TooltipProps> = ({ children, text, shortcut, side = 'top', align = 'center', offset = 8 }) => {
     const [isVisible, setIsVisible] = useState(false);
-    const [position, setPosition] = useState({ top: 0, left: 0 });
+    const [position, setPosition] = useState<{ top: number; left: number } | null>(null);
     const [actualSide, setActualSide] = useState<TooltipSide>(side);
     const triggerRef = useRef<HTMLDivElement>(null);
     const tooltipRef = useRef<HTMLDivElement>(null);
 
-    useEffect(() => {
+    useLayoutEffect(() => {
         if (isVisible && triggerRef.current && tooltipRef.current) {
             const triggerRect = triggerRef.current.getBoundingClientRect();
             const tooltipRect = tooltipRef.current.getBoundingClientRect();
@@ -66,7 +67,7 @@ const Tooltip: React.FC<TooltipProps> = ({ children, text, shortcut, side = 'top
                             break;
                     }
 
-                    // Constrain horizontally
+                    // Constrain horizontally (gap lúc này là padding so với viewport edge)
                     if (left < gap) left = gap;
                     if (left + tooltipRect.width > viewportWidth - gap) {
                         left = viewportWidth - tooltipRect.width - gap;
@@ -104,7 +105,7 @@ const Tooltip: React.FC<TooltipProps> = ({ children, text, shortcut, side = 'top
                             break;
                     }
 
-                    // Constrain vertically
+                    // Constrain vertically (gap lúc này là padding so với viewport edge)
                     if (top < gap) top = gap;
                     if (top + tooltipRect.height > viewportHeight - gap) {
                         top = viewportHeight - tooltipRect.height - gap;
@@ -127,23 +128,30 @@ const Tooltip: React.FC<TooltipProps> = ({ children, text, shortcut, side = 'top
             >
                 {children}
             </div>
-            {isVisible && (
-                <div
-                    ref={tooltipRef}
-                    className="fixed z-50 px-3 py-2 bg-accent text-accent-foreground rounded-md shadow-lg pointer-events-none animate-in fade-in-0 zoom-in-95 duration-200"
-                    style={{
-                        top: `${position.top}px`,
-                        left: `${position.left}px`,
-                    }}
-                >
-                    <div className="flex flex-col items-center gap-1">
-                        <span className="text-sm whitespace-nowrap">{text}</span>
-                        {shortcut && (
-                            <span className="text-xs opacity-70 whitespace-nowrap">({shortcut})</span>
-                        )}
-                    </div>
-                </div>
-            )}
+            <AnimatePresence>
+                {isVisible && (
+                    <motion.div
+                        ref={tooltipRef}
+                        className="fixed z-60 px-3 py-2 bg-accent text-accent-foreground rounded-md shadow-lg pointer-events-none border-2 border-border"
+                        style={{
+                            top: `${position?.top ?? 0}px`,
+                            left: `${position?.left ?? 0}px`,
+                            visibility: position ? 'visible' : 'hidden',
+                        }}
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        transition={{ duration: 0.2, ease: 'easeInOut' }}
+                    >
+                        <div className="flex flex-col items-center gap-1">
+                            <span className="text-sm whitespace-nowrap">{text}</span>
+                            {shortcut && (
+                                <span className="text-xs opacity-70 whitespace-nowrap">({shortcut})</span>
+                            )}
+                        </div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
         </>
     );
 };

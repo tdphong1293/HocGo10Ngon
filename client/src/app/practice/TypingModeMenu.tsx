@@ -71,19 +71,30 @@ const TypingMenu: React.FC<TypingMenuProps> = ({
     }, []);
 
     useEffect(() => {
-        const fetchUserMode = async () => {
+        const fetchUserMode: () => Promise<boolean> = async () => {
             const response = await getUserSessionMode(accessToken!);
             if (response.ok) {
                 const { data: { activeMode, sessionMode } } = await response.json();
                 setActiveMode(activeMode);
                 setState(sessionMode);
+                return true;
             }
+            return false;
+        }
+
+        if (!sessionModeData) {
+            return;
         }
 
         if (!isGuest) {
-            fetchUserMode();
+            fetchUserMode().then(success => {
+                if (!success) {
+                    setActiveMode(sessionModeData?.[0] || null);
+                    setState(createDefaultState(sessionModeData?.[0] || null));
+                }
+            });
         }
-        else if (isGuest && sessionModeData) {
+        else {
             setActiveMode(sessionModeData?.[0] || null);
             setState(createDefaultState(sessionModeData?.[0] || null));
         }

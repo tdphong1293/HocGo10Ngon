@@ -9,6 +9,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from 'framer-motion';
 import Personalization from './Personalization';
+import Tooltip from './Tooltip';
 
 interface NavbarProps {
     menuConfig?: typeof menuConfig;
@@ -70,19 +71,24 @@ const Navbar: React.FC<NavbarProps> = ({
                         ref={personalizationRef}
                         className="relative"
                     >
-                        <div
-                            className="rounded-full p-1 bg-background border-2 border-primary text-foreground hover:text-primary-foreground hover:bg-primary/80 transition-colors cursor-pointer"
-                            onClick={() => setPersonalizationOpen((prev) => !prev)}
+                        <Tooltip
+                            text="Tùy chỉnh cá nhân"
+                            side="left"
                         >
-                            <Icon
-                                icon="fluent:draw-text-24-filled"
-                                className="size-7"
-                            />
-                        </div>
+                            <div
+                                className="rounded-full p-1 bg-background border-2 border-primary text-foreground hover:text-primary-foreground hover:bg-primary/80 transition-colors cursor-pointer"
+                                onClick={() => setPersonalizationOpen((prev) => !prev)}
+                            >
+                                <Icon
+                                    icon="fluent:draw-text-24-filled"
+                                    className="size-7"
+                                />
+                            </div>
+                        </Tooltip>
                         <AnimatePresence>
                             {personalizationOpen && (
                                 <motion.div
-                                    className="absolute mt-0.5 top-full right-0 z-50 w-[80vw] sm:w-[70vw] md:w-[60vw] lg:w-[50vw] xl:w-[30vw] h-[85vh] transition-all"
+                                    className="absolute mt-0.5 top-full right-0 z-60 w-[80vw] sm:w-[70vw] md:w-[60vw] lg:w-[50vw] xl:w-[30vw] h-[85vh] transition-all"
                                     initial={{ opacity: 0, height: 0 }}
                                     animate={{ opacity: 1, height: "85vh" }}
                                     exit={{ opacity: 0, height: 0 }}
@@ -160,36 +166,38 @@ const Navbar: React.FC<NavbarProps> = ({
                     )}
                 </div>
             </div>
-            {activeMenu && activeSubmenu && (
-                <AnimatePresence>
-                    <motion.div
-                        className="bg-accent border-t-2 border-b-2 border-border flex justify-between items-center gap-10 px-10 py-2 text-accent-foreground"
-                        initial={{ opacity: 0, scaleY: 0, y: -8 }}
-                        animate={{ opacity: 1, scaleY: 1, y: 0 }}
-                        exit={{ opacity: 0, scaleY: 0, y: -8 }}
-                        transition={{ duration: 0.35, ease: 'easeInOut' }}
-                        style={{ transformOrigin: 'top' }}
-                    >
-                        {activeSubmenu.map((subitem: MenuItem) => (
-                            <motion.div
-                                key={`submenu-${subitem.title}`}
-                                initial={{ opacity: 0, y: -6 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                exit={{ opacity: 0, y: -6 }}
-                                transition={{ duration: 0.2, ease: 'easeOut' }}
-                            >
-                                <Link
-                                    href={subitem.href}
-                                    className="hover:text-primary font-bold transition-all"
-                                    onClick={() => setActiveMenu(null)}
+            {
+                activeMenu && activeSubmenu && (
+                    <AnimatePresence>
+                        <motion.div
+                            className="bg-accent border-t-2 border-b-2 border-border flex justify-between items-center gap-10 px-10 py-2 text-accent-foreground"
+                            initial={{ opacity: 0, scaleY: 0, y: -8 }}
+                            animate={{ opacity: 1, scaleY: 1, y: 0 }}
+                            exit={{ opacity: 0, scaleY: 0, y: -8 }}
+                            transition={{ duration: 0.35, ease: 'easeInOut' }}
+                            style={{ transformOrigin: 'top' }}
+                        >
+                            {activeSubmenu.map((subitem: MenuItem) => (
+                                <motion.div
+                                    key={`submenu-${subitem.title}`}
+                                    initial={{ opacity: 0, y: -6 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    exit={{ opacity: 0, y: -6 }}
+                                    transition={{ duration: 0.2, ease: 'easeOut' }}
                                 >
-                                    {subitem.title}
-                                </Link>
-                            </motion.div>
-                        ))}
-                    </motion.div>
-                </AnimatePresence>
-            )}
+                                    <Link
+                                        href={subitem.href}
+                                        className="hover:text-primary font-bold transition-all"
+                                        onClick={() => setActiveMenu(null)}
+                                    >
+                                        {subitem.title}
+                                    </Link>
+                                </motion.div>
+                            ))}
+                        </motion.div>
+                    </AnimatePresence>
+                )
+            }
         </div >
     );
 }
