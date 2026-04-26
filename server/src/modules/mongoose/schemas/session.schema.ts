@@ -6,7 +6,8 @@ export type SessionDocument = HydratedDocument<Session>;
 interface KeystrokeData {
     key: string;
     timestamp: number;
-    correct: boolean;
+    isCorrect: boolean;
+    deltaTime?: number;
 }
 
 export enum SessionType {
@@ -22,7 +23,7 @@ export class Session {
     @Prop({ required: true })
     userid: string;
 
-    @Prop({ 
+    @Prop({
         required: true,
         enum: Object.values(SessionType)
     })
@@ -30,7 +31,7 @@ export class Session {
 
     @Prop({ required: true })
     languageCode: string;
-    
+
     @Prop()
     lessonid: string;
 
@@ -64,7 +65,8 @@ export class Session {
     @Prop([{
         key: { type: String, required: true },
         timestamp: { type: Number, required: true },
-        correct: { type: Boolean, required: true }
+        isCorrect: { type: Boolean, required: true },
+        deltaTime: { type: Number }
     }])
     keystrokes: KeystrokeData[];
 }

@@ -1,55 +1,74 @@
-import { IsString, IsNotEmpty, IsNumber, IsObject, IsEnum, IsOptional } from 'class-validator';
+import { Type } from 'class-transformer';
+import { IsArray, IsBoolean, IsEnum, IsNotEmpty, IsNumber, IsObject, IsOptional, IsString, ValidateNested } from 'class-validator';
 import { SessionType } from 'src/modules/mongoose/schemas/session.schema';
+
+class KeystrokeDto {
+    @IsString()
+    @IsNotEmpty()
+    key!: string;
+
+    @IsNumber()
+    timestamp!: number;
+
+    @IsBoolean()
+    isCorrect!: boolean;
+
+    @IsNumber()
+    @IsOptional()
+    deltaTime?: number;
+}
 
 export class sessionDataDto {
     @IsString()
     @IsNotEmpty()
-    languageCode: string;
+    languageCode!: string;
 
     @IsEnum(SessionType)
     @IsNotEmpty()
-    sessionType: SessionType;
+    sessionType!: SessionType;
 
     @IsString()
     @IsOptional()
-    lessonid: string;
+    lessonid!: string;
 
     @IsString()
     @IsOptional()
-    modeName: string;
+    modeName!: string;
 
     @IsObject()
     @IsOptional()
-    usedConfig: Record<string, any>;
+    usedConfig!: Record<string, any>;
 
     @IsObject()
     @IsOptional()
-    usedSubConfig: Record<string, any>;
+    usedSubConfig!: Record<string, any>;
 
     @IsNumber()
     @IsOptional()
-    CPM: number;
+    CPM!: number;
 
     @IsNumber()
     @IsOptional()
-    WPM: number;
+    WPM!: number;
 
     @IsNumber()
     @IsOptional()
-    accuracy: number;
+    accuracy!: number;
 
     @IsNumber()
     @IsOptional()
-    errorCount: number;
+    errorCount!: number;
 
     @IsNumber()
     @IsOptional()
-    duration: number;
+    duration!: number;
 
     @IsString()
     @IsOptional()
-    rawInput: string;
+    rawInput!: string;
 
-    @IsObject({ each: true })
-    keystrokes: { key: string; timestamp: number; correct: boolean }[];
+    @IsArray()
+    @ValidateNested({ each: true })
+    @Type(() => KeystrokeDto)
+    keystrokes!: KeystrokeDto[];
 }

@@ -20,7 +20,8 @@ import { toast } from 'react-toastify';
 export interface Keystroke {
     key: string;
     timestamp: number;
-    correct: boolean;
+    isCorrect: boolean;
+    deltaTime?: number;
 }
 
 export interface TypingStats {
@@ -287,9 +288,10 @@ const TypingPractice: React.FC<TypingPracticeProps> = ({
             if (correct) setCorrectCount(p => p + 1);
             else setErrorCount(p => p + 1);
 
+            const keystroke: Keystroke = { key: char, timestamp, isCorrect: correct };
             setKeystrokeLog(prev => [
                 ...prev,
-                { key: char, timestamp, correct, index }
+                keystroke
             ]);
         };
 
@@ -304,9 +306,10 @@ const TypingPractice: React.FC<TypingPracticeProps> = ({
                 setUserInput(newValue);
                 setCurrentIndex(newValue.length);
                 playSound("correct");
+                const keystroke: Keystroke = { key: "Backspace", timestamp, isCorrect: true };
                 setKeystrokeLog(prev => [
                     ...prev,
-                    { key: "Backspace", timestamp, correct: true, index: newValue.length }
+                    keystroke
                 ]);
             }
 
@@ -338,7 +341,7 @@ const TypingPractice: React.FC<TypingPracticeProps> = ({
 
         // Normal characters
         if (key.length === 1) {
-            if (heldKey && heldKey.toLowerCase() === key.toLocaleLowerCase()) {
+            if (heldKey && heldKey.toLowerCase() === key.toLowerCase()) {
                 setIsHoldingKey(true);
                 isProcessingRef.current = false;
                 return;

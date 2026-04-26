@@ -23,6 +23,7 @@ model User {
     avgCPM                Decimal        @default(0)
     bestWPM               Decimal        @default(0)
     avgWPM                Decimal        @default(0)
+    avgAccuracy           Decimal        @default(0)
     preferredTheme        String?
     preferredFont         String?
     preferredLanguageCode String?
