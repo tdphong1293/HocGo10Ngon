@@ -39,7 +39,9 @@ export class StatService {
             {
                 $match: {
                     userid,
-                    accuracy: { $gte: 0.8 }
+                    accuracy: { $gte: 0.8 },
+                    wpm: { $gte: 20 },
+                    cpm: { $gte: 100 }
                 }
             },
             {
@@ -80,7 +82,9 @@ export class StatService {
             {
                 $match: {
                     userid,
-                    accuracy: { $gte: 0.8 }
+                    accuracy: { $gte: 0.8 },
+                    wpm: { $gte: 20 },
+                    cpm: { $gte: 100 }
                 }
             },
             {
@@ -103,7 +107,9 @@ export class StatService {
             {
                 $match: {
                     userid,
-                    accuracy: { $gte: 0.8 }
+                    accuracy: { $gte: 0.8 },
+                    wpm: { $gte: 20 },
+                    cpm: { $gte: 100 }
                 }
             },
             {
@@ -197,7 +203,9 @@ export class StatService {
             {
                 $match: {
                     userid,
-                    accuracy: { $gte: 0.8 }
+                    accuracy: { $gte: 0.8 },
+                    wpm: { $gte: 20 },
+                    cpm: { $gte: 100 }
                 },
             },
             {
@@ -294,4 +302,147 @@ export class StatService {
 
         return keyTypeLatencyStats;
     }
+
+    async getUserTodaySessionAttempts(userid: string) {
+        const now = new Date();
+        const startOfDay = new Date(now);
+        startOfDay.setHours(0, 0, 0, 0);
+        const endOfDay = new Date(now);
+        endOfDay.setHours(23, 59, 59, 999);
+
+        const sessionCount = await this.sessionModel.aggregate([
+            {
+                $match: { userid },
+            },
+            {
+                $group: {
+                    _id: null,
+                    success_attempts: {
+                        $sum: {
+                            $cond: [
+                                {
+                                    $and: [
+                                        { $gte: ["$createdAt", startOfDay] },
+                                        { $lte: ["$createdAt", endOfDay] },
+                                        { $gte: ["$accuracy", 0.8] },
+                                        { $gte: ["$wpm", 20] },
+                                        { $gte: ["$cpm", 100] }
+                                    ]
+                                },
+                                1,
+                                0
+                            ]
+                        }
+                    },
+                    failed_attempts: {
+                        $sum: {
+                            $cond: [
+                                {
+                                    $and: [
+                                        { $gte: ["$createdAt", startOfDay] },
+                                        { $lte: ["$createdAt", endOfDay] },
+                                        { $lt: ["$accuracy", 0.8] },
+                                        { $lt: ["$wpm", 20] },
+                                        { $lt: ["$cpm", 100] }
+                                    ]
+                                },
+                                1,
+                                0
+                            ]
+                        }
+                    },
+                    total_attempts: {
+                        $sum: {
+                            $cond: [
+                                {
+                                    $and: [
+                                        { $gte: ["$createdAt", startOfDay] },
+                                        { $lte: ["$createdAt", endOfDay] }
+                                    ]
+                                },
+                                1,
+                                0
+                            ]
+                        }
+                    }
+                }
+            }
+        ]);
+
+        return sessionCount[0] || { success_attempts: 0, failed_attempts: 0, total_attempts: 0 };
+    }
+
+    async getUserThisWeekSessionAttempts(userid: string) {
+        const now = new Date();
+        const startOfWeek = new Date(now);
+        const day = startOfWeek.getDay();
+        const diff = (day === 0 ? 6 : day - 1);
+        startOfWeek.setDate(startOfWeek.getDate() - diff);
+        startOfWeek.setHours(0, 0, 0, 0);
+        const endOfWeek = new Date(startOfWeek);
+        endOfWeek.setDate(endOfWeek.getDate() + 6);
+        endOfWeek.setHours(23, 59, 59, 999);
+
+        const sessionCount = await this.sessionModel.aggregate([
+            {
+                $match: { userid },
+            },
+            {
+                $group: {
+                    _id: null,
+                    success_attempts: {
+                        $sum: {
+                            $cond: [
+                                {
+                                    $and: [
+                                        { $gte: ["$createdAt", startOfWeek] },
+                                        { $lte: ["$createdAt", endOfWeek] },
+                                        { $gte: ["$accuracy", 0.8] },
+                                        { $gte: ["$wpm", 20] },
+                                        { $gte: ["$cpm", 100] }
+                                    ]
+                                },
+                                1,
+                                0
+                            ]
+                        }
+                    },
+                    failed_attempts: {
+                        $sum: {
+                            $cond: [
+                                {
+                                    $and: [
+                                        { $gte: ["$createdAt", startOfWeek] },
+                                        { $lte: ["$createdAt", endOfWeek] },
+                                        { $lt: ["$accuracy", 0.8] },
+                                        { $lt: ["$wpm", 20] },
+                                        { $lt: ["$cpm", 100] }
+                                    ]
+                                },
+                                1,
+                                0
+                            ]
+                        }
+                    },
+                    total_attempts: {
+                        $sum: {
+                            $cond: [
+                                {
+                                    $and: [
+                                        { $gte: ["$createdAt", startOfWeek] },
+                                        { $lte: ["$createdAt", endOfWeek] }
+                                    ]
+                                },
+                                1,
+                                0
+                            ]
+                        }
+                    }
+                }
+            }
+        ]);
+
+        return sessionCount[0] || { success_attempts: 0, failed_attempts: 0, total_attempts: 0 };
+    }
+
 }
