@@ -28,53 +28,140 @@ export class StatService {
 
         const startOfDay = new Date(now);
         startOfDay.setHours(0, 0, 0, 0);
-
+        const endOfDay = new Date(now);
+        endOfDay.setHours(23, 59, 59, 999);
         const startOfWeek = new Date(now);
         const day = startOfWeek.getDay();
         const diff = (day === 0 ? 6 : day - 1);
         startOfWeek.setDate(startOfWeek.getDate() - diff);
         startOfWeek.setHours(0, 0, 0, 0);
+        const endOfWeek = new Date(startOfWeek);
+        endOfWeek.setDate(endOfWeek.getDate() + 6);
+        endOfWeek.setHours(23, 59, 59, 999);
 
         const timeData = await this.sessionModel.aggregate([
             {
-                $match: {
-                    userid,
-                    accuracy: { $gte: 0.8 },
-                    wpm: { $gte: 20 },
-                    cpm: { $gte: 100 }
-                }
+                $match: { userid }
             },
             {
                 $group: {
                     _id: null,
 
-                    today_time: {
+                    today_time_success: {
                         $sum: {
                             $cond: [
-                                { $gte: ["$createdAt", startOfDay] },
+                                {
+                                    $and: [
+                                        { $gte: ["$createdAt", startOfDay] },
+                                        { $lte: ["$createdAt", endOfDay] },
+                                        { $gte: ["$accuracy", 0.8] },
+                                        { $gte: ["$wpm", 20] },
+                                        { $gte: ["$cpm", 100] }
+                                    ]
+                                },
                                 "$duration",
                                 0
                             ]
                         }
                     },
 
-                    week_time: {
+                    today_time_failed: {
                         $sum: {
                             $cond: [
-                                { $gte: ["$createdAt", startOfWeek] },
+                                {
+                                    $and: [
+                                        { $gte: ["$createdAt", startOfDay] },
+                                        { $lte: ["$createdAt", endOfDay] },
+                                        {
+                                            $or: [
+                                                { $lt: ["$accuracy", 0.8] },
+                                                { $lt: ["$wpm", 20] },
+                                                { $lt: ["$cpm", 100] }
+                                            ]
+                                        }
+                                    ]
+                                },
                                 "$duration",
                                 0
                             ]
                         }
                     },
 
-                    total_time: {
-                        $sum: "$duration"
-                    }
+                    this_week_time_success: {
+                        $sum: {
+                            $cond: [
+                                {
+                                    $and: [
+                                        { $gte: ["$createdAt", startOfWeek] },
+                                        { $lte: ["$createdAt", endOfWeek] },
+                                        { $gte: ["$accuracy", 0.8] },
+                                        { $gte: ["$wpm", 20] },
+                                        { $gte: ["$cpm", 100] }
+                                    ]
+                                },
+                                "$duration",
+                                0
+                            ]
+                        }
+                    },
+
+                    this_week_time_failed: {
+                        $sum: {
+                            $cond: [
+                                {
+                                    $and: [
+                                        { $gte: ["$createdAt", startOfWeek] },
+                                        { $lte: ["$createdAt", endOfWeek] },
+                                        {
+                                            $or: [
+                                                { $lt: ["$accuracy", 0.8] },
+                                                { $lt: ["$wpm", 20] },
+                                                { $lt: ["$cpm", 100] }
+                                            ]
+                                        }
+                                    ]
+                                },
+                                "$duration",
+                                0
+                            ]
+                        }
+                    },
+
+                    total_time_success: {
+                        $sum: {
+                            $cond: [
+                                {
+                                    $and: [
+                                        { $gte: ["$accuracy", 0.8] },
+                                        { $gte: ["$wpm", 20] },
+                                        { $gte: ["$cpm", 100] }
+                                    ]
+                                },
+                                "$duration",
+                                0
+                            ]
+                        }
+                    },
+
+                    total_time_failed: {
+                        $sum: {
+                            $cond: [
+                                {
+                                    $or: [
+                                        { $lt: ["$accuracy", 0.8] },
+                                        { $lt: ["$wpm", 20] },
+                                        { $lt: ["$cpm", 100] }
+                                    ]
+                                },
+                                "$duration",
+                                0
+                            ]
+                        }
+                    },
                 }
             }
         ]);
-        return timeData[0] || { today_time: 0, week_time: 0, total_time: 0 };
+        return timeData[0] || { today_time_success: 0, today_time_failed: 0, this_week_time_success: 0, this_week_time_failed: 0, total_time_success: 0, total_time_failed: 0 };
     }
 
     async getUserTypingStats(userid: string) {
@@ -317,7 +404,7 @@ export class StatService {
             {
                 $group: {
                     _id: null,
-                    success_attempts: {
+                    today_success_attempts: {
                         $sum: {
                             $cond: [
                                 {
@@ -334,16 +421,21 @@ export class StatService {
                             ]
                         }
                     },
-                    failed_attempts: {
+
+                    today_failed_attempts: {
                         $sum: {
                             $cond: [
                                 {
                                     $and: [
                                         { $gte: ["$createdAt", startOfDay] },
                                         { $lte: ["$createdAt", endOfDay] },
-                                        { $lt: ["$accuracy", 0.8] },
-                                        { $lt: ["$wpm", 20] },
-                                        { $lt: ["$cpm", 100] }
+                                        {
+                                            $or: [
+                                                { $lt: ["$accuracy", 0.8] },
+                                                { $lt: ["$wpm", 20] },
+                                                { $lt: ["$cpm", 100] }
+                                            ]
+                                        }
                                     ]
                                 },
                                 1,
@@ -351,25 +443,11 @@ export class StatService {
                             ]
                         }
                     },
-                    total_attempts: {
-                        $sum: {
-                            $cond: [
-                                {
-                                    $and: [
-                                        { $gte: ["$createdAt", startOfDay] },
-                                        { $lte: ["$createdAt", endOfDay] }
-                                    ]
-                                },
-                                1,
-                                0
-                            ]
-                        }
-                    }
                 }
             }
         ]);
 
-        return sessionCount[0] || { success_attempts: 0, failed_attempts: 0, total_attempts: 0 };
+        return sessionCount[0] || { today_success_attempts: 0, today_failed_attempts: 0 };
     }
 
     async getUserThisWeekSessionAttempts(userid: string) {
@@ -390,7 +468,7 @@ export class StatService {
             {
                 $group: {
                     _id: null,
-                    success_attempts: {
+                    this_week_success_attempts: {
                         $sum: {
                             $cond: [
                                 {
@@ -407,16 +485,21 @@ export class StatService {
                             ]
                         }
                     },
-                    failed_attempts: {
+
+                    this_week_failed_attempts: {
                         $sum: {
                             $cond: [
                                 {
                                     $and: [
                                         { $gte: ["$createdAt", startOfWeek] },
                                         { $lte: ["$createdAt", endOfWeek] },
-                                        { $lt: ["$accuracy", 0.8] },
-                                        { $lt: ["$wpm", 20] },
-                                        { $lt: ["$cpm", 100] }
+                                        {
+                                            $or: [
+                                                { $lt: ["$accuracy", 0.8] },
+                                                { $lt: ["$wpm", 20] },
+                                                { $lt: ["$cpm", 100] }
+                                            ]
+                                        }
                                     ]
                                 },
                                 1,
@@ -424,25 +507,11 @@ export class StatService {
                             ]
                         }
                     },
-                    total_attempts: {
-                        $sum: {
-                            $cond: [
-                                {
-                                    $and: [
-                                        { $gte: ["$createdAt", startOfWeek] },
-                                        { $lte: ["$createdAt", endOfWeek] }
-                                    ]
-                                },
-                                1,
-                                0
-                            ]
-                        }
-                    }
                 }
             }
         ]);
 
-        return sessionCount[0] || { success_attempts: 0, failed_attempts: 0, total_attempts: 0 };
+        return sessionCount[0] || { this_week_success_attempts: 0, this_week_failed_attempts: 0 };
     }
 
 }
