@@ -1,11 +1,12 @@
 import { Module } from '@nestjs/common';
 import { SessionService } from './session.service';
-import { StatService } from '../stat/stat.service';
 import { SessionController } from './session.controller';
+import { StatModule } from '../stat/stat.module';
 
 @Module({
+    imports: [StatModule],
     controllers: [SessionController],
-    providers: [SessionService, StatService],
+    providers: [SessionService],
     exports: [SessionService],
 })
 

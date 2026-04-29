@@ -13,6 +13,7 @@ import { LanguageModule } from './modules/language/language.module';
 import { WordModule } from './modules/word/word.module';
 import { ParagraphModule } from './modules/paragraph/paragraph.module';
 import { LessonModule } from './modules/lesson/lesson.module';
+import { StatModule } from './modules/stat/stat.module';
 
 @Module({
 	imports: [
@@ -31,6 +32,7 @@ import { LessonModule } from './modules/lesson/lesson.module';
 		WordModule,
 		ParagraphModule,
 		LessonModule,
+		StatModule,
 	],
 	controllers: [AppController],
 	providers: [AppService],
