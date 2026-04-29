@@ -177,16 +177,15 @@ export class StatService {
             {
                 $group: {
                     _id: null,
+                    avgCPM: { $avg: "$CPM" },
                     bestCPM: { $max: "$CPM" },
-                    averageCPM: { $avg: "$CPM" },
-                    averageWPM: { $avg: "$WPM" },
+                    avgWPM: { $avg: "$WPM" },
                     bestWPM: { $max: "$WPM" },
-                    averageAccuracy: { $avg: "$accuracy" },
-                    totalSessions: { $sum: 1 }
+                    avgAccuracy: { $avg: "$accuracy" },
                 }
             }
         ]);
-        return stats[0] || { bestCPM: 0, averageCPM: 0, averageWPM: 0, bestWPM: 0, averageAccuracy: 0, totalSessions: 0 };
+        return stats[0] || { avgCPM: 0, bestCPM: 0, avgWPM: 0, bestWPM: 0, avgAccuracy: 0 };
     }
 
     async getUserKeyAccuracy(userid: string) {

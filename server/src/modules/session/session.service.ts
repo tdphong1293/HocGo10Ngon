@@ -5,6 +5,7 @@ import { SessionModeDocument, SessionMode } from '../mongoose/schemas/session_mo
 import { PrismaService } from '../prisma/prisma.service';
 import { InjectModel } from '@nestjs/mongoose';
 import { sessionDataDto } from './dto/sessionData.dto';
+import { StatService } from '../stat/stat.service';
 
 @Injectable()
 export class SessionService {
@@ -12,6 +13,7 @@ export class SessionService {
         @InjectModel(Session.name) private sessionModel: Model<SessionDocument>,
         @InjectModel(SessionMode.name) private sessionModeModel: Model<SessionModeDocument>,
         private readonly prismaService: PrismaService,
+        private readonly statService: StatService,
     ) { }
 
     async getSessionMode() {
@@ -253,6 +255,7 @@ export class SessionService {
                     throw new InternalServerErrorException('Lỗi khi ghi nhận hoàn thành bài học cho người dùng');
                 }
             }
+            this.updateUserTypingStats(userid);
             return {
                 message: 'Lưu trữ dữ liệu phiên gõ thành công',
                 sessionid: createdSession._id,
@@ -285,6 +288,37 @@ export class SessionService {
             return true;
         } catch (error) {
             return false;
+        }
+    }
+
+    async updateUserTypingStats(userid: string) {
+        const stats = await this.statService.getUserTypingStats(userid);
+        if (!stats) {
+            throw new InternalServerErrorException('Lỗi khi cập nhật dữ liệu gõ cho người dùng');
+        }
+        try {
+            await this.prismaService.user.update({
+                where: { userid },
+                data: {
+                    avgCPM: stats.avgCPM,
+                    bestCPM: stats.bestCPM,
+                    avgWPM: stats.avgWPM,
+                    bestWPM: stats.bestWPM,
+                    avgAccuracy: stats.avgAccuracy,
+                }
+            });
+        } catch (error) {
+            throw new InternalServerErrorException('Lỗi khi cập nhật dữ liệu gõ cho người dùng');
+        }
+        return {
+            message: 'Cập nhật dữ liệu gõ cho người dùng thành công',
+            stats: {
+                avgCPM: stats.avgCPM,
+                bestCPM: stats.bestCPM,
+                avgWPM: stats.avgWPM,
+                bestWPM: stats.bestWPM,
+                avgAccuracy: stats.avgAccuracy,
+            }
         }
     }
 }

@@ -29,43 +29,43 @@ export class sessionDataDto {
 
     @IsString()
     @IsOptional()
-    lessonid!: string;
+    lessonid?: string;
 
     @IsString()
     @IsOptional()
-    modeName!: string;
+    modeName?: string;
 
     @IsObject()
     @IsOptional()
-    usedConfig!: Record<string, any>;
+    usedConfig?: Record<string, any>;
 
     @IsObject()
     @IsOptional()
-    usedSubConfig!: Record<string, any>;
+    usedSubConfig?: Record<string, any>;
 
     @IsNumber()
     @IsOptional()
-    CPM!: number;
+    CPM?: number;
 
     @IsNumber()
     @IsOptional()
-    WPM!: number;
+    WPM?: number;
 
     @IsNumber()
     @IsOptional()
-    accuracy!: number;
+    accuracy?: number;
 
     @IsNumber()
     @IsOptional()
-    errorCount!: number;
+    errorCount?: number;
 
     @IsNumber()
     @IsOptional()
-    duration!: number;
+    duration?: number;
 
     @IsString()
     @IsOptional()
-    rawInput!: string;
+    rawInput?: string;
 
     @IsArray()
     @ValidateNested({ each: true })
