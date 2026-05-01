@@ -7,7 +7,7 @@ interface KeyboardProps {
     size?: keyboardSizes;
 }
 
-// Converts real e.code names to your layout naming scheme
+// Converts real e.code names to layout naming scheme
 const normalizeKeyName = (code: string): string => {
     switch (code) {
         case "ShiftLeft": return "LShift";
@@ -142,9 +142,9 @@ export const letterKey = (
     );
 }
 
-const TopRowKeys = ['Q', 'W', 'E', 'R', 'T', 'Y', 'U', 'I', 'O', 'P'];
-const HomeRowKeys = ['A', 'S', 'D', 'F', 'G', 'H', 'J', 'K', 'L'];
-const BottomRowKeys = ['Z', 'X', 'C', 'V', 'B', 'N', 'M'];
+export const TopRowKeys = ['Q', 'W', 'E', 'R', 'T', 'Y', 'U', 'I', 'O', 'P'];
+export const HomeRowKeys = ['A', 'S', 'D', 'F', 'G', 'H', 'J', 'K', 'L'];
+export const BottomRowKeys = ['Z', 'X', 'C', 'V', 'B', 'N', 'M'];
 
 const Keyboard: React.FC<KeyboardProps> = ({
     activeKeys = [],
@@ -198,7 +198,7 @@ const Keyboard: React.FC<KeyboardProps> = ({
                 {functionKey('Enter', activeKeys, size, 'w-6/19', normalizedActive)}
             </div>
             <div className={`flex ${containerGapClass}`}>
-                {functionKey('LShift', activeKeys, size, 'w-3/19', normalizedActive)}
+                {functionKey('LShift', activeKeys, size, 'w-4/22', normalizedActive)}
                 {BottomRowKeys.map((key) => letterKey(key, activeKeys, size, 'w-1/19', normalizedActive))}
                 {twoCharacterKey(['<', ','], activeKeys, size, 'w-1/19', normalizedActive)}
                 {twoCharacterKey(['>', '.'], activeKeys, size, 'w-1/19', normalizedActive)}

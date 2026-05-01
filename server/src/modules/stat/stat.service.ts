@@ -306,7 +306,7 @@ export class StatService {
                 $group: {
                     _id: "$keystrokes.key",
                     total: { $sum: 1 },
-                    totalTime: { $sum: "$keystrokes.deltaTime" }
+                    totalDeltaTime: { $sum: "$keystrokes.deltaTime" }
                 },
             },
             {
@@ -314,12 +314,12 @@ export class StatService {
                     _id: 0,
                     key: "$_id",
                     total: 1,
-                    totalTime: 1,
+                    totalDeltaTime: 1,
                     averageLatency: {
                         $cond: [
                             { $eq: ["$total", 0] },
                             0,
-                            { $divide: ["$totalTime", "$total"] }
+                            { $divide: ["$totalDeltaTime", "$total"] }
                         ]
                     }
                 }
@@ -331,28 +331,28 @@ export class StatService {
 
     async getUserFingerLatency(userid: string) {
         const keyLatencyStats = await this.getUserKeyLatency(userid);
-        const fingerLatencyStats: Record<Finger, { total: number, totalTime: number, averageLatency: number }> = {
-            left_pinky: { total: 0, totalTime: 0, averageLatency: 0 },
-            left_ring: { total: 0, totalTime: 0, averageLatency: 0 },
-            left_middle: { total: 0, totalTime: 0, averageLatency: 0 },
-            left_index: { total: 0, totalTime: 0, averageLatency: 0 },
-            right_index: { total: 0, totalTime: 0, averageLatency: 0 },
-            right_middle: { total: 0, totalTime: 0, averageLatency: 0 },
-            right_ring: { total: 0, totalTime: 0, averageLatency: 0 },
-            right_pinky: { total: 0, totalTime: 0, averageLatency: 0 },
-            thumb: { total: 0, totalTime: 0, averageLatency: 0 },
+        const fingerLatencyStats: Record<Finger, { total: number, totalDeltaTime: number, averageLatency: number }> = {
+            left_pinky: { total: 0, totalDeltaTime: 0, averageLatency: 0 },
+            left_ring: { total: 0, totalDeltaTime: 0, averageLatency: 0 },
+            left_middle: { total: 0, totalDeltaTime: 0, averageLatency: 0 },
+            left_index: { total: 0, totalDeltaTime: 0, averageLatency: 0 },
+            right_index: { total: 0, totalDeltaTime: 0, averageLatency: 0 },
+            right_middle: { total: 0, totalDeltaTime: 0, averageLatency: 0 },
+            right_ring: { total: 0, totalDeltaTime: 0, averageLatency: 0 },
+            right_pinky: { total: 0, totalDeltaTime: 0, averageLatency: 0 },
+            thumb: { total: 0, totalDeltaTime: 0, averageLatency: 0 },
             // Xử lý trường hợp key không có trong fingerMap, gán vào nhóm 'unknown'
-            unknown: { total: 0, totalTime: 0, averageLatency: 0 }
+            unknown: { total: 0, totalDeltaTime: 0, averageLatency: 0 }
         };
 
-        for (const { key, total, totalTime } of keyLatencyStats) {
+        for (const { key, total, totalDeltaTime } of keyLatencyStats) {
             const finger = this.getFingerByKey(key);
             fingerLatencyStats[finger].total += total;
-            fingerLatencyStats[finger].totalTime += totalTime;
+            fingerLatencyStats[finger].totalDeltaTime += totalDeltaTime;
         }
 
         for (const stats of Object.values(fingerLatencyStats)) {
-            stats.averageLatency = stats.total > 0 ? stats.totalTime / stats.total : 0;
+            stats.averageLatency = stats.total > 0 ? stats.totalDeltaTime / stats.total : 0;
         }
 
         return fingerLatencyStats;
@@ -368,22 +368,22 @@ export class StatService {
 
     async getUserKeyTypeLatency(userid: string) {
         const keyLatencyStats = await this.getUserKeyLatency(userid);
-        const keyTypeLatencyStats: Record<KeyType, { total: number, totalTime: number, averageLatency: number }> = {
-            lowercase: { total: 0, totalTime: 0, averageLatency: 0 },
-            uppercase: { total: 0, totalTime: 0, averageLatency: 0 },
-            number: { total: 0, totalTime: 0, averageLatency: 0 },
-            symbol: { total: 0, totalTime: 0, averageLatency: 0 },
-            space: { total: 0, totalTime: 0, averageLatency: 0 },
+        const keyTypeLatencyStats: Record<KeyType, { total: number, totalDeltaTime: number, averageLatency: number }> = {
+            lowercase: { total: 0, totalDeltaTime: 0, averageLatency: 0 },
+            uppercase: { total: 0, totalDeltaTime: 0, averageLatency: 0 },
+            number: { total: 0, totalDeltaTime: 0, averageLatency: 0 },
+            symbol: { total: 0, totalDeltaTime: 0, averageLatency: 0 },
+            space: { total: 0, totalDeltaTime: 0, averageLatency: 0 },
         };
 
-        for (const { key, total, totalTime } of keyLatencyStats) {
+        for (const { key, total, totalDeltaTime } of keyLatencyStats) {
             const keyType = this.getKeyType(key);
             keyTypeLatencyStats[keyType].total += total;
-            keyTypeLatencyStats[keyType].totalTime += totalTime;
+            keyTypeLatencyStats[keyType].totalDeltaTime += totalDeltaTime;
         }
 
         for (const stats of Object.values(keyTypeLatencyStats)) {
-            stats.averageLatency = stats.total > 0 ? stats.totalTime / stats.total : 0;
+            stats.averageLatency = stats.total > 0 ? stats.totalDeltaTime / stats.total : 0;
         }
 
         return keyTypeLatencyStats;
