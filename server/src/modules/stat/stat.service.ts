@@ -54,9 +54,9 @@ export class StatService {
                                     $and: [
                                         { $gte: ["$createdAt", startOfDay] },
                                         { $lte: ["$createdAt", endOfDay] },
-                                        { $gte: ["$accuracy", 0.8] },
-                                        { $gte: ["$wpm", 20] },
-                                        { $gte: ["$cpm", 100] }
+                                        { $gte: ["$accuracy", 80] },
+                                        { $gte: ["$WPM", 20] },
+                                        { $gte: ["$CPM", 100] }
                                     ]
                                 },
                                 "$duration",
@@ -74,9 +74,9 @@ export class StatService {
                                         { $lte: ["$createdAt", endOfDay] },
                                         {
                                             $or: [
-                                                { $lt: ["$accuracy", 0.8] },
-                                                { $lt: ["$wpm", 20] },
-                                                { $lt: ["$cpm", 100] }
+                                                { $lt: ["$accuracy", 80] },
+                                                { $lt: ["$WPM", 20] },
+                                                { $lt: ["$CPM", 100] }
                                             ]
                                         }
                                     ]
@@ -94,9 +94,9 @@ export class StatService {
                                     $and: [
                                         { $gte: ["$createdAt", startOfWeek] },
                                         { $lte: ["$createdAt", endOfWeek] },
-                                        { $gte: ["$accuracy", 0.8] },
-                                        { $gte: ["$wpm", 20] },
-                                        { $gte: ["$cpm", 100] }
+                                        { $gte: ["$accuracy", 80] },
+                                        { $gte: ["$WPM", 20] },
+                                        { $gte: ["$CPM", 100] }
                                     ]
                                 },
                                 "$duration",
@@ -114,9 +114,9 @@ export class StatService {
                                         { $lte: ["$createdAt", endOfWeek] },
                                         {
                                             $or: [
-                                                { $lt: ["$accuracy", 0.8] },
-                                                { $lt: ["$wpm", 20] },
-                                                { $lt: ["$cpm", 100] }
+                                                { $lt: ["$accuracy", 80] },
+                                                { $lt: ["$WPM", 20] },
+                                                { $lt: ["$CPM", 100] }
                                             ]
                                         }
                                     ]
@@ -132,9 +132,9 @@ export class StatService {
                             $cond: [
                                 {
                                     $and: [
-                                        { $gte: ["$accuracy", 0.8] },
-                                        { $gte: ["$wpm", 20] },
-                                        { $gte: ["$cpm", 100] }
+                                        { $gte: ["$accuracy", 80] },
+                                        { $gte: ["$WPM", 20] },
+                                        { $gte: ["$CPM", 100] }
                                     ]
                                 },
                                 "$duration",
@@ -148,9 +148,9 @@ export class StatService {
                             $cond: [
                                 {
                                     $or: [
-                                        { $lt: ["$accuracy", 0.8] },
-                                        { $lt: ["$wpm", 20] },
-                                        { $lt: ["$cpm", 100] }
+                                        { $lt: ["$accuracy", 80] },
+                                        { $lt: ["$WPM", 20] },
+                                        { $lt: ["$CPM", 100] }
                                     ]
                                 },
                                 "$duration",
@@ -169,9 +169,9 @@ export class StatService {
             {
                 $match: {
                     userid,
-                    accuracy: { $gte: 0.8 },
-                    wpm: { $gte: 20 },
-                    cpm: { $gte: 100 }
+                    accuracy: { $gte: 80 },
+                    WPM: { $gte: 20 },
+                    CPM: { $gte: 100 }
                 }
             },
             {
@@ -193,9 +193,9 @@ export class StatService {
             {
                 $match: {
                     userid,
-                    accuracy: { $gte: 0.8 },
-                    wpm: { $gte: 20 },
-                    cpm: { $gte: 100 }
+                    accuracy: { $gte: 80 },
+                    WPM: { $gte: 20 },
+                    CPM: { $gte: 100 }
                 }
             },
             {
@@ -223,7 +223,7 @@ export class StatService {
                         $cond: [
                             { $eq: ["$total", 0] },
                             0,
-                            { $divide: ["$correct", "$total"] }
+                            { $multiply: [{ $divide: ["$correct", "$total"] }, 100] }
                         ]
                     }
                 }
@@ -278,7 +278,7 @@ export class StatService {
         }
 
         for (const stats of Object.values(fingerStats)) {
-            stats.accuracy = stats.total > 0 ? stats.correct / stats.total : 0;
+            stats.accuracy = stats.total > 0 ? (stats.correct / stats.total) * 100 : 0;
         }
 
         return fingerStats;
@@ -289,9 +289,9 @@ export class StatService {
             {
                 $match: {
                     userid,
-                    accuracy: { $gte: 0.8 },
-                    wpm: { $gte: 20 },
-                    cpm: { $gte: 100 }
+                    accuracy: { $gte: 80 },
+                    WPM: { $gte: 20 },
+                    CPM: { $gte: 100 }
                 },
             },
             {
@@ -315,7 +315,7 @@ export class StatService {
                     key: "$_id",
                     total: 1,
                     totalDeltaTime: 1,
-                    averageLatency: {
+                    avgLatency: {
                         $cond: [
                             { $eq: ["$total", 0] },
                             0,
@@ -331,18 +331,18 @@ export class StatService {
 
     async getUserFingerLatency(userid: string) {
         const keyLatencyStats = await this.getUserKeyLatency(userid);
-        const fingerLatencyStats: Record<Finger, { total: number, totalDeltaTime: number, averageLatency: number }> = {
-            left_pinky: { total: 0, totalDeltaTime: 0, averageLatency: 0 },
-            left_ring: { total: 0, totalDeltaTime: 0, averageLatency: 0 },
-            left_middle: { total: 0, totalDeltaTime: 0, averageLatency: 0 },
-            left_index: { total: 0, totalDeltaTime: 0, averageLatency: 0 },
-            right_index: { total: 0, totalDeltaTime: 0, averageLatency: 0 },
-            right_middle: { total: 0, totalDeltaTime: 0, averageLatency: 0 },
-            right_ring: { total: 0, totalDeltaTime: 0, averageLatency: 0 },
-            right_pinky: { total: 0, totalDeltaTime: 0, averageLatency: 0 },
-            thumb: { total: 0, totalDeltaTime: 0, averageLatency: 0 },
+        const fingerLatencyStats: Record<Finger, { total: number, totalDeltaTime: number, avgLatency: number }> = {
+            left_pinky: { total: 0, totalDeltaTime: 0, avgLatency: 0 },
+            left_ring: { total: 0, totalDeltaTime: 0, avgLatency: 0 },
+            left_middle: { total: 0, totalDeltaTime: 0, avgLatency: 0 },
+            left_index: { total: 0, totalDeltaTime: 0, avgLatency: 0 },
+            right_index: { total: 0, totalDeltaTime: 0, avgLatency: 0 },
+            right_middle: { total: 0, totalDeltaTime: 0, avgLatency: 0 },
+            right_ring: { total: 0, totalDeltaTime: 0, avgLatency: 0 },
+            right_pinky: { total: 0, totalDeltaTime: 0, avgLatency: 0 },
+            thumb: { total: 0, totalDeltaTime: 0, avgLatency: 0 },
             // Xử lý trường hợp key không có trong fingerMap, gán vào nhóm 'unknown'
-            unknown: { total: 0, totalDeltaTime: 0, averageLatency: 0 }
+            unknown: { total: 0, totalDeltaTime: 0, avgLatency: 0 }
         };
 
         for (const { key, total, totalDeltaTime } of keyLatencyStats) {
@@ -352,7 +352,7 @@ export class StatService {
         }
 
         for (const stats of Object.values(fingerLatencyStats)) {
-            stats.averageLatency = stats.total > 0 ? stats.totalDeltaTime / stats.total : 0;
+            stats.avgLatency = stats.total > 0 ? stats.totalDeltaTime / stats.total : 0;
         }
 
         return fingerLatencyStats;
@@ -368,12 +368,12 @@ export class StatService {
 
     async getUserKeyTypeLatency(userid: string) {
         const keyLatencyStats = await this.getUserKeyLatency(userid);
-        const keyTypeLatencyStats: Record<KeyType, { total: number, totalDeltaTime: number, averageLatency: number }> = {
-            lowercase: { total: 0, totalDeltaTime: 0, averageLatency: 0 },
-            uppercase: { total: 0, totalDeltaTime: 0, averageLatency: 0 },
-            number: { total: 0, totalDeltaTime: 0, averageLatency: 0 },
-            symbol: { total: 0, totalDeltaTime: 0, averageLatency: 0 },
-            space: { total: 0, totalDeltaTime: 0, averageLatency: 0 },
+        const keyTypeLatencyStats: Record<KeyType, { total: number, totalDeltaTime: number, avgLatency: number }> = {
+            lowercase: { total: 0, totalDeltaTime: 0, avgLatency: 0 },
+            uppercase: { total: 0, totalDeltaTime: 0, avgLatency: 0 },
+            number: { total: 0, totalDeltaTime: 0, avgLatency: 0 },
+            symbol: { total: 0, totalDeltaTime: 0, avgLatency: 0 },
+            space: { total: 0, totalDeltaTime: 0, avgLatency: 0 },
         };
 
         for (const { key, total, totalDeltaTime } of keyLatencyStats) {
@@ -383,7 +383,7 @@ export class StatService {
         }
 
         for (const stats of Object.values(keyTypeLatencyStats)) {
-            stats.averageLatency = stats.total > 0 ? stats.totalDeltaTime / stats.total : 0;
+            stats.avgLatency = stats.total > 0 ? stats.totalDeltaTime / stats.total : 0;
         }
 
         return keyTypeLatencyStats;
@@ -410,9 +410,9 @@ export class StatService {
                                     $and: [
                                         { $gte: ["$createdAt", startOfDay] },
                                         { $lte: ["$createdAt", endOfDay] },
-                                        { $gte: ["$accuracy", 0.8] },
-                                        { $gte: ["$wpm", 20] },
-                                        { $gte: ["$cpm", 100] }
+                                        { $gte: ["$accuracy", 80] },
+                                        { $gte: ["$WPM", 20] },
+                                        { $gte: ["$CPM", 100] }
                                     ]
                                 },
                                 1,
@@ -430,9 +430,9 @@ export class StatService {
                                         { $lte: ["$createdAt", endOfDay] },
                                         {
                                             $or: [
-                                                { $lt: ["$accuracy", 0.8] },
-                                                { $lt: ["$wpm", 20] },
-                                                { $lt: ["$cpm", 100] }
+                                                { $lt: ["$accuracy", 80] },
+                                                { $lt: ["$WPM", 20] },
+                                                { $lt: ["$CPM", 100] }
                                             ]
                                         }
                                     ]
@@ -474,9 +474,9 @@ export class StatService {
                                     $and: [
                                         { $gte: ["$createdAt", startOfWeek] },
                                         { $lte: ["$createdAt", endOfWeek] },
-                                        { $gte: ["$accuracy", 0.8] },
-                                        { $gte: ["$wpm", 20] },
-                                        { $gte: ["$cpm", 100] }
+                                        { $gte: ["$accuracy", 80] },
+                                        { $gte: ["$WPM", 20] },
+                                        { $gte: ["$CPM", 100] }
                                     ]
                                 },
                                 1,
@@ -494,9 +494,9 @@ export class StatService {
                                         { $lte: ["$createdAt", endOfWeek] },
                                         {
                                             $or: [
-                                                { $lt: ["$accuracy", 0.8] },
-                                                { $lt: ["$wpm", 20] },
-                                                { $lt: ["$cpm", 100] }
+                                                { $lt: ["$accuracy", 80] },
+                                                { $lt: ["$WPM", 20] },
+                                                { $lt: ["$CPM", 100] }
                                             ]
                                         }
                                     ]
