@@ -2,7 +2,7 @@ import { Controller, Get, Post, Put, Patch, Delete, Body, Param, Req, Res } from
 import type { AuthenticatedRequest } from '../auth/auth.guard';
 import { SignupUserDto } from '../auth/dto/signup-user.dto';
 import { UserService } from './user.service';
-import { SessionMode } from '../mongoose/schemas/session_mode.schema';
+import { UpdateSessionModeDto } from './dto/update-session-mode.dto';
 
 @Controller('users')
 export class UserController {
@@ -52,8 +52,8 @@ export class UserController {
     }
 
     @Put('mode')
-    async updateUserSessionMode(@Req() request: AuthenticatedRequest, @Body() mode: SessionMode) {
+    async updateUserSessionMode(@Req() request: AuthenticatedRequest, @Body() updateSessionModeDto: UpdateSessionModeDto) {
         const { sub } = request.user;
-        return await this.userService.updateUserSessionMode(sub, mode);
+        return await this.userService.updateUserSessionMode(sub, updateSessionModeDto);
     }
 }
