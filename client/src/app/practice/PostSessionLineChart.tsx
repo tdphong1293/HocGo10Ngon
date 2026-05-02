@@ -65,7 +65,7 @@ const generateChartData = (
             if (stroke.timestamp > intervalStart) {
                 // This stroke belongs to current interval
                 intervalTotal++;
-                if (stroke.correct) {
+                if (stroke.isCorrect) {
                     intervalCorrect++;
                 } else {
                     hasError = true;
@@ -74,7 +74,7 @@ const generateChartData = (
 
             // Update cumulative counts
             cumulativeTotal++;
-            if (stroke.correct) {
+            if (stroke.isCorrect) {
                 cumulativeCorrect++;
             } else {
                 cumulativeErrors++;
@@ -277,7 +277,7 @@ const PostSessionLineChart: React.FC<PostSessionLineChartProps> = ({
     // Early return if no data
     if (!keystrokeLog || keystrokeLog.length === 0) {
         return (
-            <div className="w-full h-[300px] flex items-center justify-center text-accent-foreground/50">
+            <div className="w-full h-75 flex items-center justify-center text-accent-foreground/50">
                 No data to display
             </div>
         );
@@ -287,7 +287,7 @@ const PostSessionLineChart: React.FC<PostSessionLineChartProps> = ({
 
     if (chartData.length === 0) {
         return (
-            <div className="w-full h-[300px] flex items-center justify-center text-accent-foreground/50">
+            <div className="w-full h-75 flex items-center justify-center text-accent-foreground/50">
                 No data to display
             </div>
         );
@@ -308,7 +308,7 @@ const PostSessionLineChart: React.FC<PostSessionLineChartProps> = ({
             width="100%"
             height={500}
             debounce={50}
-            className={`[&_*]:focus:outline-none`}
+            className={`**:focus:outline-none`}
         >
             <LineChart
                 data={chartData}

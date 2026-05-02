@@ -288,7 +288,7 @@ const TypingPractice: React.FC<TypingPracticeProps> = ({
             if (correct) setCorrectCount(p => p + 1);
             else setErrorCount(p => p + 1);
 
-            const keystroke: Keystroke = { key: char, timestamp, isCorrect: correct };
+            const keystroke: Keystroke = { key: char, timestamp, isCorrect: correct, deltaTime: timestamp - (keystrokeLog.length > 0 ? keystrokeLog[keystrokeLog.length - 1].timestamp : 0) };
             setKeystrokeLog(prev => [
                 ...prev,
                 keystroke
@@ -306,7 +306,7 @@ const TypingPractice: React.FC<TypingPracticeProps> = ({
                 setUserInput(newValue);
                 setCurrentIndex(newValue.length);
                 playSound("correct");
-                const keystroke: Keystroke = { key: "Backspace", timestamp, isCorrect: true };
+                const keystroke: Keystroke = { key: "Backspace", timestamp, isCorrect: true, deltaTime: timestamp - (keystrokeLog.length > 0 ? keystrokeLog[keystrokeLog.length - 1].timestamp : 0) };
                 setKeystrokeLog(prev => [
                     ...prev,
                     keystroke
@@ -666,10 +666,10 @@ const TypingPractice: React.FC<TypingPracticeProps> = ({
                     languageCode: languageCode,
                     lessonid: sessionType === 'LESSON' && lessonid ? lessonid : undefined,
                     modeName: state?.modeName,
-                    useConfig: state?.config || {},
-                    useSubConfig: state?.subConfig || {},
-                    wpm: typingStats.wpm,
-                    cpm: typingStats.cpm,
+                    usedConfig: state?.config || {},
+                    usedSubConfig: state?.subConfig || {},
+                    WPM: typingStats.wpm,
+                    CPM: typingStats.cpm,
                     accuracy: typingStats.accuracy,
                     errorCount: typingStats.errors,
                     duration: typingStats.elapsed,
