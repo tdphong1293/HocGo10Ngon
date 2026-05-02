@@ -20,35 +20,47 @@ export class StatController {
         return this.statService.getUserActiveWebtime(sub);
     }
 
-    @Get("key-accuracy")
+    @Get("key")
     async getUserKeyAccuracy(@Req() req: AuthenticatedRequest) {
         const { sub } = req.user;
-        return this.statService.getUserKeyAccuracy(sub);
+        const keyAccuracy = await this.statService.getUserKeyAccuracy(sub);
+        const keyLatency = await this.statService.getUserKeyLatency(sub);
+        const returnData: Record<string, { accuracy: number; avgLatency: number }> = {};
+
+        for (const { key, accuracy } of keyAccuracy) {
+            returnData[key] = { ...returnData[key], accuracy };
+        }
+
+        for (const { key, avgLatency } of keyLatency) {
+            returnData[key] = { ...returnData[key], avgLatency };
+        }
+
+        return returnData;
     }
 
-    @Get("key-latency")
-    async getUserKeyLatency(@Req() req: AuthenticatedRequest) {
-        const { sub } = req.user;
-        return this.statService.getUserKeyLatency(sub);
-    }
-
-    @Get("finger-accuracy")
+    @Get("finger")
     async getUserFingerAccuracy(@Req() req: AuthenticatedRequest) {
         const { sub } = req.user;
-        return this.statService.getUserFingerAccuracy(sub);
-    }
+        const fingerAccuracy = await this.statService.getUserFingerAccuracy(sub);
+        const fingerLatency = await this.statService.getUserFingerLatency(sub);
+        const returnData: Record<string, { accuracy: number; avgLatency: number }> = {};
 
-    @Get("finger-latency")
-    async getUserFingerLatency(@Req() req: AuthenticatedRequest) {
-        const { sub } = req.user;
-        return this.statService.getUserFingerLatency(sub);
+        for (const [finger, { accuracy }] of Object.entries(fingerAccuracy)) {
+            returnData[finger] = { ...returnData[finger], accuracy };
+        }
+
+        for (const [finger, { avgLatency }] of Object.entries(fingerLatency)) {
+            returnData[finger] = { ...returnData[finger], avgLatency };
+        }
+
+        return returnData;
     }
 
     @Get("attempts")
     async getUserAttempts(@Req() req: AuthenticatedRequest) {
         const { sub } = req.user;
-        const todayData = this.statService.getUserTodaySessionAttempts(sub);
-        const thisWeekData = this.statService.getUserThisWeekSessionAttempts(sub);
+        const todayData = await this.statService.getUserTodaySessionAttempts(sub);
+        const thisWeekData = await this.statService.getUserThisWeekSessionAttempts(sub);
         return { ...todayData, ...thisWeekData };
     }
 }
