@@ -1,6 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import { twoCharacterKey, functionKey, letterKey, TopRowKeys, HomeRowKeys, BottomRowKeys } from '@/components/Keyboard';
 import Tooltip from '@/components/Tooltip';
+import Switch from '@/components/Switch';
 
 interface KeyboardChartProps {
     keysData: { key: string; accuracy: number; avgLatency: number }[];
@@ -11,6 +12,7 @@ const twoCharacterKeys = [['~', '`'], ['!', '1'], ['@', '2'], ['#', '3'], ['$', 
 const KeyboardChart: React.FC<KeyboardChartProps> = ({
     keysData,
 }) => {
+    const [isUpperCase, setIsUpperCase] = useState<boolean>(false);
     const [chartMode, setChartMode] = useState<"accuracy" | "speed">("accuracy");
     const keysDataMap = keysData.reduce((acc: Record<string, { accuracy: number; avgLatency: number }>, keyData: { key: string; accuracy: number; avgLatency: number }) => {
         acc[keyData.key] = { accuracy: keyData.accuracy, avgLatency: keyData.avgLatency };
@@ -81,35 +83,44 @@ const KeyboardChart: React.FC<KeyboardChartProps> = ({
                         <Tooltip text={chartMode === "accuracy" ? "Độ chính xác < 70%" : "Tốc độ > 200ms"}>
                             <div className="w-8 h-8 border border-border rounded-md bg-incorrect/75"></div>
                         </Tooltip>
-                        <Tooltip text={chartMode === "accuracy" ? "Độ chính xác 70-90%" : "Tốc độ 100-200ms"}>
+                        <Tooltip text={chartMode === "accuracy" ? "Độ chính xác >= 70% và < 90%" : "Tốc độ > 100ms và <= 200ms"}>
                             <div className="w-8 h-8 border border-border rounded-md bg-untyped/75"></div>
                         </Tooltip>
-                        <Tooltip text={chartMode === "accuracy" ? "Độ chính xác > 90%" : "Tốc độ < 100ms"}>
+                        <Tooltip text={chartMode === "accuracy" ? "Độ chính xác >= 90%" : "Tốc độ <= 100ms"}>
                             <div className="w-8 h-8 border border-border rounded-md bg-correct/75"></div>
                         </Tooltip>
                     </div>
                 </div>
                 <div className="flex flex-col gap-2 w-2/3 items-end">
-                    <div className="flex bg-secondary rounded-lg">
-                        <button
-                            onClick={() => setChartMode("accuracy")}
-                            className={`px-5 py-2 rounded-md text-sm font-medium transition-all duration-200 ${chartMode === "accuracy"
+                    <div className="flex gap-10">
+                        <div className="flex gap-2 items-center">
+                            <span>Chữ {isUpperCase ? 'hoa' : 'thường'}</span>
+                            <Switch
+                                state={isUpperCase}
+                                setState={setIsUpperCase}
+                            />
+                        </div>
+                        <div className="flex bg-secondary rounded-lg">
+                            <button
+                                onClick={() => setChartMode("accuracy")}
+                                className={`px-5 py-2 rounded-md text-sm font-medium transition-all duration-200 ${chartMode === "accuracy"
                                     ? "bg-primary text-primary-foreground shadow-md"
                                     : "text-foreground/70 hover:text-foreground cursor-pointer"
-                                }`}
-                        >
-                            Độ chính xác
-                        </button>
+                                    }`}
+                            >
+                                Độ chính xác
+                            </button>
 
-                        <button
-                            onClick={() => setChartMode("speed")}
-                            className={`px-5 py-2 rounded-md text-sm font-medium transition-all duration-200 ${chartMode === "speed"
+                            <button
+                                onClick={() => setChartMode("speed")}
+                                className={`px-5 py-2 rounded-md text-sm font-medium transition-all duration-200 ${chartMode === "speed"
                                     ? "bg-primary text-primary-foreground shadow-md"
                                     : "text-foreground/70 hover:text-foreground cursor-pointer"
-                                }`}
-                        >
-                            Tốc độ gõ
-                        </button>
+                                    }`}
+                            >
+                                Tốc độ gõ
+                            </button>
+                        </div>
                     </div>
                     <div className="w-full flex justify-center">
                         <div className="bg-secondary p-2 rounded-md w-fit">
@@ -132,21 +143,30 @@ const KeyboardChart: React.FC<KeyboardChartProps> = ({
                                 </div>
                                 <div className={`flex`}>
                                     {functionKey('Tab', [], 'small', 'w-2/17' + getColorClass('\t'))}
-                                    {TopRowKeys.map((key) => letterKey(key, [], 'small', 'w-1/17' + getColorClass(key)))}
+                                    {isUpperCase
+                                        ? TopRowKeys.map((key) => letterKey(key.toUpperCase(), [], 'small', 'w-1/17' + getColorClass(key.toUpperCase())))
+                                        : TopRowKeys.map((key) => letterKey(key.toLowerCase(), [], 'small', 'w-1/17' + getColorClass(key.toLowerCase())))
+                                    }
                                     {twoCharacterKey(['{', '['], [], 'small', 'w-1/17' + getColorClass('['))}
                                     {twoCharacterKey(['}', ']'], [], 'small', 'w-1/17' + getColorClass(']'))}
                                     {twoCharacterKey(['|', '\\'], [], 'small', 'w-3/17' + getColorClass('\\'))}
                                 </div>
                                 <div className={`flex`}>
                                     {functionKey('Caps Lock', [], 'small', 'w-4/19')}
-                                    {HomeRowKeys.map((key) => letterKey(key, [], 'small', 'w-1/19' + getColorClass(key)))}
+                                    {isUpperCase
+                                        ? HomeRowKeys.map((key) => letterKey(key.toUpperCase(), [], 'small', 'w-1/19' + getColorClass(key.toUpperCase())))
+                                        : HomeRowKeys.map((key) => letterKey(key.toLowerCase(), [], 'small', 'w-1/19' + getColorClass(key.toLowerCase())))
+                                    }
                                     {twoCharacterKey([':', ';'], [], 'small', 'w-1/19' + getColorClass(';'))}
                                     {twoCharacterKey(['"', "'"], [], 'small', 'w-1/19' + getColorClass("'"))}
                                     {functionKey('Enter', [], 'small', 'w-6/19' + getColorClass('\n'))}
                                 </div>
                                 <div className={`flex`}>
                                     {functionKey('LShift', [], 'small', 'w-4/22')}
-                                    {BottomRowKeys.map((key) => letterKey(key, [], 'small', 'w-1/19' + getColorClass(key)))}
+                                    {isUpperCase
+                                        ? BottomRowKeys.map((key) => letterKey(key.toUpperCase(), [], 'small', 'w-1/19' + getColorClass(key.toUpperCase())))
+                                        : BottomRowKeys.map((key) => letterKey(key.toLowerCase(), [], 'small', 'w-1/19' + getColorClass(key.toLowerCase())))
+                                    }
                                     {twoCharacterKey(['<', ','], [], 'small', 'w-1/19' + getColorClass(','))}
                                     {twoCharacterKey(['>', '.'], [], 'small', 'w-1/19' + getColorClass('.'))}
                                     {twoCharacterKey(['?', '/'], [], 'small', 'w-1/19' + getColorClass('/'))}

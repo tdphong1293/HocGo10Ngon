@@ -63,4 +63,15 @@ export class StatController {
         const thisWeekData = await this.statService.getUserThisWeekSessionAttempts(sub);
         return { ...todayData, ...thisWeekData };
     }
+
+    @Get("keytype")
+    async getUserKeyTypeLatency(@Req() req: AuthenticatedRequest) {
+        const { sub } = req.user;
+        const keyTypeLatency = await this.statService.getUserKeyTypeLatency(sub);
+        const returnData: Record<string, { avgLatency: number }> = {};
+        for (const [keyType, { avgLatency }] of Object.entries(keyTypeLatency)) {
+            returnData[keyType] = { ...returnData[keyType], avgLatency };
+        }
+        return returnData;
+    }
 }
