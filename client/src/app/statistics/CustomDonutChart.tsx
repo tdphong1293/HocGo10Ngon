@@ -31,7 +31,7 @@ const CustomDonutChart: React.FC<CustomDonutChartProps> = ({
                             className="flex flex-col items-center"
                             key={"donut_" + item.goalText + "_" + item.progressText + "_" + index}
                         >
-                            <div className="text-center max-w-40 text-foreground">
+                            <div className="text-center max-w-40 text-card-foreground">
                                 {item.progressText}
                             </div>
                             <div className="w-40 h-40 flex items-center justify-center relative">
@@ -66,13 +66,13 @@ const CustomDonutChart: React.FC<CustomDonutChartProps> = ({
                                     />
                                 </svg>
 
-                                <div className="flex flex-col text-foreground z-10">
+                                <div className="flex flex-col text-card-foreground z-10">
                                     <div className="text-lg text-center">Mục tiêu:</div>
                                     <div className="text-2xl font-bold text-center">{item.goalText}</div>
                                 </div>
                             </div>
                             {item.extraText && (
-                                <div className="text-md text-center max-w-40 text-foreground">
+                                <div className="text-md text-center max-w-40 text-card-foreground">
                                     {item.extraText}
                                 </div>
                             )}
