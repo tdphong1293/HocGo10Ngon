@@ -1,6 +1,8 @@
 'use client';
 
 import KeyboardChart from "./KeyboardChart";
+import CustomHorizontalBarChart from "./CustomHorizontalBarChart";
+import CustomDonutChart from "./CustomDonutChart";
 
 const StatisticsPage = () => {
     const keysData = [
@@ -20,11 +22,57 @@ const StatisticsPage = () => {
         { key: 'l', accuracy: 0.68, avgLatency: 170 },
     ]
 
+    const barsData = [
+        { name: "current speed", value: 200, postText: "ms" },
+        { name: "average speed", value: 180, postText: "ms" },
+        { name: "best speed", value: 220, postText: "ms" },
+    ]
+
+    const donutsData = [
+        {
+            goalText: "15 phút",
+            goalValue: 15,
+            progressText: "9 phút",
+            progressValue: 9,
+            extraText: "Hôm nay"
+        },
+        {
+            goalText: "30 phút",
+            goalValue: 30,
+            progressText: "20 phút",
+            progressValue: 20,
+            extraText: "Tuần này"
+        },
+        {
+            goalText: "45 phút",
+            goalValue: 45,
+            progressText: "30 phút",
+            progressValue: 30,
+            extraText: "Tuần trước"
+        },
+        {
+            goalText: "60 phút",
+            goalValue: 60,
+            progressText: "45 phút",
+            progressValue: 45,
+            extraText: "Tháng này"
+        },
+        {
+            goalText: "120 phút",
+            goalValue: 120,
+            progressText: "90 phút",
+            progressValue: 90,
+            extraText: "Tháng trước"
+        }
+    ]
+
     return (
-        <div>
+        <div className="p-4 flex flex-col gap-5 max-w-5xl mx-auto">
             <h1>Statistics Page</h1>
             <p>This is the statistics page.</p>
-            <KeyboardChart keysData={keysData}/>
+            <CustomHorizontalBarChart chartName="Tốc độ gõ theo thời gian" chartData={barsData} />
+            <KeyboardChart keysData={keysData} />
+            <CustomDonutChart chartName="Tiến độ mục tiêu" chartData={donutsData} />
         </div>
     )
 };

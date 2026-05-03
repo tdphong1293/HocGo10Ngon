@@ -69,29 +69,29 @@ const KeyboardChart: React.FC<KeyboardChartProps> = ({
     };
 
     return (
-        <div className="flex flex-col gap-2 bg-card border border-border rounded p-4">
+        <div className="flex flex-col gap-2 bg-card border-2 border-border p-4 min-w-fit">
             <div className="text-2xl">Độ thành thạo bàn phím</div>
-            <div className="flex gap-2">
-                <div className="flex flex-col gap-2 w-1/3">
+            <div className="flex flex-col md:flex-row gap-2">
+                <div className="flex flex-col gap-2 md:w-1/3">
                     <div>
                         Bàn phím được tô màu thể hiện độ thành thạo của bạn với từng phím, dựa trên độ chính xác hoặc tốc độ gõ của bạn.
                     </div>
-                    <div className="flex gap-0.5">
+                    <div className="flex gap-1">
                         <Tooltip text="Không có dữ liệu">
-                            <div className="w-8 h-8 border border-border rounded-md"></div>
+                            <div className="w-8 h-8 border-2 border-border rounded-md"></div>
                         </Tooltip>
                         <Tooltip text={chartMode === "accuracy" ? "Độ chính xác < 70%" : "Tốc độ > 200ms"}>
-                            <div className="w-8 h-8 border border-border rounded-md bg-incorrect/75"></div>
+                            <div className="w-8 h-8 border-2 border-border rounded-md bg-incorrect/75"></div>
                         </Tooltip>
                         <Tooltip text={chartMode === "accuracy" ? "Độ chính xác >= 70% và < 90%" : "Tốc độ > 100ms và <= 200ms"}>
-                            <div className="w-8 h-8 border border-border rounded-md bg-untyped/75"></div>
+                            <div className="w-8 h-8 border-2 border-border rounded-md bg-untyped/75"></div>
                         </Tooltip>
                         <Tooltip text={chartMode === "accuracy" ? "Độ chính xác >= 90%" : "Tốc độ <= 100ms"}>
-                            <div className="w-8 h-8 border border-border rounded-md bg-correct/75"></div>
+                            <div className="w-8 h-8 border-2 border-border rounded-md bg-correct/75"></div>
                         </Tooltip>
                     </div>
                 </div>
-                <div className="flex flex-col gap-2 w-2/3 items-end">
+                <div className="flex flex-col gap-2 min-w-fit md:w-2/3 items-end">
                     <div className="flex gap-10">
                         <div className="flex gap-2 items-center">
                             <span>Chữ {isUpperCase ? 'hoa' : 'thường'}</span>

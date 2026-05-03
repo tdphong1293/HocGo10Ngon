@@ -25,7 +25,6 @@ export class StatService {
 
     async getUserActiveWebtime(userid: string) {
         const now = new Date();
-
         const startOfDay = new Date(now);
         startOfDay.setHours(0, 0, 0, 0);
         const endOfDay = new Date(now);
@@ -186,6 +185,89 @@ export class StatService {
             }
         ]);
         return stats[0] || { avgCPM: 0, bestCPM: 0, avgWPM: 0, bestWPM: 0, avgAccuracy: 0 };
+    }
+
+    async getUserTypingStatsByTime(userid: string) {
+        const now = new Date();
+
+        const thisWeekStart = new Date(now);
+        const day = thisWeekStart.getDay();
+        const diff = (day === 0 ? 6 : day - 1);
+        thisWeekStart.setDate(thisWeekStart.getDate() - diff);
+        thisWeekStart.setHours(0, 0, 0, 0);
+
+        const lastWeekStart = new Date(thisWeekStart);
+        lastWeekStart.setDate(lastWeekStart.getDate() - 7);
+        const lastWeekEnd = new Date(thisWeekStart);
+        lastWeekEnd.setDate(lastWeekEnd.getDate() - 1);
+        lastWeekEnd.setHours(23, 59, 59, 999);
+
+        const lastMonthStart = new Date(now);
+        lastMonthStart.setDate(1);
+        lastMonthStart.setMonth(lastMonthStart.getMonth() - 1);
+        lastMonthStart.setHours(0, 0, 0, 0);
+        const lastMonthEnd = new Date(now);
+        lastMonthEnd.setDate(0);
+        lastMonthEnd.setHours(23, 59, 59, 999);
+
+        const stats = await this.sessionModel.aggregate([
+            {
+                $match: {
+                    userid,
+                    accuracy: { $gte: 80 },
+                    WPM: { $gte: 20 },
+                    CPM: { $gte: 100 },
+                },
+            },
+            {
+                $facet: {
+                    current: [
+                        {
+                            $group: {
+                                _id: null,
+                                avgCPM: { $avg: "$CPM" },
+                                avgWPM: { $avg: "$WPM" },
+                            }
+                        }
+                    ],
+                    last_week: [
+                        {
+                            $match: {
+                                createdAt: { $gte: lastWeekStart, $lte: lastWeekEnd },
+                            },
+                        },
+                        {
+                            $group: {
+                                _id: null,
+                                avgCPM: { $avg: "$CPM" },
+                                avgWPM: { $avg: "$WPM" },
+                            }
+                        }
+                    ],
+                    last_month: [
+                        {
+                            $match: {
+                                createdAt: { $gte: lastMonthStart, $lte: lastMonthEnd },
+                            },
+                        },
+                        {
+                            $group: {
+                                _id: null,
+                                avgCPM: { $avg: "$CPM" },
+                                avgWPM: { $avg: "$WPM" },
+                            }
+                        }
+                    ]
+                }
+            }
+        ]);
+        
+        const result = stats[0] || { current: [], last_week: [], last_month: [] };
+        return {
+            current: result.current[0] || { avgCPM: 0, avgWPM: 0 },
+            last_week: result.last_week[0] || { avgCPM: 0, avgWPM: 0 },
+            last_month: result.last_month[0] || { avgCPM: 0, avgWPM: 0 },
+        };
     }
 
     async getUserKeyAccuracy(userid: string) {

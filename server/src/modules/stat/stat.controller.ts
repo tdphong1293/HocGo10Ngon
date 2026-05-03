@@ -1,4 +1,4 @@
-import { Controller, Get, Req} from '@nestjs/common';
+import { Controller, Get, Req } from '@nestjs/common';
 import { StatService } from './stat.service';
 import type { AuthenticatedRequest } from '../auth/auth.guard';
 
@@ -73,5 +73,11 @@ export class StatController {
             returnData[keyType] = { ...returnData[keyType], avgLatency };
         }
         return returnData;
+    }
+
+    @Get("stat-by-time")
+    async getUserTypingStatsByTime(@Req() req: AuthenticatedRequest) {
+        const { sub } = req.user;
+        return await this.statService.getUserTypingStatsByTime(sub);
     }
 }
