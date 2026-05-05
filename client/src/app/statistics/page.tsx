@@ -3,6 +3,8 @@
 import KeyboardChart from "./KeyboardChart";
 import CustomHorizontalBarChart from "./CustomHorizontalBarChart";
 import CustomDonutChart from "./CustomDonutChart";
+import GeneralStat from "./GeneralStat";
+import ActiveWebtimePieChart from "./ActiveWebtimePieChart";
 
 const StatisticsPage = () => {
     const keysData = [
@@ -66,13 +68,45 @@ const StatisticsPage = () => {
         }
     ]
 
+    const generalStatData = {
+        totalTime: 120,
+        bestWPM: 80,
+        avgWPM: 60,
+        bestCPM: 400,
+        avgCPM: 300,
+        avgAccuracy: 95,
+    }
+
+    const activeWebtimeData = {
+        day: {
+            value: [
+                { name: 'Success', value: 1000 },
+                { name: 'Failed', value: 20 },
+            ],
+        },
+        week: {
+            value: [
+                { name: 'Success', value: 5000 },
+                { name: 'Failed', value: 100 },
+            ],
+        },
+        month: {
+            value: [
+                { name: 'Success', value: 20000 },
+                { name: 'Failed', value: 500 },
+            ],
+        }
+    };
+
     return (
         <div className="p-4 flex flex-col gap-5 max-w-5xl mx-auto">
             <h1>Statistics Page</h1>
             <p>This is the statistics page.</p>
+            <GeneralStat chartData={generalStatData} />
             <CustomHorizontalBarChart chartName="Tốc độ gõ theo thời gian" chartData={barsData} />
             <KeyboardChart keysData={keysData} />
             <CustomDonutChart chartName="Tiến độ mục tiêu" chartData={donutsData} />
+            <ActiveWebtimePieChart chartData={activeWebtimeData} />
         </div>
     )
 };

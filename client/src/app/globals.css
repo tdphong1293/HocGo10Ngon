@@ -89,3 +89,11 @@ body {
 		color: var(--untyped);
 	}
 }
+
+@keyframes draw-line {
+  to { stroke-dashoffset: 0; }
+}
+
+@keyframes fade-in {
+	to { opacity: 1; }
+}
