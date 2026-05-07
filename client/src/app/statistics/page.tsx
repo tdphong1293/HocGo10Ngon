@@ -5,6 +5,7 @@ import CustomHorizontalBarChart from "./CustomHorizontalBarChart";
 import CustomDonutChart from "./CustomDonutChart";
 import GeneralStat from "./GeneralStat";
 import ActiveWebtimePieChart from "./ActiveWebtimePieChart";
+import TypingHandSVG from "@/components/Hands";
 
 const StatisticsPage = () => {
     const keysData = [
@@ -98,6 +99,18 @@ const StatisticsPage = () => {
         }
     };
 
+    const fingerStats = {
+        left_pinky: { accuracy: 91, avgLatency: 220 },
+        left_ring: { accuracy: 90, avgLatency: 205 },
+        left_middle: { accuracy: 94, avgLatency: 180 },
+        left_index: { accuracy: 95, avgLatency: 170 },
+        right_index: { accuracy: 95, avgLatency: 165 },
+        right_middle: { accuracy: 94, avgLatency: 175 },
+        right_ring: { accuracy: 90, avgLatency: 210 },
+        right_pinky: { accuracy: 89, avgLatency: 225 },
+        thumb: { accuracy: 96, avgLatency: 150 },
+    };
+
     return (
         <div className="p-4 flex flex-col gap-5 max-w-5xl mx-auto">
             <h1>Statistics Page</h1>
@@ -107,6 +120,33 @@ const StatisticsPage = () => {
             <KeyboardChart keysData={keysData} />
             <CustomDonutChart chartName="Tiến độ mục tiêu" chartData={donutsData} />
             <ActiveWebtimePieChart chartData={activeWebtimeData} />
+            <div className="flex gap-8">
+                <TypingHandSVG
+                    side="left"
+                    colors={{
+                        thumb: "#f59e0b",
+                        index: "#93c5fd",
+                        middle: "#3b82f6",
+                        ring: "#60a5fa",
+                        pinky: "#bfdbfe",
+                        palm: "#9ec5f8",
+                    }}
+                    stats={fingerStats}
+                />
+
+                <TypingHandSVG
+                    side="right"
+                    colors={{
+                        thumb: "#f59e0b",
+                        index: "#93c5fd",
+                        middle: "#3b82f6",
+                        ring: "#60a5fa",
+                        pinky: "#bfdbfe",
+                        palm: "#9ec5f8",
+                    }}
+                    stats={fingerStats}
+                />
+            </div>
         </div>
     )
 };
