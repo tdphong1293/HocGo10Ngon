@@ -53,16 +53,16 @@ const KeyboardChart: React.FC<KeyboardChartProps> = ({
 
         if (chartMode === "accuracy") {
             const { accuracy } = keyData;
-            if (accuracy >= 0.9) return ' bg-correct/75';
-            if (accuracy >= 0.7) return ' bg-untyped/75';
-            return ' bg-incorrect/75';
+            if (accuracy >= 0.9) return ' bg-primary-700/80';
+            if (accuracy >= 0.7) return ' bg-primary-500';
+            return ' bg-primary-200';
         }
 
         if (chartMode === "speed") {
             const { avgLatency } = keyData;
-            if (avgLatency <= 100) return ' bg-correct/75';
-            if (avgLatency <= 200) return ' bg-untyped/75';
-            return ' bg-incorrect/75';
+            if (avgLatency <= 100) return ' bg-primary-700/80';
+            if (avgLatency <= 200) return ' bg-primary-500';
+            return ' bg-primary-200';
         }
 
         return '';
@@ -81,13 +81,13 @@ const KeyboardChart: React.FC<KeyboardChartProps> = ({
                             <div className="w-8 h-8 border-2 border-border rounded-md"></div>
                         </Tooltip>
                         <Tooltip text={chartMode === "accuracy" ? "Độ chính xác < 70%" : "Tốc độ > 200ms"}>
-                            <div className="w-8 h-8 border-2 border-border rounded-md bg-incorrect/75"></div>
+                            <div className="w-8 h-8 border-2 border-border rounded-md bg-primary-200"></div>
                         </Tooltip>
                         <Tooltip text={chartMode === "accuracy" ? "Độ chính xác >= 70% và < 90%" : "Tốc độ > 100ms và <= 200ms"}>
-                            <div className="w-8 h-8 border-2 border-border rounded-md bg-untyped/75"></div>
+                            <div className="w-8 h-8 border-2 border-border rounded-md bg-primary-500"></div>
                         </Tooltip>
                         <Tooltip text={chartMode === "accuracy" ? "Độ chính xác >= 90%" : "Tốc độ <= 100ms"}>
-                            <div className="w-8 h-8 border-2 border-border rounded-md bg-correct/75"></div>
+                            <div className="w-8 h-8 border-2 border-border rounded-md bg-primary-700/80"></div>
                         </Tooltip>
                     </div>
                 </div>

@@ -19,6 +19,10 @@ const themes: { value: Theme; label: string; description: string }[] = [
     { value: 'peach', label: 'Peach', description: 'Soft warm peach' },
     { value: 'berry', label: 'Berry', description: 'Vibrant berry tones' },
     { value: 'charcoal', label: 'Charcoal', description: 'Dark neutral slate' },
+    { value: 'cobalt', label: 'Cobalt', description: 'Bright cobalt blue' },
+    { value: 'sand', label: 'Sand', description: 'Light sandy beige' },
+    { value: 'mint', label: 'Mint', description: 'Fresh minty green' },
+    { value: 'ink', label: 'Ink', description: 'Dark ink black' },
 ];
 
 const fonts: { value: Font; label: string; description: string; sample: string }[] = [

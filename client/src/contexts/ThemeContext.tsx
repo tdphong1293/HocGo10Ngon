@@ -4,7 +4,7 @@ import React, { createContext, useContext, useEffect, useState } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 
 // Các loại theme và font được hỗ trợ
-export type Theme = 'light' | 'dark' | 'ocean' | 'forest' | 'sunset' | 'lavender' | 'crimson' | 'midnight' | 'sage' | 'solar' | 'peach' | 'berry' | 'charcoal';
+export type Theme = 'light' | 'dark' | 'ocean' | 'forest' | 'sunset' | 'lavender' | 'crimson' | 'midnight' | 'sage' | 'solar' | 'peach' | 'berry' | 'charcoal' | 'cobalt' | 'sand' | 'mint' | 'ink';
 export type Font = 'geist' | 'inter' | 'roboto' | 'poppins' | 'openSans' | 'sourceCodePro' | 'comfortaa' | 'patrickHand' | 'spaceMono' | 'paytoneOne' | 'righteous' | 'lato' | 'merriweather' | 'nunito' | 'ubuntu' | 'playfairDisplay' | 'workSans' | 'monoton';
 
 interface ThemeContextType {

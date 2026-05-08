@@ -20,7 +20,7 @@ const createLabelRenderer = (data: { name: string; value: number }[]) => {
         const { value, index, midAngle = 0, outerRadius, cx, cy } = props;
         const dataEntry = data[index];
         const name = dataEntry?.name || '';
-        const color = index % 2 === 0 ? "var(--chart-wpm)" : "var(--chart-error)";
+        const color = index % 2 === 0 ? "var(--primary)" : "var(--destructive)";
         const RADIAN = Math.PI / 180;
         const isRight = Math.cos(-midAngle * RADIAN) >= 0;
         const textAnchor = isRight ? 'start' : 'end';
@@ -150,7 +150,7 @@ const ActiveWebtimePieChart: React.FC<ActiveWebtimePieChartProps> = ({
                         labelLine={false}
                     >
                         {chartData[chartMode]?.value.map((entry, index) => (
-                            <Cell key={`cell-${index}`} fill={index % 2 === 0 ? "var(--chart-wpm)" : "var(--chart-error)"} />
+                            <Cell key={`cell-${index}`} fill={index % 2 === 0 ? "var(--primary)" : "var(--destructive)"} />
                         ))}
                     </Pie>
                     <Label

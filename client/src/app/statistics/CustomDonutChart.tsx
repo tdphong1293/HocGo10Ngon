@@ -43,7 +43,7 @@ const CustomDonutChart: React.FC<CustomDonutChartProps> = ({
                                     // Vòng tròn nền
                                     <circle
                                         stroke="currentColor"
-                                        className="text-primary/30"
+                                        className="text-primary-200"
                                         fill="transparent"
                                         strokeWidth={stroke}
                                         r={normalizedRadius}
