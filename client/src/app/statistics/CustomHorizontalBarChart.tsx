@@ -23,9 +23,9 @@ const CustomHorizontalBarChart: React.FC<CustomHorizontalBarChartProps> = ({
                         className="flex justify-between bg-secondary p-2 relative"
                     >
                         <div className="z-10">{item.name}</div>
-                        <div className="z-10">{item.value} {item.postText}</div>
+                        <div className="z-10">{item.value}{item.postText}</div>
                         <div
-                            className="absolute left-0 top-0 h-full bg-primary/50"
+                            className="absolute left-0 top-0 h-full bg-primary-400"
                             style={{ width: `${(item.value / maxValue) * 100}%` }}
                         />
                     </div>

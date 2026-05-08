@@ -1,6 +1,6 @@
 import { useId, useState } from "react";
 
-type FingerId =
+export type FingerId =
     | "left_pinky"
     | "left_ring"
     | "left_middle"
@@ -11,7 +11,7 @@ type FingerId =
     | "right_pinky"
     | "thumb";
 
-type FingerStat = {
+export type FingerStat = {
     accuracy: number;
     avgLatency: number;
 };
@@ -29,17 +29,17 @@ interface HandProps {
     stats?: Partial<Record<FingerId, FingerStat>>;
 }
 
-export default function TypingHandSVG({
+const Hands: React.FC<HandProps> = ({
     side = "left",
     colors = {},
     stats,
-}: HandProps) {
+}) => {
     const {
-        palm = "#9ec5f8",
-        index = "#76aef5",
-        middle = "#3b82f6",
-        ring = "#76aef5",
-        pinky = "#b8d4fb",
+        palm = "var(--primary-200)",
+        index = "var(--primary-500)",
+        middle = "var(--primary-500)",
+        ring = "var(--primary-500)",
+        pinky = "var(--primary-500)",
     } = colors;
 
     const clipPathId = useId();
@@ -53,22 +53,20 @@ export default function TypingHandSVG({
             : undefined;
 
     const fingerLabels: Record<FingerId, string> = {
-        left_pinky: "Left Pinky",
-        left_ring: "Left Ring",
-        left_middle: "Left Middle",
-        left_index: "Left Index",
-        right_index: "Right Index",
-        right_middle: "Right Middle",
-        right_ring: "Right Ring",
-        right_pinky: "Right Pinky",
-        thumb: "Thumbs",
+        left_pinky: "Ngón út trái",
+        left_ring: "Ngón áp út trái",
+        left_middle: "Ngón giữa trái",
+        left_index: "Ngón trỏ trái",
+        right_index: "Ngón trỏ phải",
+        right_middle: "Ngón giữa phải",
+        right_ring: "Ngón áp út phải",
+        right_pinky: "Ngón út phải",
+        thumb: "Ngón cái",
     };
 
     const currentStat = hoveredFinger ? stats?.[hoveredFinger] : undefined;
     const accuracyValue = currentStat
-        ? currentStat.accuracy <= 1
-            ? Math.round(currentStat.accuracy * 100)
-            : Math.round(currentStat.accuracy)
+        ? Math.round(currentStat.accuracy)
         : undefined;
     const latencyValue = currentStat
         ? Math.round(currentStat.avgLatency)
@@ -79,12 +77,12 @@ export default function TypingHandSVG({
         transition: "opacity 120ms ease",
         opacity:
             hoveredFinger && hoveredFinger !== fingerId
-                ? 0.5
+                ? 0
                 : 1,
     });
 
     return (
-        <div className="flex flex-col items-center">
+        <div className="flex flex-col gap-1 items-center">
             <svg
                 width="220"
                 height="220"
@@ -181,8 +179,10 @@ export default function TypingHandSVG({
                     </g>
                 </g>
             </svg>
-            <div className="mt-2 w-full text-sm">
-                <div className="flex min-h-10 items-center justify-between rounded-md border border-slate-200 bg-white px-3 py-2 shadow-sm">
+            <div className="w-full text-sm">
+                <div
+                    className="flex min-h-10 min-w-60 items-center justify-between rounded-md border border-slate-200 bg-white px-3 py-2 shadow-sm"
+                >
                     <span
                         className={
                             hoveredFinger
@@ -192,7 +192,7 @@ export default function TypingHandSVG({
                     >
                         {hoveredFinger
                             ? fingerLabels[hoveredFinger]
-                            : "Hover a finger"}
+                            : "Trỏ vào ngón tay"}
                     </span>
                     <div
                         className={
@@ -214,3 +214,5 @@ export default function TypingHandSVG({
         </div>
     );
 }
+
+export default Hands;

@@ -5,7 +5,7 @@ import CustomHorizontalBarChart from "./CustomHorizontalBarChart";
 import CustomDonutChart from "./CustomDonutChart";
 import GeneralStat from "./GeneralStat";
 import ActiveWebtimePieChart from "./ActiveWebtimePieChart";
-import TypingHandSVG from "@/components/Hands";
+import HandsChart from "./HandsChart";
 
 const StatisticsPage = () => {
     const keysData = [
@@ -120,33 +120,7 @@ const StatisticsPage = () => {
             <KeyboardChart keysData={keysData} />
             <CustomDonutChart chartName="Tiến độ mục tiêu" chartData={donutsData} />
             <ActiveWebtimePieChart chartData={activeWebtimeData} />
-            <div className="flex gap-8">
-                <TypingHandSVG
-                    side="left"
-                    colors={{
-                        thumb: "#f59e0b",
-                        index: "#93c5fd",
-                        middle: "#3b82f6",
-                        ring: "#60a5fa",
-                        pinky: "#bfdbfe",
-                        palm: "#9ec5f8",
-                    }}
-                    stats={fingerStats}
-                />
-
-                <TypingHandSVG
-                    side="right"
-                    colors={{
-                        thumb: "#f59e0b",
-                        index: "#93c5fd",
-                        middle: "#3b82f6",
-                        ring: "#60a5fa",
-                        pinky: "#bfdbfe",
-                        palm: "#9ec5f8",
-                    }}
-                    stats={fingerStats}
-                />
-            </div>
+            <HandsChart fingersData={fingerStats} />
         </div>
     )
 };
