@@ -26,9 +26,16 @@ const StatisticsPage = () => {
     ]
 
     const barsData = [
-        { name: "current speed", value: 200, postText: "ms" },
-        { name: "average speed", value: 180, postText: "ms" },
-        { name: "best speed", value: 220, postText: "ms" },
+        { name: "Hiện tại", value: 200, postText: "wpm" },
+        { name: "Tuần trước", value: 180, postText: "wpm" },
+        { name: "Tháng trước", value: 220, postText: "wpm" },
+    ]
+
+    const barsData2 = [
+        { name: "Chữ thường", value: 200, postText: "wpm" },
+        { name: "Số", value: 180, postText: "wpm" },
+        { name: "Ký tự đặc biệt", value: 220, postText: "wpm" },
+        { name: "Chữ hoa", value: 190, postText: "wpm" },
     ]
 
     const donutsData = [
@@ -78,6 +85,11 @@ const StatisticsPage = () => {
         avgAccuracy: 95,
     }
 
+    const sessionAttemptsData = {
+        today: 60,
+        thisWeek: 300,
+    }
+
     const activeWebtimeData = {
         day: {
             value: [
@@ -117,6 +129,8 @@ const StatisticsPage = () => {
             <p>This is the statistics page.</p>
             <GeneralStat chartData={generalStatData} />
             <CustomHorizontalBarChart chartName="Tốc độ gõ theo thời gian" chartData={barsData} />
+            <GeneralStat chartData={generalStatData} />
+            <CustomHorizontalBarChart chartName="Tốc độ gõ theo từng loại ký tự" chartData={barsData2} />
             <KeyboardChart keysData={keysData} />
             <CustomDonutChart chartName="Tiến độ mục tiêu" chartData={donutsData} />
             <ActiveWebtimePieChart chartData={activeWebtimeData} />
