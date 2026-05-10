@@ -6,6 +6,7 @@ import CustomDonutChart from "./CustomDonutChart";
 import GeneralStat from "./GeneralStat";
 import ActiveWebtimePieChart from "./ActiveWebtimePieChart";
 import HandsChart from "./HandsChart";
+import SessionAttempts from "./SessionAttempts";
 
 const StatisticsPage = () => {
     const keysData = [
@@ -86,27 +87,28 @@ const StatisticsPage = () => {
     }
 
     const sessionAttemptsData = {
-        today: 60,
-        thisWeek: 300,
+        today: [1, 1, 0, 1, 0, 1, 1, 0, 0, 1, 0, 1, 0, 0, 0],
+        thisWeek: [1, 0, 1, 1, 0, 1, 0, 1, 1, 0, 0, 1, 0, 1, 0, 1, 0, 0, 1, 0, 1, 0, 1, 0, 0],
     }
+
 
     const activeWebtimeData = {
         day: {
             value: [
-                { name: 'Success', value: 1000 },
-                { name: 'Failed', value: 20 },
+                { name: 'Thành công', value: 1000 },
+                { name: 'Thất bại', value: 20 },
             ],
         },
         week: {
             value: [
-                { name: 'Success', value: 5000 },
-                { name: 'Failed', value: 100 },
+                { name: 'Thành công', value: 5000 },
+                { name: 'Thất bại', value: 100 },
             ],
         },
         month: {
             value: [
-                { name: 'Success', value: 20000 },
-                { name: 'Failed', value: 500 },
+                { name: 'Thành công', value: 20000 },
+                { name: 'Thất bại', value: 500 },
             ],
         }
     };
@@ -129,7 +131,7 @@ const StatisticsPage = () => {
             <p>This is the statistics page.</p>
             <GeneralStat chartData={generalStatData} />
             <CustomHorizontalBarChart chartName="Tốc độ gõ theo thời gian" chartData={barsData} />
-            <GeneralStat chartData={generalStatData} />
+            <SessionAttempts sessionAttempts={sessionAttemptsData} />
             <CustomHorizontalBarChart chartName="Tốc độ gõ theo từng loại ký tự" chartData={barsData2} />
             <KeyboardChart keysData={keysData} />
             <CustomDonutChart chartName="Tiến độ mục tiêu" chartData={donutsData} />

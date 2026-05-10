@@ -16,7 +16,7 @@ const GeneralStat: React.FC<GeneralStatProps> = ({
 }) => {
     return (
         <div className="flex flex-col gap-2 bg-card border-2 border-border p-2 ">
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-1 md:gap-px bg-border text-card-foreground">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-px bg-border text-card-foreground">
                 <div className="bg-card text-center p-2 flex flex-col justify-center gap-1">
                     <span className="text-sm">
                         Tổng thời gian luyện tập

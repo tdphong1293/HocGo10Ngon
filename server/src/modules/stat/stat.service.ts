@@ -261,7 +261,7 @@ export class StatService {
                 }
             }
         ]);
-        
+
         const result = stats[0] || { current: [], last_week: [], last_month: [] };
         return {
             current: result.current[0] || { avgCPM: 0, avgWPM: 0 },
@@ -478,57 +478,38 @@ export class StatService {
         const endOfDay = new Date(now);
         endOfDay.setHours(23, 59, 59, 999);
 
-        const sessionCount = await this.sessionModel.aggregate([
+        const sessionAttempts = await this.sessionModel.aggregate([
             {
-                $match: { userid },
+                $match: {
+                    userid,
+                    createdAt: { $gte: startOfDay, $lte: endOfDay },
+                },
             },
             {
-                $group: {
-                    _id: null,
-                    today_success_attempts: {
-                        $sum: {
-                            $cond: [
-                                {
-                                    $and: [
-                                        { $gte: ["$createdAt", startOfDay] },
-                                        { $lte: ["$createdAt", endOfDay] },
-                                        { $gte: ["$accuracy", 80] },
-                                        { $gte: ["$WPM", 20] },
-                                        { $gte: ["$CPM", 100] }
-                                    ]
-                                },
-                                1,
-                                0
-                            ]
-                        }
+                $project: {
+                    _id: 0,
+                    createdAt: 1,
+                    isSuccess: {
+                        $cond: [
+                            {
+                                $and: [
+                                    { $gte: ["$accuracy", 80] },
+                                    { $gte: ["$WPM", 20] },
+                                    { $gte: ["$CPM", 100] }
+                                ]
+                            },
+                            1,
+                            0
+                        ]
                     },
-
-                    today_failed_attempts: {
-                        $sum: {
-                            $cond: [
-                                {
-                                    $and: [
-                                        { $gte: ["$createdAt", startOfDay] },
-                                        { $lte: ["$createdAt", endOfDay] },
-                                        {
-                                            $or: [
-                                                { $lt: ["$accuracy", 80] },
-                                                { $lt: ["$WPM", 20] },
-                                                { $lt: ["$CPM", 100] }
-                                            ]
-                                        }
-                                    ]
-                                },
-                                1,
-                                0
-                            ]
-                        }
-                    },
-                }
-            }
+                },
+            },
+            {
+                $sort: { createdAt: 1 },
+            },
         ]);
 
-        return sessionCount[0] || { today_success_attempts: 0, today_failed_attempts: 0 };
+        return sessionAttempts.map((attempt) => attempt.isSuccess);
     }
 
     async getUserThisWeekSessionAttempts(userid: string) {
@@ -542,57 +523,38 @@ export class StatService {
         endOfWeek.setDate(endOfWeek.getDate() + 6);
         endOfWeek.setHours(23, 59, 59, 999);
 
-        const sessionCount = await this.sessionModel.aggregate([
+        const sessionAttempts = await this.sessionModel.aggregate([
             {
-                $match: { userid },
+                $match: {
+                    userid,
+                    createdAt: { $gte: startOfWeek, $lte: endOfWeek },
+                },
             },
             {
-                $group: {
-                    _id: null,
-                    this_week_success_attempts: {
-                        $sum: {
-                            $cond: [
-                                {
-                                    $and: [
-                                        { $gte: ["$createdAt", startOfWeek] },
-                                        { $lte: ["$createdAt", endOfWeek] },
-                                        { $gte: ["$accuracy", 80] },
-                                        { $gte: ["$WPM", 20] },
-                                        { $gte: ["$CPM", 100] }
-                                    ]
-                                },
-                                1,
-                                0
-                            ]
-                        }
+                $project: {
+                    _id: 0,
+                    createdAt: 1,
+                    isSuccess: {
+                        $cond: [
+                            {
+                                $and: [
+                                    { $gte: ["$accuracy", 80] },
+                                    { $gte: ["$WPM", 20] },
+                                    { $gte: ["$CPM", 100] }
+                                ]
+                            },
+                            1,
+                            0
+                        ]
                     },
-
-                    this_week_failed_attempts: {
-                        $sum: {
-                            $cond: [
-                                {
-                                    $and: [
-                                        { $gte: ["$createdAt", startOfWeek] },
-                                        { $lte: ["$createdAt", endOfWeek] },
-                                        {
-                                            $or: [
-                                                { $lt: ["$accuracy", 80] },
-                                                { $lt: ["$WPM", 20] },
-                                                { $lt: ["$CPM", 100] }
-                                            ]
-                                        }
-                                    ]
-                                },
-                                1,
-                                0
-                            ]
-                        }
-                    },
-                }
-            }
+                },
+            },
+            {
+                $sort: { createdAt: 1 },
+            },
         ]);
 
-        return sessionCount[0] || { this_week_success_attempts: 0, this_week_failed_attempts: 0 };
+        return sessionAttempts.map((attempt) => attempt.isSuccess);
     }
 
 }

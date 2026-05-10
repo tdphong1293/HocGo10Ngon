@@ -61,7 +61,10 @@ export class StatController {
         const { sub } = req.user;
         const todayData = await this.statService.getUserTodaySessionAttempts(sub);
         const thisWeekData = await this.statService.getUserThisWeekSessionAttempts(sub);
-        return { ...todayData, ...thisWeekData };
+        return {
+            today: todayData,
+            thisWeek: thisWeekData,
+        };
     }
 
     @Get("keytype")
