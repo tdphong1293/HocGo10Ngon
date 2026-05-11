@@ -5,50 +5,45 @@ import { getLessonsByLanguageCode, getLessonsByLanguageAndTitle, getUserLesson }
 import LessonItem from "@/components/LessonItem";
 import { useAuth } from "@/hooks/useAuth";
 import { useTheme } from "@/hooks/useTheme";
-import { useRouter } from 'next/navigation';
 import { toast } from "react-toastify";
 import { motion, AnimatePresence } from "framer-motion";
+import LoadingSpinner from '@/components/LoadingSpinner';
 
 const LessonsPage = () => {
-    const { isAuthenticated, accessToken, user, loading } = useAuth();
+    const { isAuthenticated, accessToken, user, loading, requireAuth } = useAuth();
     const { languageCode } = useTheme();
-    const router = useRouter();
     const isGuest = !isAuthenticated || !accessToken || !user;
+    const [authChecked, setAuthChecked] = useState(false);
 
     const [searchLessonTitle, setSearchLessonTitle] = useState<string>("");
     const [lessons, setLessons] = useState<any[]>([]);
     const [learnedLessons, setLearnedLessons] = useState<Set<string>>(new Set());
 
     useEffect(() => {
-        if (loading) {
-            return;
-        }
-
-        if (isGuest) {
-            router.push('/');
-            toast.info("Vui lòng đăng nhập để truy cập trang này", {
-                toastId: 'lessons-auth-required',
-            });
-        }
-    }, [loading, isGuest, router]);
-
-    const fetchLessons = async (accessToken: string) => {
-        try {
-            const response = await getLessonsByLanguageCode(accessToken, languageCode || "en");
-            if (response.ok) {
-                const { data } = await response.json();
-                setLessons(data);
-            }
-            else {
-                toast.error("Đã có lỗi xảy ra khi tải danh sách bài học");
-            }
-        } catch (error) {
-            toast.error("Đã có lỗi xảy ra khi tải danh sách bài học");
-        }
-    }
+        const checkAuth = async () => {
+            const result = await requireAuth();
+            setAuthChecked(result);
+        };
+        checkAuth();
+    }, []);
 
     useEffect(() => {
-        if (!loading && !isGuest) {
+        if (authChecked && !isGuest && accessToken) {
+            const fetchLessons = async (accessToken: string) => {
+                try {
+                    const response = await getLessonsByLanguageCode(accessToken, languageCode || "en");
+                    if (response.ok) {
+                        const { data } = await response.json();
+                        setLessons(data);
+                    }
+                    else {
+                        toast.error("Đã có lỗi xảy ra khi tải danh sách bài học");
+                    }
+                } catch (error) {
+                    toast.error("Đã có lỗi xảy ra khi tải danh sách bài học");
+                }
+            }
+
             const fetchLessonsByTitle = async () => {
                 try {
                     const response = await getLessonsByLanguageAndTitle(accessToken, languageCode || "en", searchLessonTitle);
@@ -80,10 +75,10 @@ const LessonsPage = () => {
                 }
             };
         }
-    }, [accessToken, loading, isGuest, searchLessonTitle, languageCode]);
+    }, [loading, isGuest, authChecked, searchLessonTitle, languageCode]);
 
     useEffect(() => {
-        if (!loading && !isGuest) {
+        if (authChecked && !isGuest && accessToken) {
             const fetchUserLesson = async () => {
                 try {
                     const response = await getUserLesson(accessToken);
@@ -100,10 +95,18 @@ const LessonsPage = () => {
             }
             fetchUserLesson();
         }
-    }, [accessToken, loading, isGuest, languageCode]);
+    }, [authChecked, loading, isGuest, languageCode]);
 
-    if (!isAuthenticated || !accessToken || !user) {
-        return null;
+    if (loading) {
+        return (
+            <div className="h-full w-full flex justify-center items-center">
+                <LoadingSpinner />
+            </div>
+        );
+    }
+
+    if (isGuest) {
+        return null
     }
 
     return (

@@ -75,6 +75,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
                 // Only redirect if not silent
                 if (!silentFail) {
                     router.push('/authenticate');
+                    toast.info("Vui lòng đăng nhập để truy cập", {
+                        toastId: 'page-auth-required',
+                    });
                 }
                 return false;
             }
@@ -85,6 +88,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             // Only redirect if not silent
             if (!silentFail) {
                 router.push('/authenticate');
+                toast.info("Vui lòng đăng nhập để truy cập", {
+                    toastId: 'page-auth-required',
+                });
             }
             return false;
         } finally {
@@ -93,15 +99,20 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         return false;
     }
 
-    // New method: only redirect when user actually needs auth
+    // Sử dụng cho trang cần xác thực 
     const requireAuth = async (): Promise<boolean> => {
-        // If already authenticated, return true
-        if (isAuthenticated && accessToken) {
+        // Nếu đã xác thực và có token, user thì trả về true
+        if (isAuthenticated && accessToken && user) {
             return true;
         }
 
-        // Try to refresh token
-        const refreshSuccess = await refreshToken(false); // Will redirect on failure
+        // Nếu chưa, thử lấy lại access token mới dựa trên refresh token lưu trong cookies
+        const refreshSuccess = await refreshToken(false);
+        // Trường hợp refresh token không hợp lệ hoặc đã hết hạn
+        // user sẽ được chuyển hướng đến trang đăng nhập tạo refresh token mới
+
+        // Trường hợp lấy được access token mới thành công
+        // user sẽ được cập nhật và trả về true
         return refreshSuccess;
     }
 
