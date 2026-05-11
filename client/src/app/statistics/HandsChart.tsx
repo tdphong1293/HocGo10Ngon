@@ -3,7 +3,7 @@ import type { FingerId, FingerStat } from "@/components/Hands";
 import { useMemo } from "react";
 
 interface HandsChartProps {
-    fingersData: Partial<Record<FingerId, FingerStat>>;
+    fingersData: Partial<Record<FingerId, FingerStat>> | null;
 }
 
 const HandsChart: React.FC<HandsChartProps> = ({
@@ -18,6 +18,8 @@ const HandsChart: React.FC<HandsChartProps> = ({
     let countRight = 0;
 
     const handsData = useMemo(() => {
+        if (!fingersData) return { leftAvgAccuracy: 0, leftAvgLatency: 0, rightAvgAccuracy: 0, rightAvgLatency: 0 };
+
         for (const key in fingersData) {
             if (key.startsWith("left_")) {
                 sumLeftAccuracy += fingersData[key as FingerId]?.accuracy || 0;
@@ -31,9 +33,9 @@ const HandsChart: React.FC<HandsChartProps> = ({
             }
         }
 
-        const leftAvgAccuracy = countLeft > 0 ? Math.round(sumLeftAccuracy / countLeft) : 0;
+        const leftAvgAccuracy = countLeft > 0 ? sumLeftAccuracy / countLeft : 0;
         const leftAvgLatency = countLeft > 0 ? Math.round(sumLeftLatency / countLeft) : 0;
-        const rightAvgAccuracy = countRight > 0 ? Math.round(sumRightAccuracy / countRight) : 0;
+        const rightAvgAccuracy = countRight > 0 ? sumRightAccuracy / countRight : 0;
         const rightAvgLatency = countRight > 0 ? Math.round(sumRightLatency / countRight) : 0;
         return { leftAvgAccuracy, leftAvgLatency, rightAvgAccuracy, rightAvgLatency };
     }, [fingersData]);
@@ -56,7 +58,7 @@ const HandsChart: React.FC<HandsChartProps> = ({
                                     {handsData.leftAvgLatency}ms
                                 </span>
                                 <span>
-                                    {handsData.leftAvgAccuracy}%
+                                    {(handsData.leftAvgAccuracy).toFixed(2)}%
                                 </span>
                             </div>
                         </div>
@@ -67,7 +69,7 @@ const HandsChart: React.FC<HandsChartProps> = ({
                                     {handsData.rightAvgLatency}ms
                                 </span>
                                 <span>
-                                    {handsData.rightAvgAccuracy}%
+                                    {(handsData.rightAvgAccuracy).toFixed(2)}%
                                 </span>
                             </div>
                         </div>
@@ -75,25 +77,32 @@ const HandsChart: React.FC<HandsChartProps> = ({
                             <span>Ngón cái</span>
                             <div className="flex flex-col gap-0.5 text-sm font-bold">
                                 <span>
-                                    {fingersData["thumb"]?.avgLatency}ms
+                                    {(fingersData?.["thumb"]?.avgLatency || 0)}ms
                                 </span>
                                 <span>
-                                    {fingersData["thumb"]?.accuracy}%
+                                    {(fingersData?.["thumb"]?.accuracy || 0).toFixed(2)}%
                                 </span>
                             </div>
                         </div>
                     </div>
                 </div>
                 <div className="flex gap-8 min-w-fit md:w-2/3 justify-center">
-                    <Hands
-                        side="left"
-                        stats={fingersData}
-                    />
-
-                    <Hands
-                        side="right"
-                        stats={fingersData}
-                    />
+                    {fingersData ? (
+                        <>
+                            <Hands
+                                side="left"
+                                stats={fingersData}
+                            />
+                            <Hands
+                                side="right"
+                                stats={fingersData}
+                            />
+                        </>
+                    ) : (
+                        <div className="flex min-w-fit md:w-2/3 justify-center items-center p-10 text-lg">
+                            Không có dữ liệu ngón tay để hiển thị
+                        </div>
+                    )}
                 </div>
             </div>
         </div>

@@ -1,5 +1,10 @@
 'use client';
 
+import { useState, useEffect } from 'react';
+import { useAuth } from "@/hooks/useAuth";
+import LoadingSpinner from '@/components/LoadingSpinner';
+import { getUserActiveWebtime, getUserAttempts, getUserFingerStats, getUserKeyStats, getUserKeyTypeLatency, getUserTypingStats, getUserTypingStatsByTime } from "@/services/stat.services";
+import { toast } from "react-toastify";
 import KeyboardChart from "./KeyboardChart";
 import CustomHorizontalBarChart from "./CustomHorizontalBarChart";
 import CustomDonutChart from "./CustomDonutChart";
@@ -9,134 +14,201 @@ import HandsChart from "./HandsChart";
 import SessionAttempts from "./SessionAttempts";
 
 const StatisticsPage = () => {
-    const keysData = [
-        { key: 'A', accuracy: 0.95, avgLatency: 120 },
-        { key: 'S', accuracy: 0.85, avgLatency: 150 },
-        { key: 'D', accuracy: 0.75, avgLatency: 200 },
-        { key: 'F', accuracy: 0.65, avgLatency: 250 },
-        { key: 'J', accuracy: 0.90, avgLatency: 110 },
-        { key: 'K', accuracy: 0.80, avgLatency: 130 },
-        { key: 'L', accuracy: 0.70, avgLatency: 180 },
-        { key: 'a', accuracy: 0.92, avgLatency: 100 },
-        { key: 's', accuracy: 0.82, avgLatency: 140 },
-        { key: 'd', accuracy: 0.72, avgLatency: 190 },
-        { key: 'f', accuracy: 0.62, avgLatency: 240 },
-        { key: 'j', accuracy: 0.88, avgLatency: 90 },
-        { key: 'k', accuracy: 0.78, avgLatency: 120 },
-        { key: 'l', accuracy: 0.68, avgLatency: 170 },
-    ]
+    const { isAuthenticated, accessToken, user, loading, requireAuth, refreshToken } = useAuth();
+    const isGuest = !isAuthenticated || !accessToken || !user;
+    const [authChecked, setAuthChecked] = useState(false);
+    const [statsLoading, setStatsLoading] = useState(true);
+    const [generalStatData, setGeneralStatData] = useState<{
+        totalTime: number;
+        bestWPM: number;
+        avgWPM: number;
+        bestCPM: number;
+        avgCPM: number;
+        avgAccuracy: number;
+    } | null>(null);
+    const [typingSpeedByTimeData, setTypingSpeedByTimeData] = useState<any>(null);
+    const [typingLatencyByKeyTypeData, setTypingLatencyByKeyTypeData] = useState<any>(null);
+    const [activeWebtimeData, setActiveWebtimeData] = useState<any>(null);
+    const [keyStatsData, setKeyStatsData] = useState<any>(null);
+    const [fingerStatsData, setFingerStatsData] = useState<any>(null);
+    const [sessionAttemptsData, setSessionAttemptsData] = useState<any>(null);
 
-    const barsData = [
-        { name: "Hiện tại", value: 200, postText: "wpm" },
-        { name: "Tuần trước", value: 180, postText: "wpm" },
-        { name: "Tháng trước", value: 220, postText: "wpm" },
-    ]
+    useEffect(() => {
+        const checkAuth = async () => {
+            const result = await requireAuth();
+            setAuthChecked(result);
+        };
+        checkAuth();
+    }, []);
 
-    const barsData2 = [
-        { name: "Chữ thường", value: 200, postText: "wpm" },
-        { name: "Số", value: 180, postText: "wpm" },
-        { name: "Ký tự đặc biệt", value: 220, postText: "wpm" },
-        { name: "Chữ hoa", value: 190, postText: "wpm" },
-    ]
+    useEffect(() => {
+        if (authChecked && !isGuest && accessToken) {
+            const fetchStats = async () => {
+                try {
+                    const responses = await Promise.all([
+                        getUserTypingStats(accessToken),
+                        getUserActiveWebtime(accessToken),
+                        getUserTypingStatsByTime(accessToken),
+                        getUserKeyStats(accessToken),
+                        getUserFingerStats(accessToken),
+                        getUserAttempts(accessToken),
+                        getUserKeyTypeLatency(accessToken),
+                    ]);
 
-    const donutsData = [
-        {
-            goalText: "15 phút",
-            goalValue: 15,
-            progressText: "9 phút",
-            progressValue: 9,
-            extraText: "Hôm nay"
-        },
-        {
-            goalText: "30 phút",
-            goalValue: 30,
-            progressText: "20 phút",
-            progressValue: 20,
-            extraText: "Tuần này"
-        },
-        {
-            goalText: "45 phút",
-            goalValue: 45,
-            progressText: "30 phút",
-            progressValue: 30,
-            extraText: "Tuần trước"
-        },
-        {
-            goalText: "60 phút",
-            goalValue: 60,
-            progressText: "45 phút",
-            progressValue: 45,
-            extraText: "Tháng này"
-        },
-        {
-            goalText: "120 phút",
-            goalValue: 120,
-            progressText: "90 phút",
-            progressValue: 90,
-            extraText: "Tháng trước"
+
+                    const responseJson = await Promise.all(
+                        responses.map(async (response) => {
+                            if (!response.ok) return null;
+                            return response.json();
+                        })
+                    );
+
+                    const data = responseJson.map((response) => (response ? response.data : null));
+
+                    if (data[0] && data[1]) {
+                        setGeneralStatData({
+                            totalTime: data[1].total_time_failed + data[1].total_time_success,
+                            bestWPM: data[0].bestWPM,
+                            avgWPM: data[0].avgWPM,
+                            bestCPM: data[0].bestCPM,
+                            avgCPM: data[0].avgCPM,
+                            avgAccuracy: data[0].avgAccuracy
+                        });
+                    }
+
+                    if (data[2]) {
+                        const timeName: Record<string, string> = {
+                            current: "Hiện tại",
+                            last_week: "Tuần trước",
+                            last_month: "Tháng trước",
+                        };
+                        const dataToSet = Object.entries(data[2]).map(([key, value]: [string, any]) => ({
+                            name: timeName[key] || "unknown",
+                            value: Math.round(value.avgWPM),
+                            postText: " wpm",
+                        }));
+                        setTypingSpeedByTimeData(dataToSet);
+                    }
+
+                    if (data[3]) {
+                        console.log("Key Stats:", data[3]);
+                        setKeyStatsData(data[3]);
+                    }
+
+                    if (data[4]) {
+                        setFingerStatsData(data[4]);
+                    }
+
+                    if (data[5]) {
+                        setSessionAttemptsData(data[5]);
+                    }
+
+                    if (data[6]) {
+                        console.log("Key Type Latency:", data[6]);
+                        const keyTypeName: Record<string, string> = {
+                            lowercase: "Chữ thường",
+                            uppercase: "Chữ hoa",
+                            space: "Dấu cách",
+                            number: "Số",
+                            symbol: "Ký tự đặc biệt",
+                        };
+                        const dataToSet = Object.entries(data[6]).map(([key, value]: [string, any]) => ({
+                            name: keyTypeName[key] || "unknown",
+                            value: Math.round(value.avgLatency),
+                            postText: "ms",
+                        }));
+                        setTypingLatencyByKeyTypeData(dataToSet);
+                    }
+                    setStatsLoading(false);
+                } catch (error) {
+                    toast.error("Đã có lỗi xảy ra khi tải dữ liệu thống kê. Vui lòng thử lại.");
+                }
+            }
+            fetchStats();
         }
-    ]
+    }, [loading, isGuest, authChecked]);
 
-    const generalStatData = {
-        totalTime: 120,
-        bestWPM: 80,
-        avgWPM: 60,
-        bestCPM: 400,
-        avgCPM: 300,
-        avgAccuracy: 95,
+    // const donutsData = [
+    //     {
+    //         goalText: "15 phút",
+    //         goalValue: 15,
+    //         progressText: "9 phút",
+    //         progressValue: 9,
+    //         extraText: "Hôm nay"
+    //     },
+    //     {
+    //         goalText: "30 phút",
+    //         goalValue: 30,
+    //         progressText: "20 phút",
+    //         progressValue: 20,
+    //         extraText: "Tuần này"
+    //     },
+    //     {
+    //         goalText: "45 phút",
+    //         goalValue: 45,
+    //         progressText: "30 phút",
+    //         progressValue: 30,
+    //         extraText: "Tuần trước"
+    //     },
+    //     {
+    //         goalText: "60 phút",
+    //         goalValue: 60,
+    //         progressText: "45 phút",
+    //         progressValue: 45,
+    //         extraText: "Tháng này"
+    //     },
+    //     {
+    //         goalText: "120 phút",
+    //         goalValue: 120,
+    //         progressText: "90 phút",
+    //         progressValue: 90,
+    //         extraText: "Tháng trước"
+    //     }
+    // ]
+
+    // const activeWebtimeData = {
+    //     day: {
+    //         value: [
+    //             { name: 'Thành công', value: 1000 },
+    //             { name: 'Thất bại', value: 20 },
+    //         ],
+    //     },
+    //     week: {
+    //         value: [
+    //             { name: 'Thành công', value: 5000 },
+    //             { name: 'Thất bại', value: 100 },
+    //         ],
+    //     },
+    //     month: {
+    //         value: [
+    //             { name: 'Thành công', value: 20000 },
+    //             { name: 'Thất bại', value: 500 },
+    //         ],
+    //     }
+    // };
+
+    if (loading || statsLoading) {
+        return (
+            <div className="h-full w-full flex justify-center items-center">
+                <LoadingSpinner />
+            </div>
+        );
     }
 
-    const sessionAttemptsData = {
-        today: [1, 1, 0, 1, 0, 1, 1, 0, 0, 1, 0, 1, 0, 0, 0],
-        thisWeek: [1, 0, 1, 1, 0, 1, 0, 1, 1, 0, 0, 1, 0, 1, 0, 1, 0, 0, 1, 0, 1, 0, 1, 0, 0],
+    if (isGuest) {
+        return null
     }
-
-
-    const activeWebtimeData = {
-        day: {
-            value: [
-                { name: 'Thành công', value: 1000 },
-                { name: 'Thất bại', value: 20 },
-            ],
-        },
-        week: {
-            value: [
-                { name: 'Thành công', value: 5000 },
-                { name: 'Thất bại', value: 100 },
-            ],
-        },
-        month: {
-            value: [
-                { name: 'Thành công', value: 20000 },
-                { name: 'Thất bại', value: 500 },
-            ],
-        }
-    };
-
-    const fingerStats = {
-        left_pinky: { accuracy: 91, avgLatency: 220 },
-        left_ring: { accuracy: 90, avgLatency: 205 },
-        left_middle: { accuracy: 94, avgLatency: 180 },
-        left_index: { accuracy: 95, avgLatency: 170 },
-        right_index: { accuracy: 95, avgLatency: 165 },
-        right_middle: { accuracy: 94, avgLatency: 175 },
-        right_ring: { accuracy: 90, avgLatency: 210 },
-        right_pinky: { accuracy: 89, avgLatency: 225 },
-        thumb: { accuracy: 96, avgLatency: 150 },
-    };
 
     return (
         <div className="p-4 flex flex-col gap-5 max-w-5xl mx-auto">
-            <h1>Statistics Page</h1>
-            <p>This is the statistics page.</p>
             <GeneralStat chartData={generalStatData} />
-            <CustomHorizontalBarChart chartName="Tốc độ gõ theo thời gian" chartData={barsData} />
             <SessionAttempts sessionAttempts={sessionAttemptsData} />
-            <CustomHorizontalBarChart chartName="Tốc độ gõ theo từng loại ký tự" chartData={barsData2} />
-            <KeyboardChart keysData={keysData} />
-            <CustomDonutChart chartName="Tiến độ mục tiêu" chartData={donutsData} />
-            <ActiveWebtimePieChart chartData={activeWebtimeData} />
-            <HandsChart fingersData={fingerStats} />
+            <CustomHorizontalBarChart chartName="Tốc độ gõ theo thời gian" chartData={typingSpeedByTimeData} />
+            <CustomHorizontalBarChart chartName="Tốc độ gõ theo từng loại ký tự" chartData={typingLatencyByKeyTypeData} />
+            <KeyboardChart keysData={keyStatsData} />
+            {/* <CustomDonutChart chartName="Tiến độ mục tiêu" chartData={activeWebtimeData} />
+            <ActiveWebtimePieChart chartData={activeWebtimeData} /> */}
+            <HandsChart fingersData={fingerStatsData} />
         </div>
     )
 };

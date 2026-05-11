@@ -11,6 +11,16 @@ const SessionAttempts: React.FC<SessionAttemptsProps> = ({
     const todayMaxAttempts = 30;
     const thisWeekMaxAttempts = 120;
 
+    if (!sessionAttempts) {
+        return (
+            <div className="flex bg-card border-2 border-border p-5 items-center justify-center">
+                <span className="text-xl">
+                    Bạn chưa có dữ liệu thống kê nào cho số lần luyện tập
+                </span>
+            </div> 
+        );
+    }
+
     return (
         <div className="flex flex-col gap-2 bg-card border-2 border-border p-4">
             <div className="text-2xl">

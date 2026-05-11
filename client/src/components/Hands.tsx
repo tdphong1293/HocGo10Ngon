@@ -66,7 +66,7 @@ const Hands: React.FC<HandProps> = ({
 
     const currentStat = hoveredFinger ? stats?.[hoveredFinger] : undefined;
     const accuracyValue = currentStat
-        ? Math.round(currentStat.accuracy)
+        ? (currentStat.accuracy).toFixed(2)
         : undefined;
     const latencyValue = currentStat
         ? Math.round(currentStat.avgLatency)
@@ -181,7 +181,7 @@ const Hands: React.FC<HandProps> = ({
             </svg>
             <div className="w-full text-sm">
                 <div
-                    className="flex min-h-10 min-w-60 items-center justify-between rounded-md border border-slate-200 bg-white px-3 py-2 shadow-sm"
+                    className="flex min-h-10 min-w-65 items-center justify-between rounded-md border border-slate-200 bg-white px-3 py-2 shadow-sm"
                 >
                     <span
                         className={
