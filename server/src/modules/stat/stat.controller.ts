@@ -20,8 +20,8 @@ export class StatController {
         return this.statService.getUserActiveWebtime(sub);
     }
 
-    @Get("key")
-    async getUserKeyAccuracy(@Req() req: AuthenticatedRequest) {
+    @Get("keys")
+    async getUserKeyStats(@Req() req: AuthenticatedRequest) {
         const { sub } = req.user;
         const keyAccuracy = await this.statService.getUserKeyAccuracy(sub);
         const keyLatency = await this.statService.getUserKeyLatency(sub);
@@ -38,8 +38,8 @@ export class StatController {
         return returnData;
     }
 
-    @Get("finger")
-    async getUserFingerAccuracy(@Req() req: AuthenticatedRequest) {
+    @Get("fingers")
+    async getUserFingerStats(@Req() req: AuthenticatedRequest) {
         const { sub } = req.user;
         const fingerAccuracy = await this.statService.getUserFingerAccuracy(sub);
         const fingerLatency = await this.statService.getUserFingerLatency(sub);
@@ -67,7 +67,7 @@ export class StatController {
         };
     }
 
-    @Get("keytype")
+    @Get("keytypes")
     async getUserKeyTypeLatency(@Req() req: AuthenticatedRequest) {
         const { sub } = req.user;
         const keyTypeLatency = await this.statService.getUserKeyTypeLatency(sub);
@@ -78,7 +78,7 @@ export class StatController {
         return returnData;
     }
 
-    @Get("stat-by-time")
+    @Get("stat-time")
     async getUserTypingStatsByTime(@Req() req: AuthenticatedRequest) {
         const { sub } = req.user;
         return await this.statService.getUserTypingStatsByTime(sub);
