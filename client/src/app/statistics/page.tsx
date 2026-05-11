@@ -11,7 +11,9 @@ import CustomDonutChart from "./CustomDonutChart";
 import GeneralStat from "./GeneralStat";
 import ActiveWebtimePieChart from "./ActiveWebtimePieChart";
 import HandsChart from "./HandsChart";
+import type { FingerId, FingerStat } from "@/components/Hands";
 import SessionAttempts from "./SessionAttempts";
+import { formatTimeTextCompact } from '@/lib/timeFormat';
 
 const StatisticsPage = () => {
     const { isAuthenticated, accessToken, user, loading, requireAuth, refreshToken } = useAuth();
@@ -26,12 +28,38 @@ const StatisticsPage = () => {
         avgCPM: number;
         avgAccuracy: number;
     } | null>(null);
-    const [typingSpeedByTimeData, setTypingSpeedByTimeData] = useState<any>(null);
-    const [typingLatencyByKeyTypeData, setTypingLatencyByKeyTypeData] = useState<any>(null);
-    const [activeWebtimeData, setActiveWebtimeData] = useState<any>(null);
-    const [keyStatsData, setKeyStatsData] = useState<any>(null);
-    const [fingerStatsData, setFingerStatsData] = useState<any>(null);
-    const [sessionAttemptsData, setSessionAttemptsData] = useState<any>(null);
+    const [typingSpeedByTimeData, setTypingSpeedByTimeData] = useState<{
+        name: string;
+        value: number;
+        postText: string;
+    }[] | null>(null);
+    const [typingLatencyByKeyTypeData, setTypingLatencyByKeyTypeData] = useState<{
+        name: string;
+        value: number;
+        postText: string;
+    }[] | null>(null);
+    const [activeWebtimeData, setActiveWebtimeData] = useState<
+        Record<"today" | "this_week" | "overall", { name: string; value: number }[]> | null
+    >(null);
+    const [keyStatsData, setKeyStatsData] = useState<
+        Record<string, { accuracy: number; avgLatency: number; }> | null
+    >(null);
+    const [fingerStatsData, setFingerStatsData] = useState<
+        Partial<Record<FingerId, FingerStat>> | null
+    >(null);
+    const [sessionAttemptsData, setSessionAttemptsData] = useState<{
+        today: number[];
+        this_week: number[];
+    } | null>(null);
+    const [goalDonutData, setGoalDonutData] = useState<
+        {
+            goalText: string;
+            goalValue: number;
+            progressText: string;
+            progressValue: number;
+            extraText?: string;
+        }[] | null
+    >(null);
 
     useEffect(() => {
         const checkAuth = async () => {
@@ -67,13 +95,73 @@ const StatisticsPage = () => {
 
                     if (data[0] && data[1]) {
                         setGeneralStatData({
-                            totalTime: data[1].total_time_failed + data[1].total_time_success,
+                            totalTime: data[1].total_failed + data[1].total_success,
                             bestWPM: data[0].bestWPM,
                             avgWPM: data[0].avgWPM,
                             bestCPM: data[0].bestCPM,
                             avgCPM: data[0].avgCPM,
                             avgAccuracy: data[0].avgAccuracy
                         });
+                    }
+
+                    if (data[1]) {
+                        setActiveWebtimeData({
+                            today: [
+                                {
+                                    name: "Thành công",
+                                    value: data[1].today_success
+                                },
+                                {
+                                    name: "Thất bại",
+                                    value: data[1].today_failed
+                                }
+                            ],
+                            this_week: [
+                                {
+                                    name: "Thành công",
+                                    value: data[1].this_week_success
+                                },
+                                {
+                                    name: "Thất bại",
+                                    value: data[1].this_week_failed
+                                }
+                            ],
+                            overall: [
+                                {
+                                    name: "Thành công",
+                                    value: data[1].total_success
+                                },
+                                {
+                                    name: "Thất bại",
+                                    value: data[1].total_failed
+                                }
+                            ]
+                        });
+
+                        setGoalDonutData([
+                            {
+                                goalText: "15 phút",
+                                goalValue: 900,
+                                progressText: formatTimeTextCompact(data[1].today_success),
+                                progressValue: data[1].today_success,
+                                extraText: "Hôm nay"
+                            },
+                            {
+                                goalText: "1 giờ",
+                                goalValue: 3600,
+                                progressText: formatTimeTextCompact(data[1].this_week_success),
+                                progressValue: data[1].this_week_success,
+                                extraText: "Tuần này"
+                            },
+                            {
+                                goalText: "1 giờ",
+                                goalValue: 3600,
+                                progressText: formatTimeTextCompact(data[1].last_week_success),
+                                progressValue: data[1].last_week_success,
+                                extraText: "Tuần trước"
+                            },
+
+                        ]);
                     }
 
                     if (data[2]) {
@@ -91,7 +179,6 @@ const StatisticsPage = () => {
                     }
 
                     if (data[3]) {
-                        console.log("Key Stats:", data[3]);
                         setKeyStatsData(data[3]);
                     }
 
@@ -104,7 +191,6 @@ const StatisticsPage = () => {
                     }
 
                     if (data[6]) {
-                        console.log("Key Type Latency:", data[6]);
                         const keyTypeName: Record<string, string> = {
                             lowercase: "Chữ thường",
                             uppercase: "Chữ hoa",
@@ -128,65 +214,6 @@ const StatisticsPage = () => {
         }
     }, [loading, isGuest, authChecked]);
 
-    // const donutsData = [
-    //     {
-    //         goalText: "15 phút",
-    //         goalValue: 15,
-    //         progressText: "9 phút",
-    //         progressValue: 9,
-    //         extraText: "Hôm nay"
-    //     },
-    //     {
-    //         goalText: "30 phút",
-    //         goalValue: 30,
-    //         progressText: "20 phút",
-    //         progressValue: 20,
-    //         extraText: "Tuần này"
-    //     },
-    //     {
-    //         goalText: "45 phút",
-    //         goalValue: 45,
-    //         progressText: "30 phút",
-    //         progressValue: 30,
-    //         extraText: "Tuần trước"
-    //     },
-    //     {
-    //         goalText: "60 phút",
-    //         goalValue: 60,
-    //         progressText: "45 phút",
-    //         progressValue: 45,
-    //         extraText: "Tháng này"
-    //     },
-    //     {
-    //         goalText: "120 phút",
-    //         goalValue: 120,
-    //         progressText: "90 phút",
-    //         progressValue: 90,
-    //         extraText: "Tháng trước"
-    //     }
-    // ]
-
-    // const activeWebtimeData = {
-    //     day: {
-    //         value: [
-    //             { name: 'Thành công', value: 1000 },
-    //             { name: 'Thất bại', value: 20 },
-    //         ],
-    //     },
-    //     week: {
-    //         value: [
-    //             { name: 'Thành công', value: 5000 },
-    //             { name: 'Thất bại', value: 100 },
-    //         ],
-    //     },
-    //     month: {
-    //         value: [
-    //             { name: 'Thành công', value: 20000 },
-    //             { name: 'Thất bại', value: 500 },
-    //         ],
-    //     }
-    // };
-
     if (loading || statsLoading) {
         return (
             <div className="h-full w-full flex justify-center items-center">
@@ -206,8 +233,8 @@ const StatisticsPage = () => {
             <CustomHorizontalBarChart chartName="Tốc độ gõ theo thời gian" chartData={typingSpeedByTimeData} />
             <CustomHorizontalBarChart chartName="Tốc độ gõ theo từng loại ký tự" chartData={typingLatencyByKeyTypeData} />
             <KeyboardChart keysData={keyStatsData} />
-            {/* <CustomDonutChart chartName="Tiến độ mục tiêu" chartData={activeWebtimeData} />
-            <ActiveWebtimePieChart chartData={activeWebtimeData} /> */}
+            <CustomDonutChart chartName="Tiến độ mục tiêu" chartData={goalDonutData} />
+            <ActiveWebtimePieChart chartData={activeWebtimeData} />
             <HandsChart fingersData={fingerStatsData} />
         </div>
     )

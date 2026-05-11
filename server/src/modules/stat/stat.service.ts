@@ -38,6 +38,11 @@ export class StatService {
         endOfWeek.setDate(endOfWeek.getDate() + 6);
         endOfWeek.setHours(23, 59, 59, 999);
 
+        const lastWeekStart = new Date(startOfWeek);
+        lastWeekStart.setDate(lastWeekStart.getDate() - 7);
+        const lastWeekEnd = new Date(startOfWeek);
+        lastWeekEnd.setDate(lastWeekEnd.getDate() - 1);
+
         const timeData = await this.sessionModel.aggregate([
             {
                 $match: { userid }
@@ -46,7 +51,7 @@ export class StatService {
                 $group: {
                     _id: null,
 
-                    today_time_success: {
+                    today_success: {
                         $sum: {
                             $cond: [
                                 {
@@ -64,7 +69,7 @@ export class StatService {
                         }
                     },
 
-                    today_time_failed: {
+                    today_failed: {
                         $sum: {
                             $cond: [
                                 {
@@ -86,7 +91,7 @@ export class StatService {
                         }
                     },
 
-                    this_week_time_success: {
+                    this_week_success: {
                         $sum: {
                             $cond: [
                                 {
@@ -104,7 +109,7 @@ export class StatService {
                         }
                     },
 
-                    this_week_time_failed: {
+                    this_week_failed: {
                         $sum: {
                             $cond: [
                                 {
@@ -126,7 +131,47 @@ export class StatService {
                         }
                     },
 
-                    total_time_success: {
+                    last_week_success: {
+                        $sum: {
+                            $cond: [
+                                {
+                                    $and: [
+                                        { $gte: ["$createdAt", lastWeekStart] },
+                                        { $lte: ["$createdAt", lastWeekEnd] },
+                                        { $gte: ["$accuracy", 80] },
+                                        { $gte: ["$WPM", 20] },
+                                        { $gte: ["$CPM", 100] }
+                                    ]
+                                },
+                                "$duration",
+                                0
+                            ]
+                        }
+                    },
+
+                    last_week_failed: {
+                        $sum: {
+                            $cond: [
+                                {
+                                    $and: [
+                                        { $gte: ["$createdAt", lastWeekStart] },
+                                        { $lte: ["$createdAt", lastWeekEnd] },
+                                        {
+                                            $or: [
+                                                { $lt: ["$accuracy", 80] },
+                                                { $lt: ["$WPM", 20] },
+                                                { $lt: ["$CPM", 100] }
+                                            ]
+                                        }
+                                    ]
+                                },
+                                "$duration",
+                                0
+                            ]
+                        }
+                    },
+
+                    total_success: {
                         $sum: {
                             $cond: [
                                 {
@@ -142,7 +187,7 @@ export class StatService {
                         }
                     },
 
-                    total_time_failed: {
+                    total_failed: {
                         $sum: {
                             $cond: [
                                 {
@@ -160,7 +205,7 @@ export class StatService {
                 }
             }
         ]);
-        return timeData[0] || { today_time_success: 0, today_time_failed: 0, this_week_time_success: 0, this_week_time_failed: 0, total_time_success: 0, total_time_failed: 0 };
+        return timeData[0] || { today_success: 0, today_failed: 0, this_week_success: 0, this_week_failed: 0, last_week_success: 0, last_week_failed: 0, total_success: 0, total_failed: 0 };
     }
 
     async getUserTypingStats(userid: string) {

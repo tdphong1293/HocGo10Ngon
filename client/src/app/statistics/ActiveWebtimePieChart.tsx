@@ -39,6 +39,10 @@ const createLabelRenderer = (data: { name: string; value: number }[]) => {
         const len1 = Math.hypot(elbowX1 - lineStartX, elbowY1 - lineStartY);
         const len2 = Math.hypot(elbowX2 - elbowX1, elbowY2 - elbowY1);
 
+        if (value === 0) {
+            return null;
+        }
+
         return (
             <g key={`label-${index}`}>
                 <line
@@ -114,21 +118,32 @@ const createLabelRenderer = (data: { name: string; value: number }[]) => {
 };
 
 interface ActiveWebtimePieChartProps {
-    chartData: Record<"day" | "week" | "month", {
-        value: { name: string, value: number }[]
-    }>;
+    chartData: Record<
+        "today" | "this_week" | "overall",
+        { name: string; value: number }[]
+    > | null;
 }
 
 const ActiveWebtimePieChart: React.FC<ActiveWebtimePieChartProps> = ({
     chartData
 }) => {
-    const [chartMode, setChartMode] = useState<"day" | "week" | "month">("day");
+    const [chartMode, setChartMode] = useState<"today" | "this_week" | "overall">("today");
 
-    const totalSeconds = chartData[chartMode]?.value.reduce((sum, d) => sum + d.value, 0) || 0;
+    const totalSeconds = chartData?.[chartMode]?.reduce((sum, d) => sum + d.value, 0) || 0;
     const totalLabel = formatTime(totalSeconds);
     const startAngle = 90;
     const endAngle = -270;
-    const renderLabel = createLabelRenderer(chartData[chartMode]?.value || []);
+    const renderLabel = createLabelRenderer(chartData?.[chartMode] || []);
+
+    if (!chartData) {
+        return (
+            <div className="flex bg-card border-2 border-border p-5 items-center justify-center">
+                <span className="text-xl">
+                    Bạn chưa có dữ liệu thống kê nào cho thời gian luyện tập
+                </span>
+            </div>
+        );
+    }
 
     return (
         <div className="flex flex-col gap-2 bg-card border-2 border-border p-4">
@@ -139,7 +154,7 @@ const ActiveWebtimePieChart: React.FC<ActiveWebtimePieChartProps> = ({
                     className="min-w-80 min-h-80 w-full h-full max-w-100 max-h-100 aspect-square"
                 >
                     <Pie
-                        data={chartData[chartMode]?.value || []}
+                        data={chartData?.[chartMode] || []}
                         startAngle={startAngle}
                         endAngle={endAngle}
                         dataKey="value"
@@ -149,15 +164,22 @@ const ActiveWebtimePieChart: React.FC<ActiveWebtimePieChartProps> = ({
                         label={renderLabel}
                         labelLine={false}
                     >
-                        {chartData[chartMode]?.value.map((entry, index) => (
-                            <Cell key={`cell-${index}`} fill={index % 2 === 0 ? "var(--primary)" : "var(--destructive)"} />
-                        ))}
+                        {chartData?.[chartMode]?.map((entry, index) => {
+                            if (entry.value === 0) {
+                                return null;
+                            }
+
+                            return (
+                                <Cell key={`cell-${index}`} fill={index % 2 === 0 ? "var(--primary)" : "var(--destructive)"} />
+                            );
+                        })}
                     </Pie>
                     <Label
                         content={(props) => {
                             if (!props.viewBox) return null;
                             // Typescript báo lỗi không có cx, cy trên props viewBox nên cast để tránh lỗi
                             const { cx, cy } = props.viewBox as unknown as { cx: number; cy: number };
+
                             return (
                                 <text
                                     x={cx}
@@ -168,18 +190,18 @@ const ActiveWebtimePieChart: React.FC<ActiveWebtimePieChartProps> = ({
                                     fontWeight="600"
                                     fill="var(--card-foreground)"
                                     style={{
-                                        opacity: 0,
-                                        animation: "fade-in 200ms ease 1000ms forwards",
+                                        opacity: totalSeconds > 0 ? 0 : 1,
+                                        animation: totalSeconds > 0 ? "fade-in 200ms ease 600ms forwards" : "none",
                                     }}
                                 >
-                                    {totalLabel}
+                                    {totalSeconds > 0 ? totalLabel : "Chưa có dữ liệu"}
                                 </text>
                             );
                         }}
                     />
                 </PieChart>
                 <div className="flex bg-secondary rounded-lg w-fit">
-                    {(['day', 'week', 'month'] as const).map((mode) => (
+                    {(['today', 'this_week', 'overall'] as const).map((mode) => (
                         <button
                             key={mode}
                             onClick={() => setChartMode(mode)}
@@ -188,7 +210,7 @@ const ActiveWebtimePieChart: React.FC<ActiveWebtimePieChartProps> = ({
                                 : "text-foreground/70 hover:text-foreground cursor-pointer"
                                 }`}
                         >
-                            {mode === 'day' ? 'Hôm nay' : mode === 'week' ? 'Tuần này' : 'Tháng này'}
+                            {mode === 'today' ? 'Hôm nay' : mode === 'this_week' ? 'Tuần này' : 'Toàn bộ'}
                         </button>
                     ))}
                 </div>

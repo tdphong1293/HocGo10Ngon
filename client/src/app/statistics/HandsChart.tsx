@@ -53,7 +53,7 @@ const HandsChart: React.FC<HandsChartProps> = ({
                     <div className="flex w-full gap-2 md:flex-col md:gap-0">
                         <div className="border-r border-b-0 md:border-b md:border-r-0 border-border px-2 md:py-1 flex justify-between items-center w-full">
                             <span>Tay trái</span>
-                            <div className="flex flex-col gap-0.5 text-sm font-bold">
+                            <div className="flex flex-col gap-0.5 text-sm font-bold text-end">
                                 <span>
                                     {handsData.leftAvgLatency}ms
                                 </span>
@@ -64,7 +64,7 @@ const HandsChart: React.FC<HandsChartProps> = ({
                         </div>
                         <div className="border-r border-b-0 md:border-b md:border-r-0 border-border px-2 md:py-1 flex justify-between items-center w-full">
                             <span>Tay phải</span>
-                            <div className="flex flex-col gap-0.5 text-sm font-bold">
+                            <div className="flex flex-col gap-0.5 text-sm font-bold text-end">
                                 <span>
                                     {handsData.rightAvgLatency}ms
                                 </span>
@@ -75,9 +75,9 @@ const HandsChart: React.FC<HandsChartProps> = ({
                         </div>
                         <div className="border-b-0 md:border-b md:border-r-0 border-border px-2 md:py-1 flex justify-between items-center w-full">
                             <span>Ngón cái</span>
-                            <div className="flex flex-col gap-0.5 text-sm font-bold">
+                            <div className="flex flex-col gap-0.5 text-sm font-bold text-end">
                                 <span>
-                                    {(fingersData?.["thumb"]?.avgLatency || 0)}ms
+                                    {Math.round(fingersData?.["thumb"]?.avgLatency || 0)}ms
                                 </span>
                                 <span>
                                     {(fingersData?.["thumb"]?.accuracy || 0).toFixed(2)}%

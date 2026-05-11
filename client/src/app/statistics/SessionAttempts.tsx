@@ -1,8 +1,8 @@
 interface SessionAttemptsProps {
     sessionAttempts: {
         today: number[];
-        thisWeek: number[];
-    }
+        this_week: number[];
+    } | null;
 }
 
 const SessionAttempts: React.FC<SessionAttemptsProps> = ({ 
@@ -33,12 +33,12 @@ const SessionAttempts: React.FC<SessionAttemptsProps> = ({
                         {Array.from({ length: todayMaxAttempts }, (_, index) => (
                             <div
                                 key={"today_attempt_" + index}
-                                className={`h-4 w-4 ${index < sessionAttempts.today.length ? sessionAttempts.today[index] ? "bg-primary" : "bg-destructive" : "bg-primary-200"}`}
+                                className={`h-4 w-4 ${index < sessionAttempts.today?.length ? sessionAttempts.today[index] ? "bg-primary" : "bg-destructive" : "bg-primary-200"}`}
                             />
                         ))}
                     </div>
                     <div className="text-sm font-bold mt-2">
-                        {sessionAttempts.today.length} lần luyện tập
+                        {sessionAttempts.today?.length} lần luyện tập
                     </div>
                 </div>
                 <div className="bg-card text-center p-2 flex flex-col justify-center items-center gap-1">
@@ -46,13 +46,13 @@ const SessionAttempts: React.FC<SessionAttemptsProps> = ({
                     <div className="grid grid-cols-20 gap-1 w-fit">
                         {Array.from({ length: thisWeekMaxAttempts }, (_, index) => (
                             <div
-                                key={"thisWeek_attempt_" + index}
-                                className={`h-4 w-4 ${index < sessionAttempts.thisWeek.length ? sessionAttempts.thisWeek[index] ? "bg-primary" : "bg-destructive" : "bg-primary-200"}`}
+                                key={"this_week_attempt_" + index}
+                                className={`h-4 w-4 ${index < sessionAttempts.this_week?.length ? sessionAttempts.this_week[index] ? "bg-primary" : "bg-destructive" : "bg-primary-200"}`}
                             />
                         ))}
                     </div>
                     <div className="text-sm font-bold mt-2">
-                        {sessionAttempts.thisWeek.length} lần luyện tập
+                        {sessionAttempts.this_week?.length} lần luyện tập
                     </div>
                 </div>
             </div>

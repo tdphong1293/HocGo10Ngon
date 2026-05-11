@@ -63,7 +63,7 @@ export class StatController {
         const thisWeekData = await this.statService.getUserThisWeekSessionAttempts(sub);
         return {
             today: todayData,
-            thisWeek: thisWeekData,
+            this_week: thisWeekData,
         };
     }
 

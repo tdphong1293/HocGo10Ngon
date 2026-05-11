@@ -7,7 +7,7 @@ interface CustomDonutChartProps {
         progressText: string;
         progressValue: number;
         extraText?: string;
-    }[];
+    }[] | null;
 }
 
 const CustomDonutChart: React.FC<CustomDonutChartProps> = ({
@@ -19,11 +19,38 @@ const CustomDonutChart: React.FC<CustomDonutChartProps> = ({
     const normalizedRadius = radius - stroke / 2; // Bán kính vẽ được điều chỉnh để đường viền nằm trong vòng tròn
     const circumference = 2 * Math.PI * normalizedRadius; // Chu vi của vòng tròn
 
+    const defaultChartData = [
+        {
+            goalText: "15 phút",
+            goalValue: 900,
+            progressText: "",
+            progressValue: 0,
+            extraText: "Hôm nay"
+        },
+        {
+            goalText: "1 giờ",
+            goalValue: 3600,
+            progressText: "",
+            progressValue: 0,
+            extraText: "Tuần này"
+        },
+        {
+            goalText: "1 giờ",
+            goalValue: 3600,
+            progressText: "",
+            progressValue: 0,
+            extraText: "Tuần trước"
+        }
+    ];
+    const safeChartData = chartData ?? defaultChartData;
+
+    
+
     return (
         <div className="flex flex-col gap-2 bg-card border-2 border-border p-4">
             {chartName && <div className="text-2xl">{chartName}</div>}
-            <div className="flex flex-col sm:flex-row flex-wrap gap-5 justify-center">
-                {chartData.map((item, index) => {
+            <div className="flex flex-col sm:flex-row flex-wrap gap-10 justify-center">
+                {safeChartData.map((item, index) => {
                     const strokeDashoffset = item.progressValue >= item.goalValue ? 0 : circumference * (1 - item.progressValue / item.goalValue); // Phần trăm chưa hoàn thành
 
                     return (
@@ -31,7 +58,7 @@ const CustomDonutChart: React.FC<CustomDonutChartProps> = ({
                             className="flex flex-col items-center"
                             key={"donut_" + item.goalText + "_" + item.progressText + "_" + index}
                         >
-                            <div className="text-center max-w-40 text-card-foreground">
+                            <div className="min-h-6 line-clamp-2 text-center max-w-40 text-card-foreground">
                                 {item.progressText}
                             </div>
                             <div className="w-40 h-40 flex items-center justify-center relative">
