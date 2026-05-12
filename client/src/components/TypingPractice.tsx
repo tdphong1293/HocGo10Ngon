@@ -684,7 +684,12 @@ const TypingPractice: React.FC<TypingPracticeProps> = ({
                 };
 
                 const response = await storeTypingSessionResult(accessToken, data);
-                if (!response.ok) {
+                if (response.ok) {
+                    if (data.WPM < 20 || data.accuracy < 80 || data.CPM < 100) {
+                        toast.warn('Phiên gõ có WPM/CPM hoặc độ chính xác khá thấp sẽ xem như thất bại và không được tính vào thành tích của bạn');
+                    } 
+                }
+                else {
                     const errorData = await response.json();
                     toast.error(errorData.message || 'Lỗi khi lưu kết quả phiên gõ!');
                 }

@@ -36,10 +36,10 @@ const Hands: React.FC<HandProps> = ({
 }) => {
     const {
         palm = "var(--primary-200)",
-        index = "var(--primary-500)",
-        middle = "var(--primary-500)",
-        ring = "var(--primary-500)",
-        pinky = "var(--primary-500)",
+        index = "var(--primary-200)",
+        middle = "var(--primary-200)",
+        ring = "var(--primary-200)",
+        pinky = "var(--primary-200)",
     } = colors;
 
     const clipPathId = useId();

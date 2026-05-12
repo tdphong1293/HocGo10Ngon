@@ -40,6 +40,34 @@ const HandsChart: React.FC<HandsChartProps> = ({
         return { leftAvgAccuracy, leftAvgLatency, rightAvgAccuracy, rightAvgLatency };
     }, [fingersData]);
 
+    const getFingerColor = (fingerId: FingerId) => {
+        const stat = fingersData?.[fingerId];
+        if (!stat) return "var(--primary-200)";
+        const { accuracy, avgLatency } = stat;
+        if (accuracy >= 90 && avgLatency <= 200) return "var(--primary-700)";
+        if (accuracy >= 80 && avgLatency <= 300) return "var(--primary-500)";
+        if (accuracy >= 70 && avgLatency <= 400) return "var(--primary-400)";
+        return "var(--primary-200)";
+    }
+
+    const leftHandColors = {
+        palm: "var(--primary-200)",
+        thumb: getFingerColor("thumb"),
+        index: getFingerColor("left_index"),
+        middle: getFingerColor("left_middle"),
+        ring: getFingerColor("left_ring"),
+        pinky: getFingerColor("left_pinky"),
+    }
+
+    const rightHandColors = {
+        palm: "var(--primary-200)",
+        thumb: getFingerColor("thumb"),
+        index: getFingerColor("right_index"),
+        middle: getFingerColor("right_middle"),
+        ring: getFingerColor("right_ring"),
+        pinky: getFingerColor("right_pinky"),
+    }
+
     return (
         <div
             className="flex flex-col gap-2 bg-card border-2 border-border p-4 min-w-fit"
@@ -91,10 +119,12 @@ const HandsChart: React.FC<HandsChartProps> = ({
                         <>
                             <Hands
                                 side="left"
+                                colors={leftHandColors}
                                 stats={fingersData}
                             />
                             <Hands
                                 side="right"
+                                colors={rightHandColors}
                                 stats={fingersData}
                             />
                         </>
