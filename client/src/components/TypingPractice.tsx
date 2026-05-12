@@ -202,6 +202,8 @@ const TypingPractice: React.FC<TypingPracticeProps> = ({
         setIsFinished(false);
         setRenderedWordCount(BUFFER_WORDS); // Reset rendered word count
         setTextAnimationKey(key => key + 1);
+        setVisibleStartLine(0);
+        skipAnimationRef.current = true;
     }, []);
 
     useEffect(() => {
@@ -848,10 +850,12 @@ const TypingPractice: React.FC<TypingPracticeProps> = ({
                                     </Tooltip>
                                     {refreshText && (
                                         <Tooltip text="Phiên gõ mới" shortcut="Ctrl+Enter" side={nextLessonId ? 'top' : 'right'}>
-                                            <div className="p-2 cursor-pointer border-2 border-border rounded-md hover:bg-accent hover:text-accent-foreground transition-colors">
+                                            <div
+                                                className="p-2 cursor-pointer border-2 border-border rounded-md hover:bg-accent hover:text-accent-foreground transition-colors"
+                                                onClick={async () => { await refreshText?.(); }}
+                                            >
                                                 <Icon
                                                     icon="ooui:next-ltr" className="text-2xl"
-                                                    onClick={async () => { await refreshText?.(); }}
                                                 />
                                             </div>
                                         </Tooltip>
