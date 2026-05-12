@@ -69,7 +69,7 @@ const Navbar: React.FC<NavbarProps> = ({
                 <div className="flex gap-3 items-center">
                     <div
                         ref={personalizationRef}
-                        className="relative"
+                        className="relative flex justify-center items-center"
                     >
                         <Tooltip
                             text="Tùy chỉnh cá nhân"
@@ -81,7 +81,7 @@ const Navbar: React.FC<NavbarProps> = ({
                             >
                                 <Icon
                                     icon="fluent:draw-text-24-filled"
-                                    className="size-7"
+                                    className="size-6.5"
                                 />
                             </div>
                         </Tooltip>
