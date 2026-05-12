@@ -48,28 +48,21 @@ const fonts: { value: Font; label: string; description: string; sample: string }
 const Personalization: React.FC = () => {
     const { theme, font, setTheme, setFont } = useTheme();
     const { accessToken, isAuthenticated, user, refreshToken } = useAuth();
+    const isGuest = !isAuthenticated || !user || !accessToken;
 
     const handleThemeChange = async (newTheme: Theme) => {
-        if (!isAuthenticated || !user || !accessToken) {
-            setTheme(newTheme);
-            return;
-        }
+        setTheme(newTheme);
 
-        const response = await updatePreferredTheme(accessToken, newTheme);
-        if (response.ok) {
-            refreshToken();
+        if (!isGuest) {
+            await updatePreferredTheme(accessToken, newTheme);
         }
     }
 
     const handleFontChange = async (newFont: Font) => {
-        if (!isAuthenticated || !user || !accessToken) {
-            setFont(newFont);
-            return;
-        }
+        setFont(newFont);
 
-        const response = await updatePreferredFont(accessToken, newFont);
-        if (response.ok) {
-            refreshToken();
+        if (!isGuest) {
+            await updatePreferredFont(accessToken, newFont);
         }
     }
 

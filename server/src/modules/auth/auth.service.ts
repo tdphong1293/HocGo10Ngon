@@ -48,9 +48,6 @@ export class AuthService {
                 username: user.username,
                 email: user.email,
                 role: user.role,
-                theme: user.preferredTheme,
-                font: user.preferredFont,
-                languageCode: user.preferredLanguageCode,
             };
 
             // Generate access token (short-lived)
@@ -86,8 +83,6 @@ export class AuthService {
             username: storedToken.user.username,
             email: storedToken.user.email,
             role: storedToken.user.role,
-            theme: storedToken.user.preferredTheme,
-            font: storedToken.user.preferredFont,
         };
 
         const access_token = await this.jwtService.signAsync(payload);

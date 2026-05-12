@@ -230,4 +230,33 @@ export class UserService {
             throw new InternalServerErrorException('Cập nhật chế độ gõ của người dùng không thành công');
         }
     }
+
+    async getUserPreferences(userid: string) {
+        try {
+            const user = await this.prisma.user.findUnique({
+                where: {
+                    userid
+                },
+                select: {
+                    preferredTheme: true,
+                    preferredFont: true,
+                    preferredLanguageCode: true,
+                }
+            });
+
+            if (!user) {
+                throw new NotFoundException('Không tìm thấy người dùng');
+            }
+
+            return {
+                message: 'Lấy tùy chọn của người dùng thành công',
+                preferences: user
+            };
+        } catch (error) {
+            if (error instanceof HttpException) {
+                throw error;
+            }
+            throw new InternalServerErrorException('Lấy tùy chọn của người dùng không thành công');
+        }
+    }
 }

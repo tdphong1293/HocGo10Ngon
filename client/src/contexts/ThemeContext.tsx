@@ -1,6 +1,7 @@
 'use client';
 
 import React, { createContext, useContext, useEffect, useState } from 'react';
+import { getUserPreferences } from '@/services/user.services';
 import { useAuth } from '@/hooks/useAuth';
 
 // Các loại theme và font được hỗ trợ
@@ -38,6 +39,7 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
     const [languageCode, setLanguageCode] = useState<string>('en');
     const [isLoaded, setIsLoaded] = useState(false);
     const { isAuthenticated, user, accessToken } = useAuth();
+    const isGuest = !isAuthenticated || !user || !accessToken;
 
     useEffect(() => {
         const getCookieValue = (name: string) => {
@@ -68,12 +70,21 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
     }, [isLoaded, theme, font, languageCode]);
 
     useEffect(() => {
-        if (isLoaded && isAuthenticated && user && accessToken) {
-            setTheme(user.theme as Theme || 'light');
-            setFont(user.font as Font || 'geist');
-            setLanguageCode(user.languageCode as string || 'en');
+        const getUserPref = async (access_token: string) => {
+            const response = await getUserPreferences(access_token);
+            if (response.ok) {
+                const { data } = await response.json();
+                const preferences = data.preferences;
+                setTheme(preferences.preferredTheme as Theme || 'light');
+                setFont(preferences.preferredFont as Font || 'geist');
+                setLanguageCode(preferences.preferredLanguageCode as string || 'en');
+            }
+        };
+
+        if (isLoaded && !isGuest) {
+            getUserPref(accessToken);
         }
-    }, [isLoaded, isAuthenticated, user, accessToken]);
+    }, [isLoaded, isGuest]);
 
     const value = {
         theme,

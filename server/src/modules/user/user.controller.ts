@@ -27,6 +27,12 @@ export class UserController {
         return await this.userService.findOneByUsername(username);
     }
 
+    @Get("preferences")
+    async getUserPreferences(@Req() request: AuthenticatedRequest) {
+        const { sub } = request.user;
+        return await this.userService.getUserPreferences(sub);
+    }
+
     @Put('preferred-font')
     async updatePreferredFont(@Req() request: AuthenticatedRequest, @Res({ passthrough: true }) response: Response, @Body('font') font: string) {
         const { sub } = request.user;

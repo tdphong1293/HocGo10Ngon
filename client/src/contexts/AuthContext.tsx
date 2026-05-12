@@ -10,9 +10,6 @@ interface AuthUser {
     username: string;
     email: string;
     role: Role;
-    theme?: string;
-    font?: string;
-    languageCode?: string;
 }
 
 interface AuthContextType {
@@ -256,8 +253,6 @@ const decodeJWT = (token: string): AuthUser | null => {
             username: parsed.username,
             email: parsed.email,
             role: parsed.role,
-            theme: parsed.theme,
-            font: parsed.font,
         } as AuthUser;
     }
     catch (error) {

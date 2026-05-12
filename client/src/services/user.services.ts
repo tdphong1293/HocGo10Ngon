@@ -89,3 +89,14 @@ export const updateUserSessionMode = async (access_token: string, mode: TypingMo
         body: JSON.stringify(mode),
     })
 }
+
+export const getUserPreferences = async (access_token: string) => {
+    return await fetch('/api/users/preferences', {
+        method: 'GET',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${access_token}`,
+        },
+        credentials: 'include',
+    })
+}
