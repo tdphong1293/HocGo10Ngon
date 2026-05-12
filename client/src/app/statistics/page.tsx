@@ -70,7 +70,7 @@ const StatisticsPage = () => {
     }, []);
 
     useEffect(() => {
-        if (authChecked && !isGuest && accessToken) {
+        if (authChecked && !isGuest) {
             const fetchStats = async () => {
                 try {
                     const responses = await Promise.all([
@@ -212,7 +212,7 @@ const StatisticsPage = () => {
             }
             fetchStats();
         }
-    }, [loading, isGuest, authChecked]);
+    }, [isGuest, authChecked]);
 
     if (loading || statsLoading) {
         return (

@@ -23,5 +23,5 @@ export const formatTimeTextCompact = (seconds: number): string => {
     const hours = Math.floor(seconds / 3600);
     const minutes = Math.floor((seconds % 3600) / 60);
     const secs = seconds % 60;
-    return  `${hours > 0 ? String(hours).padStart(2, '0') + ' giờ' : ''}${minutes > 0 ? String(minutes).padStart(2, '0') + ' phút' : ''}${secs > 0 ? String(secs).padStart(2, '0') + ' giây' : ''}`;
+    return  `${hours > 0 ? String(hours) + ' giờ' : ''}${minutes > 0 ? String(minutes) + ' phút' : ''}${secs > 0 ? String(secs) + ' giây' : ''}`;
 }

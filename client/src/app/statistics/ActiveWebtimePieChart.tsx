@@ -24,14 +24,13 @@ const createLabelRenderer = (data: { name: string; value: number }[]) => {
         const RADIAN = Math.PI / 180;
         const isRight = Math.cos(-midAngle * RADIAN) >= 0;
         const textAnchor = isRight ? 'start' : 'end';
-
         const side = isRight ? 1 : -1;
 
         const lineStartX = cx + outerRadius * Math.cos(-midAngle * RADIAN);
         const lineStartY = cy + outerRadius * Math.sin(-midAngle * RADIAN);
         const elbowX1 = cx + (outerRadius + 20) * Math.cos(-midAngle * RADIAN);
         const elbowY1 = cy + (outerRadius + 20) * Math.sin(-midAngle * RADIAN);
-        const elbowX2 = cx + (outerRadius - 20) * side;
+        const elbowX2 = cx + (outerRadius + 20) * side;
         const elbowY2 = elbowY1;
         const labelX = elbowX2 + 5 * side;
         const labelY = elbowY2;
@@ -151,7 +150,7 @@ const ActiveWebtimePieChart: React.FC<ActiveWebtimePieChartProps> = ({
             <div className="flex flex-col gap-0 justify-center items-center">
                 <PieChart
                     responsive
-                    className="min-w-80 min-h-80 w-full h-full max-w-100 max-h-100 aspect-square"
+                    className="min-w-80 min-h-80 w-full h-full max-w-full max-h-100 aspect-square"
                 >
                     <Pie
                         data={chartData?.[chartMode] || []}

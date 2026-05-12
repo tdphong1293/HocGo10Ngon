@@ -120,6 +120,8 @@ const TypingPractice: React.FC<TypingPracticeProps> = ({
     const [textAnimationKey, setTextAnimationKey] = useState(0);
     const [displayedWords, setDisplayedWords] = useState<string[]>(words);
     const soundRefs = useRef<Partial<Record<'correct' | 'incorrect', HTMLAudioElement>>>({});
+    const lastSoundAtRef = useRef(0);
+    const SOUND_MIN_INTERVAL_MS = 60;
 
     const displayText = useMemo(() => {
         return displayedWords.slice(0, renderedWordCount).join(' ');
@@ -225,6 +227,9 @@ const TypingPractice: React.FC<TypingPracticeProps> = ({
 
     const playSound = (type: 'correct' | 'incorrect') => {
         if (!enableSoundsToUse) return;
+        const now = Date.now();
+        if (now - lastSoundAtRef.current < SOUND_MIN_INTERVAL_MS) return;
+        lastSoundAtRef.current = now;
         const soundPath = type === 'correct' ? '/sounds/correct.mp3' : '/sounds/incorrect.mp3';
         let audio = soundRefs.current[type];
         if (!audio) {
@@ -233,7 +238,6 @@ const TypingPractice: React.FC<TypingPracticeProps> = ({
             soundRefs.current[type] = audio;
         }
         audio.volume = 0.5;
-        audio.pause();
         audio.currentTime = 0;
         audio.play();
     };

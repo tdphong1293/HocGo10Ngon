@@ -28,7 +28,7 @@ const LessonsPage = () => {
     }, []);
 
     useEffect(() => {
-        if (authChecked && !isGuest && accessToken) {
+        if (authChecked && !isGuest) {
             const fetchLessons = async (accessToken: string) => {
                 try {
                     const response = await getLessonsByLanguageCode(accessToken, languageCode || "en");
@@ -75,10 +75,10 @@ const LessonsPage = () => {
                 }
             };
         }
-    }, [loading, isGuest, authChecked, searchLessonTitle, languageCode]);
+    }, [isGuest, authChecked, searchLessonTitle, languageCode]);
 
     useEffect(() => {
-        if (authChecked && !isGuest && accessToken) {
+        if (authChecked && !isGuest) {
             const fetchUserLesson = async () => {
                 try {
                     const response = await getUserLesson(accessToken);
@@ -95,7 +95,7 @@ const LessonsPage = () => {
             }
             fetchUserLesson();
         }
-    }, [authChecked, loading, isGuest, languageCode]);
+    }, [authChecked, isGuest, languageCode]);
 
     if (loading) {
         return (
