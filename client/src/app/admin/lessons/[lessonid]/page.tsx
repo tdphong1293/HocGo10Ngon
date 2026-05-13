@@ -11,11 +11,14 @@ import { getAllLanguages, addLanguage } from "@/services/language.services";
 import Input from "@/components/Input";
 import { toast } from "react-toastify";
 import { getLessonLastOrder, getLessonById, updateLesson } from "@/services/lesson.services";
+import LoadingSpinner from "@/components/LoadingSpinner";
 
 const AdminSingleLessonPage: React.FC<PageProps<"/admin/lessons/[lessonid]">> = ({
     params
 }) => {
-    const { user, isAuthenticated, accessToken, loading } = useAuth();
+    const { user, isAuthenticated, accessToken, loading, requireAuth } = useAuth();
+    const isGuest = !isAuthenticated || !accessToken || !user || user.role !== 'ADMIN';
+    const [authChecked, setAuthChecked] = useState(false);
     const [defaultLessonData, setDefaultLessonData] = useState<{
         languageid: string;
         title: string;
@@ -26,8 +29,8 @@ const AdminSingleLessonPage: React.FC<PageProps<"/admin/lessons/[lessonid]">> = 
         heldKey?: string;
     } | null>(null);
     const router = useRouter();
-
     const { lessonid } = use(params);
+    const [languageOptions, setLanguageOptions] = useState<{ value: string; label: string }[]>([]);
 
     const fetchLessonData = async () => {
         try {
@@ -48,19 +51,6 @@ const AdminSingleLessonPage: React.FC<PageProps<"/admin/lessons/[lessonid]">> = 
         }
     }
 
-    useEffect(() => {
-        if (!loading) {
-            if (!isAuthenticated || !accessToken || !user || user.role !== 'ADMIN') {
-                router.push('/');
-            }
-            else {
-                fetchLessonData();
-            }
-        }
-    }, [user, isAuthenticated, accessToken, loading, router]);
-
-    const [languageOptions, setLanguageOptions] = useState<{ value: string; label: string }[]>([]);
-
     const fetchLanguages = async () => {
         try {
             const response = await getAllLanguages();
@@ -77,9 +67,30 @@ const AdminSingleLessonPage: React.FC<PageProps<"/admin/lessons/[lessonid]">> = 
         }
     };
 
+    const fetchLastOrder = async () => {
+        const response = await getLessonLastOrder(accessToken!);
+        if (response.ok) {
+            const { data: lastOrder } = await response.json();
+            setLastOrder(lastOrder);
+        }
+    }
+
     useEffect(() => {
-        fetchLanguages();
+        const checkAuth = async () => {
+            const result = await requireAuth(true);
+            setAuthChecked(result);
+        };
+        checkAuth();
     }, []);
+
+    useEffect(() => {
+        if (authChecked && !isGuest) {
+            fetchLessonData();
+            fetchLanguages();
+            fetchLastOrder();
+        }
+    }, [authChecked, isGuest]);
+
 
     const [selectedLanguage, setSelectedLanguage] = useState<string>("");
     const [lessonContent, setLessonContent] = useState("");
@@ -252,20 +263,15 @@ const AdminSingleLessonPage: React.FC<PageProps<"/admin/lessons/[lessonid]">> = 
         }
     }
 
-    useEffect(() => {
-        const fetchLastOrder = async () => {
-            if (isAuthenticated && accessToken && user && user.role === 'ADMIN') {
-                const response = await getLessonLastOrder(accessToken);
-                if (response.ok) {
-                    const { data: lastOrder } = await response.json();
-                    setLastOrder(lastOrder);
-                }
-            }
-        }
-        fetchLastOrder();
-    }, [isAuthenticated, accessToken, user]);
+    if (loading) {
+        return (
+            <div className="h-full w-full flex justify-center items-center">
+                <LoadingSpinner />
+            </div>
+        );
+    }
 
-    if (!isAuthenticated || !accessToken || !user || user.role !== 'ADMIN' || !defaultLessonData) {
+    if (!authChecked || isGuest) {
         return null;
     }
 

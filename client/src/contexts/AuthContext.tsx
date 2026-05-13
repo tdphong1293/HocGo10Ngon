@@ -21,11 +21,11 @@ interface AuthContextType {
     setUser: (user: AuthUser | null) => void;
     loading: boolean;
     setLoading: (value: boolean) => void;
-    refreshToken: (silentFail?: boolean) => Promise<boolean>;
+    refreshToken: (silentFail?: boolean, redirectTo?: string, showToast?: boolean) => Promise<boolean>;
     signOut: () => Promise<void>;
     signIn: (username: string, password: string) => Promise<boolean>;
     signUp: (username: string, password: string, email: string) => Promise<boolean>;
-    requireAuth: () => Promise<boolean>;
+    requireAuth: (adminOnly?: boolean) => Promise<boolean>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -50,7 +50,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
     const router = useRouter();
 
-    const refreshToken = async (silentFail = false) => {
+    const refreshToken = async (silentFail = false, redirectTo = "/authenticate", showToast = true) => {
         try {
             setLoading(true);
             const response = await fetch('/api/auth/refresh', {
@@ -71,10 +71,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
                 setUser(null);
                 // Only redirect if not silent
                 if (!silentFail) {
-                    router.push('/authenticate');
-                    toast.info("Vui lòng đăng nhập để truy cập", {
-                        toastId: 'page-auth-required',
-                    });
+                    router.push(redirectTo);
+                    if (showToast) {
+                        toast.info("Vui lòng đăng nhập để truy cập", {
+                            toastId: 'page-auth-required',
+                        });
+                    }
                 }
                 return false;
             }
@@ -84,10 +86,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             setUser(null);
             // Only redirect if not silent
             if (!silentFail) {
-                router.push('/authenticate');
-                toast.info("Vui lòng đăng nhập để truy cập", {
-                    toastId: 'page-auth-required',
-                });
+                router.push(redirectTo);
+                if (showToast) {
+                    toast.info("Vui lòng đăng nhập để truy cập", {
+                        toastId: 'page-auth-required',
+                    });
+                }
             }
             return false;
         } finally {
@@ -97,20 +101,30 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
 
     // Sử dụng cho trang cần xác thực 
-    const requireAuth = async (): Promise<boolean> => {
+    const requireAuth = async (adminOnly: boolean = false): Promise<boolean> => {
         // Nếu đã xác thực và có token, user thì trả về true
         if (isAuthenticated && accessToken && user) {
+            // Nếu trang chỉ dành cho admin mà user không phải admin thì trả về false
+            if (adminOnly && user.role !== 'ADMIN') {
+                return false;
+            }
             return true;
         }
 
-        // Nếu chưa, thử lấy lại access token mới dựa trên refresh token lưu trong cookies
-        const refreshSuccess = await refreshToken(false);
+        // Nếu chưa xác thực, thử lấy lại access token mới dựa trên refresh token lưu trong cookies
+
         // Trường hợp refresh token không hợp lệ hoặc đã hết hạn
         // user sẽ được chuyển hướng đến trang đăng nhập tạo refresh token mới
 
         // Trường hợp lấy được access token mới thành công
         // user sẽ được cập nhật và trả về true
-        return refreshSuccess;
+        if (adminOnly) {
+            // Nếu trang chỉ dành cho admin thì sẽ redirect về trang chủ và không hiển thị toast
+            return await refreshToken(false, "/", false);
+        } else {
+            // Còn lại sẽ redirect về trang đăng nhập và hiển thị toast
+            return await refreshToken();
+        }
     }
 
     const signOut = async () => {

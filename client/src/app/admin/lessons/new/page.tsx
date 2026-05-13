@@ -6,25 +6,25 @@ import Button from "@/components/Button";
 import { RadioGroup, RadioGroupItem } from "@/components/RadioGroup";
 import { useAuth } from "@/hooks/useAuth";
 import { useEffect, useState, useRef } from "react";
-import { useRouter } from "next/navigation";
 import { getAllLanguages, addLanguage } from "@/services/language.services";
 import Input from "@/components/Input";
 import { toast } from "react-toastify";
 import { getLessonLastOrder, addLesson } from "@/services/lesson.services";
+import LoadingSpinner from "@/components/LoadingSpinner";
 
 const AdminNewLessonPage = () => {
-    const { user, isAuthenticated, accessToken, loading } = useAuth();
-    const router = useRouter();
+    const { user, isAuthenticated, accessToken, loading, requireAuth } = useAuth();
+    const isGuest = !isAuthenticated || !accessToken || !user || user.role !== 'ADMIN';
+    const [authChecked, setAuthChecked] = useState(false);
+    const [languageOptions, setLanguageOptions] = useState<{ value: string; label: string }[]>([]);
 
     useEffect(() => {
-        if (!loading) {
-            if (!isAuthenticated || !accessToken || !user || user.role !== 'ADMIN') {
-                router.push('/');
-            }
-        }
-    }, [user, isAuthenticated, accessToken, loading, router]);
-
-    const [languageOptions, setLanguageOptions] = useState<{ value: string; label: string }[]>([]);
+        const checkAuth = async () => {
+            const result = await requireAuth(true);
+            setAuthChecked(result);
+        };
+        checkAuth();
+    }, []);
 
     const fetchLanguages = async () => {
         try {
@@ -43,8 +43,10 @@ const AdminNewLessonPage = () => {
     };
 
     useEffect(() => {
-        fetchLanguages();
-    }, []);
+        if (authChecked && !isGuest) {
+            fetchLanguages();
+        }
+    }, [authChecked, isGuest]);
 
     const [selectedLanguage, setSelectedLanguage] = useState<string>("");
     const [lessonContent, setLessonContent] = useState("");
@@ -199,7 +201,15 @@ const AdminNewLessonPage = () => {
         }
     }
 
-    if (!isAuthenticated || !accessToken || !user || user.role !== 'ADMIN') {
+    if (loading) {
+        return (
+            <div className="h-full w-full flex justify-center items-center">
+                <LoadingSpinner />
+            </div>
+        );
+    }
+
+    if (!authChecked || isGuest) {
         return null;
     }
 

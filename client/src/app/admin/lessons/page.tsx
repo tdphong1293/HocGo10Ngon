@@ -6,7 +6,6 @@ import { getLessonsByLanguageCode, getLessonsByLanguageAndTitle } from '@/servic
 import LessonItem from "@/components/LessonItem";
 import { useAuth } from "@/hooks/useAuth";
 import { useTheme } from "@/hooks/useTheme";
-import { useRouter } from 'next/navigation';
 import { toast } from "react-toastify";
 import { motion, AnimatePresence } from "framer-motion";
 import SortableLessonItem from '@/components/SortableLessonItem';
@@ -28,6 +27,7 @@ import {
 } from '@dnd-kit/sortable';
 import Link from 'next/link';
 import { Icon } from '@iconify/react';
+import LoadingSpinner from '@/components/LoadingSpinner';
 
 const AdminLessonsPage = () => {
     const sensors = useSensors(
@@ -39,9 +39,10 @@ const AdminLessonsPage = () => {
 
     const [activeId, setActiveId] = useState<string | null>(null);
 
-    const { isAuthenticated, accessToken, user, loading } = useAuth();
+    const { isAuthenticated, accessToken, user, loading, requireAuth } = useAuth();
+    const isGuest = !isAuthenticated || !accessToken || !user || user.role !== 'ADMIN';
+    const [authChecked, setAuthChecked] = useState(false);
     const { languageCode } = useTheme();
-    const router = useRouter();
 
     const [searchLessonTitle, setSearchLessonTitle] = useState<string>("");
     const [lessons, setLessons] = useState<any[]>([]);
@@ -63,12 +64,15 @@ const AdminLessonsPage = () => {
     }
 
     useEffect(() => {
-        if (!loading) {
-            if (!isAuthenticated || !accessToken || !user || user.role !== 'ADMIN') {
-                router.push('/');
-                return;
-            }
+        const checkAuth = async () => {
+            const result = await requireAuth(true);
+            setAuthChecked(result);
+        };
+        checkAuth();
+    }, []);
 
+    useEffect(() => {
+        if (authChecked && !isGuest) {
             const timeoutId = setTimeout(() => {
                 if (searchLessonTitle === "") {
                     fetchLessons(accessToken);
@@ -93,11 +97,7 @@ const AdminLessonsPage = () => {
 
             return () => clearTimeout(timeoutId);
         }
-    }, [user, isAuthenticated, accessToken, loading, router, searchLessonTitle, languageCode]);
-
-    if (!isAuthenticated || !accessToken || !user || user.role !== 'ADMIN') {
-        return null;
-    }
+    }, [authChecked, isGuest, searchLessonTitle, languageCode]);
 
     const handleDragEnd = async (event: any) => {
         const { active, over } = event;
@@ -114,10 +114,10 @@ const AdminLessonsPage = () => {
         const newOrderNumber = lessons[newIndex].orderNumber;
 
         try {
-            const response = await updateLessonOrder(accessToken, active.id, newOrderNumber);
+            const response = await updateLessonOrder(accessToken!, active.id, newOrderNumber);
             if (response.ok) {
                 toast.success("Cập nhật thứ tự thành công");
-                await fetchLessons(accessToken);
+                await fetchLessons(accessToken!);
             }
             else {
                 const errorData = await response.json();
@@ -125,11 +125,23 @@ const AdminLessonsPage = () => {
             }
         } catch (error) {
             toast.error("Cập nhật thứ tự bài học thất bại");
-            await fetchLessons(accessToken);
+            await fetchLessons(accessToken!);
         }
     };
 
     const activeLesson = activeId ? lessons.find(lesson => lesson.lessonid === activeId) : null;
+
+    if (loading) {
+        return (
+            <div className="h-full w-full flex justify-center items-center">
+                <LoadingSpinner />
+            </div>
+        );
+    }
+
+    if (!authChecked || isGuest) {
+        return null;
+    }
 
     return (
         <div className="h-full p-4 flex flex-col gap-4">

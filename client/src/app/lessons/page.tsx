@@ -105,7 +105,7 @@ const LessonsPage = () => {
         );
     }
 
-    if (isGuest) {
+    if (!authChecked || isGuest) {
         return null
     }
 

@@ -222,7 +222,7 @@ const StatisticsPage = () => {
         );
     }
 
-    if (isGuest) {
+    if (!authChecked || isGuest) {
         return null
     }
 

@@ -5,23 +5,15 @@ import Select from "@/components/Select";
 import Button from "@/components/Button";
 import { useAuth } from "@/hooks/useAuth";
 import { useEffect, useState, useRef } from "react";
-import { useRouter } from "next/navigation";
 import { toast } from "react-toastify";
 import { addWords, deleteWords } from "@/services/word.services";
 import { getAllLanguages, addLanguage } from "@/services/language.services";
+import LoadingSpinner from "@/components/LoadingSpinner";
 
 const AdminWordsPage = () => {
-    const { user, isAuthenticated, accessToken, loading } = useAuth();
-    const router = useRouter();
-
-    useEffect(() => {
-        if (!loading) {
-            if (!isAuthenticated || !accessToken || !user || user.role !== 'ADMIN') {
-                router.push('/');
-            }
-        }
-    }, [user, isAuthenticated, accessToken, loading, router]);
-
+    const { user, isAuthenticated, accessToken, loading, requireAuth } = useAuth();
+    const isGuest = !isAuthenticated || !accessToken || !user || user.role !== 'ADMIN';
+    const [authChecked, setAuthChecked] = useState(false);
     const [languageOptions, setLanguageOptions] = useState<{ value: string; label: string }[]>([]);
 
     const fetchLanguages = async () => {
@@ -41,8 +33,18 @@ const AdminWordsPage = () => {
     };
 
     useEffect(() => {
-        fetchLanguages();
+        const checkAuth = async () => {
+            const result = await requireAuth(true);
+            setAuthChecked(result);
+        };
+        checkAuth();
     }, []);
+
+    useEffect(() => {
+        if (authChecked && !isGuest) {
+            fetchLanguages();
+        }
+    }, [authChecked, isGuest]);
 
     const [addWordsList, setAddWordsList] = useState<string[]>([]);
     const [deleteWordsList, setDeleteWordsList] = useState<string[]>([]);
@@ -168,7 +170,15 @@ const AdminWordsPage = () => {
         }
     }
 
-    if (!isAuthenticated || !accessToken || !user || user.role !== 'ADMIN') {
+    if (loading) {
+        return (
+            <div className="h-full w-full flex justify-center items-center">
+                <LoadingSpinner />
+            </div>
+        );
+    }
+
+    if (!authChecked || isGuest) {
         return null;
     }
 
