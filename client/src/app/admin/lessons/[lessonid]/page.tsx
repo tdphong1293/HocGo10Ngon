@@ -16,7 +16,7 @@ import LoadingSpinner from "@/components/LoadingSpinner";
 const AdminSingleLessonPage: React.FC<PageProps<"/admin/lessons/[lessonid]">> = ({
     params
 }) => {
-    const { user, isAuthenticated, accessToken, loading, requireAuth } = useAuth();
+    const { user, isAuthenticated, accessToken, loading, requireAuth, setAccessToken, signOut } = useAuth();
     const isGuest = !isAuthenticated || !accessToken || !user || user.role !== 'ADMIN';
     const [authChecked, setAuthChecked] = useState(false);
     const [defaultLessonData, setDefaultLessonData] = useState<{
@@ -148,7 +148,7 @@ const AdminSingleLessonPage: React.FC<PageProps<"/admin/lessons/[lessonid]">> = 
                 toast.warn("Vui lòng nhập ngôn ngữ mới theo định dạng: Tên ngôn ngữ, Mã ngôn ngữ (ví dụ: Tiếng Việt, vi)");
                 return;
             }
-            const response = await (addLanguage(accessToken, newLanguage[0], newLanguage[1]));
+            const response = await (addLanguage(accessToken, newLanguage[0], newLanguage[1], setAccessToken, () => signOut("Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại")));
             if (response.ok) {
                 const { data } = await response.json();
                 toast.success("Đã thêm ngôn ngữ mới thành công.");

@@ -22,7 +22,7 @@ interface AuthContextType {
     loading: boolean;
     setLoading: (value: boolean) => void;
     refreshToken: (silentFail?: boolean, redirectTo?: string, showToast?: boolean) => Promise<boolean>;
-    signOut: () => Promise<void>;
+    signOut: (text?: string) => Promise<void>;
     signIn: (username: string, password: string) => Promise<boolean>;
     signUp: (username: string, password: string, email: string) => Promise<boolean>;
     requireAuth: (adminOnly?: boolean) => Promise<boolean>;
@@ -127,7 +127,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         }
     }
 
-    const signOut = async () => {
+    const signOut = async (text: string = "Đăng xuất thành công!") => {
         try {
             setLoading(true);
             const response = await fetch('/api/auth/signout', {
@@ -139,6 +139,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
                 setAccessToken(null);
                 setUser(null);
                 router.refresh();
+                if (!text || text.trim() === "" || text === "Đăng xuất thành công!") {
+                    toast.success(text);
+                } else {
+                    toast.info(text);
+                }
             }
         } catch (error) {
             const errorMessage = error instanceof Error ? error.message : 'Lỗi đăng xuất, vui lòng thử lại sau ít phút';
