@@ -10,6 +10,7 @@ import bcrypt from 'bcryptjs';
 import { NodemailerService } from '../nodemailer/nodemailer.service';
 import { CacheService } from '../cache/cache.service';
 import { ResetPasswordDto } from './dto/reset-password.dto';
+import ms from 'ms';
 
 @Injectable()
 export class AuthService {
@@ -100,13 +101,13 @@ export class AuthService {
             data: { revoked: true }
         });
 
-        return { message: 'Đăng xuất thành công' };
+        return { message: 'Đăng xuất thành công!' };
     }
 
     private async generateRefreshToken(userid: string): Promise<string> {
         const token = crypto.randomBytes(64).toString('hex');
         const expiresAt = new Date();
-        const refreshTokenSpanDay = this.configService.get<number>('JWT_REFRESH_EXPIRES_IN') || 7;
+        const refreshTokenSpanDay = ms(this.configService.get<ms.StringValue>('JWT_REFRESH_EXPIRES_IN') || "7d") / (1000 * 60 * 60 * 24);
         expiresAt.setDate(expiresAt.getDate() + refreshTokenSpanDay);
 
         // Store in database

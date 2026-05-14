@@ -7,6 +7,7 @@ import { SigninUserDto } from './dto/signin-user.dto';
 import { Public } from './auth.guard';
 import { ConfigService } from '@nestjs/config';
 import { ResetPasswordDto } from './dto/reset-password.dto';
+import ms from 'ms';
 
 @ApiTags('Authentication')
 @Controller('auth')
@@ -31,7 +32,7 @@ export class AuthController {
             httpOnly: true,  // Cannot be accessed by JavaScript
             secure: this.configService.get('NODE_ENV') === 'production',
             sameSite: 'strict', // CSRF protection
-            maxAge: (this.configService.get<number>('JWT_REFRESH_EXPIRES_IN_MS') || 7) * 24 * 60 * 60 * 1000 // 7 days
+            maxAge: ms(this.configService.get<ms.StringValue>('JWT_REFRESH_EXPIRES_IN') || "7d")
         });
 
         // Only send access token to client
@@ -67,7 +68,7 @@ export class AuthController {
         }
 
         return {
-            message: 'Đăng xuất thành công'
+            message: 'Đăng xuất thành công!'
         };
     }
 
