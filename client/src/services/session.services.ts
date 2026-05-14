@@ -1,3 +1,5 @@
+import { authFetch } from "@/lib/authFetch";
+
 export const getSessionModes = async () => {
     return await fetch('/api/sessions/modes', {
         method: 'GET',
@@ -23,13 +25,21 @@ export const getPracticeTypingText = async (languageCode: string, mode: TypingMo
     })
 }
 
-export const storeTypingSessionResult = async (accessToken: string, data: any) => {
-    return await fetch('/api/sessions/store', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${accessToken}`,
+export const storeTypingSessionResult = async (
+    accessToken: string,
+    data: any,
+    onAccessToken?: (token: string | null) => void,
+    onFailed?: (text?: string) => Promise<void>
+) => {
+    return await authFetch(
+        '/api/sessions/store',
+        {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(data),
         },
-        body: JSON.stringify(data),
-    })
+        { accessToken, onAccessToken, onFailed }
+    );
 }

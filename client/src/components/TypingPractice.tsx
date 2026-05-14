@@ -655,12 +655,13 @@ const TypingPractice: React.FC<TypingPracticeProps> = ({
         </div>
     ), [typingStats, elapsedTime, timeLimit, currentIndex, totalWords, getCurrentWordIndex, totalWordsToUse]);
 
-    const { isAuthenticated, user, accessToken, loading } = useAuth();
+    const { isAuthenticated, user, accessToken, loading, setAccessToken, signOut } = useAuth();
+    const isGuest = !isAuthenticated || !user || !accessToken;
     const { languageCode } = useTheme();
 
     useEffect(() => {
         const storeSessionResult = async () => {
-            if (isFinished && keystrokeLog.length > 0 && isAuthenticated && user && accessToken && languageCode) {
+            if (isFinished && keystrokeLog.length > 0 && !isGuest && languageCode) {
                 setIsFocused(false);
                 setActiveKeys([]);
                 if (heldKey) {
@@ -683,7 +684,7 @@ const TypingPractice: React.FC<TypingPracticeProps> = ({
                     keystrokes: keystrokeLog,
                 };
 
-                const response = await storeTypingSessionResult(accessToken, data);
+                const response = await storeTypingSessionResult(accessToken, data, setAccessToken, () => signOut("Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại"));
                 if (response.ok) {
                     if (data.WPM < 20 || data.accuracy < 80 || data.CPM < 100) {
                         toast.warn('Phiên gõ có WPM/CPM hoặc độ chính xác khá thấp sẽ xem như thất bại và không được tính vào thành tích của bạn');
@@ -696,7 +697,7 @@ const TypingPractice: React.FC<TypingPracticeProps> = ({
             }
         };
         storeSessionResult();
-    }, [isFinished, keystrokeLog, isAuthenticated, user, accessToken, languageCode, typingStats, state, inputHistory]);
+    }, [isFinished, keystrokeLog, isGuest, languageCode, typingStats, state, inputHistory]);
 
     if (loading) {
         return (

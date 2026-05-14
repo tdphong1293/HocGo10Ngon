@@ -62,7 +62,6 @@ export const authFetch = async (
         return response;
     }
     
-
     // Gọi callback onAccessToken với token mới và thử lại yêu cầu
     onAccessToken?.(newToken);
     return fetch(input, withAuthHeader(init, newToken));

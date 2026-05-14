@@ -140,7 +140,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
                 setUser(null);
                 router.refresh();
                 if (!text || text.trim() === "" || text === "Đăng xuất thành công!") {
-                    toast.success(text);
+                    toast.success("Đăng xuất thành công!");
                 } else {
                     toast.info(text);
                 }

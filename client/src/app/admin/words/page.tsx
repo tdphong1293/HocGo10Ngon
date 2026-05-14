@@ -140,7 +140,7 @@ const AdminWordsPage = () => {
         }
 
         try {
-            const response = await addWords(accessToken!, addWordsList, selectedLanguage);
+            const response = await addWords(accessToken!, addWordsList, selectedLanguage, setAccessToken, () => signOut("Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại"));
             const { data } = await response.json();
             if (response.ok) {
                 toast.success(data.message);
@@ -159,7 +159,7 @@ const AdminWordsPage = () => {
         }
 
         try {
-            const response = await deleteWords(accessToken!, deleteWordsList);
+            const response = await deleteWords(accessToken!, deleteWordsList, setAccessToken, () => signOut("Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại"));
             const { data } = await response.json();
             if (response.ok) {
                 toast.success(data.message);

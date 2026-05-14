@@ -168,7 +168,7 @@ const AdminParagraphsPage = () => {
                 source: source
             }
 
-            const response = await createParagraph(accessToken!, dataToSend);
+            const response = await createParagraph(accessToken!, dataToSend, setAccessToken, () => signOut("Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại"));
             if (response.ok) {
                 const { data } = await response.json();
                 toast.success(data.message);

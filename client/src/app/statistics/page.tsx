@@ -16,7 +16,7 @@ import SessionAttempts from "./SessionAttempts";
 import { formatTimeTextCompact } from '@/lib/timeFormat';
 
 const StatisticsPage = () => {
-    const { isAuthenticated, accessToken, user, loading, requireAuth, refreshToken } = useAuth();
+    const { isAuthenticated, accessToken, user, loading, requireAuth, setAccessToken, signOut } = useAuth();
     const isGuest = !isAuthenticated || !accessToken || !user;
     const [authChecked, setAuthChecked] = useState(false);
     const [statsLoading, setStatsLoading] = useState(true);
@@ -74,13 +74,13 @@ const StatisticsPage = () => {
             const fetchStats = async () => {
                 try {
                     const responses = await Promise.all([
-                        getUserTypingStats(accessToken),
-                        getUserActiveWebtime(accessToken),
-                        getUserTypingStatsByTime(accessToken),
-                        getUserKeyStats(accessToken),
-                        getUserFingerStats(accessToken),
-                        getUserAttempts(accessToken),
-                        getUserKeyTypeLatency(accessToken),
+                        getUserTypingStats(accessToken, setAccessToken, () => signOut("Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại")),
+                        getUserActiveWebtime(accessToken, setAccessToken, () => signOut("Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại")),
+                        getUserTypingStatsByTime(accessToken, setAccessToken, () => signOut("Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại")),
+                        getUserKeyStats(accessToken, setAccessToken, () => signOut("Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại")),
+                        getUserFingerStats(accessToken, setAccessToken, () => signOut("Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại")),
+                        getUserAttempts(accessToken, setAccessToken, () => signOut("Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại")),
+                        getUserKeyTypeLatency(accessToken, setAccessToken, () => signOut("Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại")),
                     ]);
 
 
