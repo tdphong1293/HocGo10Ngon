@@ -10,7 +10,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import LoadingSpinner from '@/components/LoadingSpinner';
 
 const LessonsPage = () => {
-    const { isAuthenticated, accessToken, user, loading, requireAuth } = useAuth();
+    const { isAuthenticated, accessToken, user, loading, requireAuth, setAccessToken, signOut } = useAuth();
     const { languageCode } = useTheme();
     const isGuest = !isAuthenticated || !accessToken || !user;
     const [authChecked, setAuthChecked] = useState(false);
@@ -31,7 +31,7 @@ const LessonsPage = () => {
         if (authChecked && !isGuest) {
             const fetchLessons = async (accessToken: string) => {
                 try {
-                    const response = await getLessonsByLanguageCode(accessToken, languageCode || "en");
+                    const response = await getLessonsByLanguageCode(accessToken, languageCode || "en", setAccessToken, () => signOut("Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại"));
                     if (response.ok) {
                         const { data } = await response.json();
                         setLessons(data);
@@ -46,7 +46,7 @@ const LessonsPage = () => {
 
             const fetchLessonsByTitle = async () => {
                 try {
-                    const response = await getLessonsByLanguageAndTitle(accessToken, languageCode || "en", searchLessonTitle);
+                    const response = await getLessonsByLanguageAndTitle(accessToken, languageCode || "en", searchLessonTitle, setAccessToken, () => signOut("Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại"));
                     if (response.ok) {
                         const { data } = await response.json();
                         setLessons(data);
@@ -81,7 +81,7 @@ const LessonsPage = () => {
         if (authChecked && !isGuest) {
             const fetchUserLesson = async () => {
                 try {
-                    const response = await getUserLesson(accessToken);
+                    const response = await getUserLesson(accessToken, setAccessToken, () => signOut("Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại"));
                     if (response.ok) {
                         const { data } = await response.json();
                         setLearnedLessons(new Set(data || []));

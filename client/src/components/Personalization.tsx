@@ -47,14 +47,14 @@ const fonts: { value: Font; label: string; description: string; sample: string }
 
 const Personalization: React.FC = () => {
     const { theme, font, setTheme, setFont } = useTheme();
-    const { accessToken, isAuthenticated, user, refreshToken } = useAuth();
+    const { accessToken, isAuthenticated, user, setAccessToken, signOut } = useAuth();
     const isGuest = !isAuthenticated || !user || !accessToken;
 
     const handleThemeChange = async (newTheme: Theme) => {
         setTheme(newTheme);
 
         if (!isGuest) {
-            await updatePreferredTheme(accessToken, newTheme);
+            await updatePreferredTheme(accessToken, newTheme, setAccessToken, () => signOut("Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại"));
         }
     }
 
@@ -62,7 +62,7 @@ const Personalization: React.FC = () => {
         setFont(newFont);
 
         if (!isGuest) {
-            await updatePreferredFont(accessToken, newFont);
+            await updatePreferredFont(accessToken, newFont, setAccessToken, () => signOut("Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại"));
         }
     }
 

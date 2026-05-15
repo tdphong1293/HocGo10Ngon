@@ -39,7 +39,7 @@ const AdminLessonsPage = () => {
 
     const [activeId, setActiveId] = useState<string | null>(null);
 
-    const { isAuthenticated, accessToken, user, loading, requireAuth } = useAuth();
+    const { isAuthenticated, accessToken, user, loading, requireAuth, setAccessToken, signOut } = useAuth();
     const isGuest = !isAuthenticated || !accessToken || !user || user.role !== 'ADMIN';
     const [authChecked, setAuthChecked] = useState(false);
     const { languageCode } = useTheme();
@@ -50,7 +50,7 @@ const AdminLessonsPage = () => {
 
     const fetchLessons = async (accessToken: string) => {
         try {
-            const response = await getLessonsByLanguageCode(accessToken, languageCode || "en");
+            const response = await getLessonsByLanguageCode(accessToken, languageCode || "en", setAccessToken, () => signOut("Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại"));
             if (response.ok) {
                 const { data } = await response.json();
                 setLessons(data);
@@ -79,7 +79,7 @@ const AdminLessonsPage = () => {
                 } else {
                     const fetchLessonsByTitle = async () => {
                         try {
-                            const response = await getLessonsByLanguageAndTitle(accessToken, languageCode || "en", searchLessonTitle);
+                            const response = await getLessonsByLanguageAndTitle(accessToken, languageCode || "en", searchLessonTitle, setAccessToken, () => signOut("Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại"));
                             if (response.ok) {
                                 const { data } = await response.json();
                                 setLessons(data);
@@ -114,7 +114,7 @@ const AdminLessonsPage = () => {
         const newOrderNumber = lessons[newIndex].orderNumber;
 
         try {
-            const response = await updateLessonOrder(accessToken!, active.id, newOrderNumber);
+            const response = await updateLessonOrder(accessToken!, active.id, newOrderNumber, setAccessToken, () => signOut("Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại"));
             if (response.ok) {
                 toast.success("Cập nhật thứ tự thành công");
                 await fetchLessons(accessToken!);

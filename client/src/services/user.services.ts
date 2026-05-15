@@ -1,28 +1,45 @@
 import { Theme, Font } from '@/contexts/ThemeContext'
 import { TypingMode } from './session.services'
+import { authFetch } from '@/lib/authFetch'
 
-export const updatePreferredTheme = async (access_token: string, theme: Theme) => {
-    return await fetch('/api/users/preferred-theme', {
-        method: 'PUT',
-        headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${access_token}`,
+export const updatePreferredTheme = async (
+    accessToken: string,
+    theme: Theme,
+    onAccessToken?: (token: string | null) => void,
+    onFailed?: (text?: string) => Promise<void>
+) => {
+    return await authFetch(
+        '/api/users/preferred-theme',
+        {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            credentials: 'include',
+            body: JSON.stringify({ theme }),
         },
-        credentials: 'include',
-        body: JSON.stringify({ theme }),
-    })
+        { accessToken, onAccessToken, onFailed }
+    )
 }
 
-export const updatePreferredFont = async (access_token: string, font: Font) => {
-    return await fetch('/api/users/preferred-font', {
-        method: 'PUT',
-        headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${access_token}`,
+export const updatePreferredFont = async (
+    accessToken: string,
+    font: Font,
+    onAccessToken?: (token: string | null) => void,
+    onFailed?: (text?: string) => Promise<void>
+) => {
+    return await authFetch(
+        '/api/users/preferred-font',
+        {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            credentials: 'include',
+            body: JSON.stringify({ font }),
         },
-        credentials: 'include',
-        body: JSON.stringify({ font }),
-    })
+        { accessToken, onAccessToken, onFailed }
+    )
 }
 
 export const sendOTP = async (email: string) => {
@@ -55,48 +72,80 @@ export const resetPassword = async (resetToken: string, otp: string, email: stri
     })
 }
 
-export const changePassword = async (access_token: string, currentPassword: string, newPassword: string) => {
-    return await fetch('/api/users/change-password', {
-        method: 'PUT',
-        headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${access_token}`,
+export const changePassword = async (
+    accessToken: string,
+    currentPassword: string,
+    newPassword: string,
+    onAccessToken?: (token: string | null) => void,
+    onFailed?: (text?: string) => Promise<void>
+) => {
+    return await authFetch(
+        '/api/users/change-password',
+        {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            credentials: 'include',
+            body: JSON.stringify({ currentPassword, newPassword }),
         },
-        credentials: 'include',
-        body: JSON.stringify({ currentPassword, newPassword }),
-    })
+        { accessToken, onAccessToken, onFailed }
+    )
 }
 
-export const getUserSessionMode = async (access_token: string) => {
-    return await fetch('/api/users/get-session-mode', {
-        method: 'GET',
-        headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${access_token}`,
+
+export const getUserSessionMode = async (
+    accessToken: string,
+    onAccessToken?: (token: string | null) => void,
+    onFailed?: (text?: string) => Promise<void>
+) => {
+    return await authFetch(
+        '/api/users/get-session-mode',
+        {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            credentials: 'include',
         },
-        credentials: 'include',
-    })
+        { accessToken, onAccessToken, onFailed }
+    )
 }
 
-export const updateUserSessionMode = async (access_token: string, mode: TypingMode) => {
-    return await fetch('/api/users/update-session-mode', {
-        method: 'PUT',
-        headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${access_token}`,
+export const updateUserSessionMode = async (
+    accessToken: string,
+    mode: TypingMode,
+    onAccessToken?: (token: string | null) => void,
+    onFailed?: (text?: string) => Promise<void>
+) => {
+    return await authFetch(
+        '/api/users/update-session-mode',
+        {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            credentials: 'include',
+            body: JSON.stringify(mode),
         },
-        credentials: 'include',
-        body: JSON.stringify(mode),
-    })
+        { accessToken, onAccessToken, onFailed }
+    )
 }
 
-export const getUserPreferences = async (access_token: string) => {
-    return await fetch('/api/users/preferences', {
-        method: 'GET',
-        headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${access_token}`,
+export const getUserPreferences = async (
+    accessToken: string,
+    onAccessToken?: (token: string | null) => void,
+    onFailed?: (text?: string) => Promise<void>
+) => {
+    return await authFetch(
+        '/api/users/preferences',
+        {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            credentials: 'include',
         },
-        credentials: 'include',
-    })
+        { accessToken, onAccessToken, onFailed }
+    )
 }

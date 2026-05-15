@@ -38,7 +38,7 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
     const [font, setFont] = useState<Font>('geist');
     const [languageCode, setLanguageCode] = useState<string>('en');
     const [isLoaded, setIsLoaded] = useState(false);
-    const { isAuthenticated, user, accessToken } = useAuth();
+    const { isAuthenticated, user, accessToken, setAccessToken, signOut } = useAuth();
     const isGuest = !isAuthenticated || !user || !accessToken;
 
     useEffect(() => {
@@ -71,7 +71,7 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
 
     useEffect(() => {
         const getUserPref = async (access_token: string) => {
-            const response = await getUserPreferences(access_token);
+            const response = await getUserPreferences(access_token, setAccessToken, () => signOut("Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại"));
             if (response.ok) {
                 const { data } = await response.json();
                 const preferences = data.preferences;

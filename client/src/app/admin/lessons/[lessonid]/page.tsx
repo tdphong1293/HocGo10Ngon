@@ -34,7 +34,7 @@ const AdminSingleLessonPage: React.FC<PageProps<"/admin/lessons/[lessonid]">> = 
 
     const fetchLessonData = async () => {
         try {
-            const response = await getLessonById(accessToken!, lessonid);
+            const response = await getLessonById(accessToken!, lessonid, setAccessToken, () => signOut("Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại"));
             if (response.ok) {
                 const { data } = await response.json();
                 setDefaultLessonData(data);
@@ -68,7 +68,7 @@ const AdminSingleLessonPage: React.FC<PageProps<"/admin/lessons/[lessonid]">> = 
     };
 
     const fetchLastOrder = async () => {
-        const response = await getLessonLastOrder(accessToken!);
+        const response = await getLessonLastOrder(accessToken!, setAccessToken, () => signOut("Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại"));
         if (response.ok) {
             const { data: lastOrder } = await response.json();
             setLastOrder(lastOrder);
@@ -249,7 +249,7 @@ const AdminSingleLessonPage: React.FC<PageProps<"/admin/lessons/[lessonid]">> = 
         }
 
         try {
-            const response = await updateLesson(accessToken!, lessonid, differenceData);
+            const response = await updateLesson(accessToken!, lessonid, differenceData, setAccessToken, () => signOut("Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại"));
             if (response.ok) {
                 toast.success("Đã cập nhật bài học thành công.");
                 fetchLessonData();

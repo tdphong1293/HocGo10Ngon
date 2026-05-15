@@ -114,7 +114,7 @@ const AdminNewLessonPage = () => {
 
     const fetchLastOrder = async () => {
         if (isAuthenticated && accessToken && user && user.role === 'ADMIN') {
-            const response = await getLessonLastOrder(accessToken);
+            const response = await getLessonLastOrder(accessToken, setAccessToken, () => signOut("Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại"));
             if (response.ok) {
                 const { data: lastOrder } = await response.json();
                 setLastOrder(lastOrder);
@@ -186,7 +186,7 @@ const AdminNewLessonPage = () => {
                 ...(lessonHandType === "LEFT_HAND" ? { heldKey: "j" } : (lessonHandType === "RIGHT_HAND" ? { heldKey: "f" } : {})),
             };
 
-            const response = await addLesson(accessToken!, lessonData);
+            const response = await addLesson(accessToken!, lessonData, setAccessToken, () => signOut("Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại"));
             if (response.ok) {
                 toast.success("Đã thêm bài học mới thành công.");
                 clearAllInputs();

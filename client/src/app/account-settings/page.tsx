@@ -10,7 +10,7 @@ import { useEffect, useState } from "react";
 import { changePassword } from "@/services/user.services";
 
 const AccountSettingsPage = () => {
-    const { user, isAuthenticated, accessToken, loading } = useAuth();
+    const { user, isAuthenticated, accessToken, loading, setAccessToken, signOut } = useAuth();
     const [currentPassword, setCurrentPassword] = useState('');
     const [newPassword, setNewPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
@@ -68,7 +68,7 @@ const AccountSettingsPage = () => {
         const isValid = validateChangePasswordForm();
         if (!isValid) return;
 
-        const response = await changePassword(accessToken!, currentPassword, newPassword);
+        const response = await changePassword(accessToken!, currentPassword, newPassword, setAccessToken, () => signOut("Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại"));
         if (response.ok) {
             clearAllInputs();
             const { data } = await response.json();

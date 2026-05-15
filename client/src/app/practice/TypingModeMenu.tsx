@@ -56,7 +56,7 @@ const TypingMenu: React.FC<TypingMenuProps> = ({
     const [state, setState] = useState<TypingMode | null>(createDefaultState(sessionModeData?.[0] || null));
     const [prevState, setPrevState] = useState<TypingMode | null>(null);
     const { languageCode } = useTheme();
-    const { isAuthenticated, user, accessToken } = useAuth();
+    const { isAuthenticated, user, accessToken, setAccessToken, signOut } = useAuth();
     const isGuest = !isAuthenticated || !user || !accessToken;
 
     useEffect(() => {
@@ -72,7 +72,7 @@ const TypingMenu: React.FC<TypingMenuProps> = ({
 
     useEffect(() => {
         const fetchUserMode: () => Promise<boolean> = async () => {
-            const response = await getUserSessionMode(accessToken!);
+            const response = await getUserSessionMode(accessToken!, setAccessToken, () => signOut("Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại"));
             if (response.ok) {
                 const { data: { activeMode, sessionMode } } = await response.json();
                 setActiveMode(activeMode);
@@ -103,7 +103,7 @@ const TypingMenu: React.FC<TypingMenuProps> = ({
     const fetchPracticeText = useCallback(async () => {
         if (state) {
             if (isAuthenticated && user && accessToken && JSON.stringify(state) !== JSON.stringify(prevState)) {
-                updateUserSessionMode(accessToken, state);
+                updateUserSessionMode(accessToken, state, setAccessToken, () => signOut("Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại"));
             }
 
             const response = await getPracticeTypingText(languageCode, state);

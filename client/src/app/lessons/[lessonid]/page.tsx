@@ -13,7 +13,7 @@ const LessonPage: React.FC<PageProps<"/lessons/[lessonid]">> = ({
     params,
 }) => {
     const { lessonid } = use(params);
-    const { isAuthenticated, accessToken, user, loading, requireAuth } = useAuth();
+    const { isAuthenticated, accessToken, user, loading, requireAuth, setAccessToken, signOut } = useAuth();
     const isGuest = !isAuthenticated || !accessToken || !user;
     const [authChecked, setAuthChecked] = useState(false);
     const router = useRouter();
@@ -32,7 +32,7 @@ const LessonPage: React.FC<PageProps<"/lessons/[lessonid]">> = ({
     useEffect(() => {
         const fetchLessonData = async () => {
             try {
-                const response = await getLessonById(accessToken!, lessonid);
+                const response = await getLessonById(accessToken!, lessonid, setAccessToken, () => signOut("Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại"));
                 if (response.ok) {
                     const { data } = await response.json();
                     setLessonData(data);
