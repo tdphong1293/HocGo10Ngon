@@ -103,7 +103,7 @@ export class SessionService {
         }
     }
 
-    async getPracticeTypingText(languageCode: string, mode: SessionMode): Promise<{ totalWords: number, words: string[], author?: string, source?: string }> {
+    async getTypingText(languageCode: string, mode: SessionMode): Promise<{ totalWords: number, words: string[], author?: string, source?: string }> {
         try {
             if (mode.modeName === 'words') {
                 const wordCount = mode.config?.wordCount || 50;
@@ -177,7 +177,7 @@ export class SessionService {
                     subConfig: mode.subConfig,
                 } as SessionMode;
 
-                return this.getPracticeTypingText(languageCode, tmpMode);
+                return this.getTypingText(languageCode, tmpMode);
             }
             else if (mode.modeName === 'paragraphs') {
                 const paragraphLength = mode.config?.paragraphLength || 'MEDIUM';

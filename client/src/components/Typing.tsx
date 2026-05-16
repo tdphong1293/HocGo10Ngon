@@ -34,7 +34,7 @@ export interface TypingStats {
     words: number;
 }
 
-interface TypingPracticeProps {
+interface TypingProps {
     words: string[];
     sessionType: 'PRACTICE' | 'LESSON';
     totalWords?: number;
@@ -55,7 +55,7 @@ interface TypingPracticeProps {
     refreshText?: () => Promise<void>;
 }
 
-const TypingPractice: React.FC<TypingPracticeProps> = ({
+const Typing: React.FC<TypingProps> = ({
     words,
     sessionType,
     totalWords,
@@ -688,7 +688,7 @@ const TypingPractice: React.FC<TypingPracticeProps> = ({
                 if (response.ok) {
                     if (data.WPM < 20 || data.accuracy < 80 || data.CPM < 100) {
                         toast.warn('Phiên gõ có WPM/CPM hoặc độ chính xác khá thấp sẽ xem như thất bại và không được tính vào thành tích của bạn');
-                    } 
+                    }
                 }
                 else {
                     const errorData = await response.json();
@@ -889,4 +889,4 @@ const TypingPractice: React.FC<TypingPracticeProps> = ({
     );
 };
 
-export default TypingPractice;
+export default Typing;

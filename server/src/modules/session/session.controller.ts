@@ -19,9 +19,9 @@ export class SessionController {
 
     @Public()
     @Post('practice')
-    async getTypingPracticeText(@Body() textDto: PracticeTypingTextDto) {
+    async getTypingText(@Body() textDto: PracticeTypingTextDto) {
         const { languageCode, mode } = textDto;
-        const { totalWords, words, author, source } = await this.sessionService.getPracticeTypingText(languageCode, mode);
+        const { totalWords, words, author, source } = await this.sessionService.getTypingText(languageCode, mode);
         return {
             message: 'Lấy dữ liệu văn bản tập gõ thành công',
             totalWords: totalWords,

@@ -2,7 +2,7 @@
 
 import { useRef, useState } from "react";
 import TypingModeMenu, { TypingMode } from "./TypingModeMenu";
-import TypingPractice from "@/components/TypingPractice";
+import Typing from "@/components/Typing";
 
 const PracticePage = ({ }) => {
     const [words, setWords] = useState<string[]>([]);
@@ -26,7 +26,7 @@ const PracticePage = ({ }) => {
                 setAuthor={setAuthor}
                 setSource={setSource}
             />
-            <TypingPractice
+            <Typing
                 words={words}
                 sessionType="PRACTICE"
                 totalWords={totalWords}

@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { getSessionModes, getPracticeTypingText } from '@/services/session.services';
+import { getSessionModes, getTypingText } from '@/services/session.services';
 import { getUserSessionMode, updateUserSessionMode } from "@/services/user.services";
 import { toast } from "react-toastify";
 import { useTheme } from "@/hooks/useTheme";
@@ -106,7 +106,7 @@ const TypingMenu: React.FC<TypingMenuProps> = ({
                 updateUserSessionMode(accessToken, state, setAccessToken, () => signOut("Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại"));
             }
 
-            const response = await getPracticeTypingText(languageCode, state);
+            const response = await getTypingText(languageCode, state);
             if (response.ok) {
                 const { data } = await response.json();
                 setTypingWords && setTypingWords(data.words);

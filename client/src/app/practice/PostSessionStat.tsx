@@ -1,5 +1,5 @@
 import PostSessionLineChart from './PostSessionLineChart';
-import { Keystroke, TypingStats } from '@/components/TypingPractice';
+import { Keystroke, TypingStats } from '@/components/Typing';
 import { Icon } from '@iconify/react';
 import { useMemo, JSX } from 'react';
 import { diff_match_patch, DIFF_DELETE, DIFF_EQUAL, DIFF_INSERT } from 'diff-match-patch';

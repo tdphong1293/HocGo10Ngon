@@ -5,7 +5,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useRouter } from 'next/navigation';
 import { toast } from "react-toastify";
 import { getLessonById } from '@/services/lesson.services';
-import TypingPractice from '@/components/TypingPractice';
+import Typing from '@/components/Typing';
 import LoadingSpinner from '@/components/LoadingSpinner';
 
 
@@ -73,7 +73,7 @@ const LessonPage: React.FC<PageProps<"/lessons/[lessonid]">> = ({
     return (
         <div className="p-4 flex flex-col gap-5 w-full h-full">
             <span className="text-3xl font-bold">{`Bài học ${lessonData?.orderNumber}: ${lessonData?.title}`}</span>
-            <TypingPractice
+            <Typing
                 words={words}
                 sessionType="LESSON"
                 totalWords={words.length}
