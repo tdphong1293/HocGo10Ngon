@@ -125,17 +125,23 @@ const Typing: React.FC<TypingProps> = ({
     const lastSoundAtRef = useRef(0);
     const SOUND_MIN_INTERVAL_MS = 60;
 
-    const displayText = useMemo(() => {
+    const displayedText = useMemo(() => {
+        if (lessonType === "KEY_LESSON") {
+            return displayedWords.join('')
+        }
         return displayedWords.slice(0, renderedWordCount).join(' ');
-    }, [displayedWords, renderedWordCount]);
-
-    const fullTextLength = useMemo(() => {
-        return displayedWords.join(' ').length;
-    }, [displayedWords]);
+    }, [displayedWords, renderedWordCount, lessonType]);
 
     const fullText = useMemo(() => {
+        if (lessonType === "KEY_LESSON") {
+            return displayedText;
+        }
         return displayedWords.join(' ');
-    }, [displayedWords]);
+    }, [displayedWords, lessonType, displayedText]);
+
+    const fullTextLength = useMemo(() => {
+        return fullText.length;
+    }, [fullText]);
 
     const totalWordsToUse = totalWords ?? displayedWords.length;
 
@@ -285,7 +291,7 @@ const Typing: React.FC<TypingProps> = ({
 
             const newValue = userInput + char;
             const index = newValue.length - 1;
-            const expected = displayText[index];
+            const expected = displayedText[index];
             const correct = expected === char;
 
             setUserInput(newValue);
@@ -371,7 +377,7 @@ const Typing: React.FC<TypingProps> = ({
         }
 
         isProcessingRef.current = false;
-    }, [isFinished, userInput, displayText, startTime, timerRunning, heldKey, isHoldingKey, playSound]);
+    }, [isFinished, userInput, displayedText, startTime, timerRunning, heldKey, isHoldingKey, playSound]);
 
     const handleKeyUp = useCallback((e: KeyboardEvent) => {
         const keyCode = e.code;
@@ -553,8 +559,8 @@ const Typing: React.FC<TypingProps> = ({
 
     const renderText = () => {
         const content: React.ReactElement[] = [];
-        for (let i = 0; i < displayText.length; i++) {
-            const ch = displayText[i];
+        for (let i = 0; i < displayedText.length; i++) {
+            const ch = displayedText[i];
             if (ch === '\n') {
                 content.push(
                     <span key={`nl-${i}`} className="inline-flex items-center">
@@ -574,7 +580,7 @@ const Typing: React.FC<TypingProps> = ({
         );
     };
 
-    const renderedTextMemo = useMemo(() => renderText(), [displayText, renderedWordCount, userInput, currentIndex, textSizeToUse, textAnimationKey]);
+    const renderedTextMemo = useMemo(() => renderText(), [displayedText, renderedWordCount, userInput, currentIndex, textSizeToUse, textAnimationKey]);
 
     const VISIBLE_LINES = 3;
     const EDGE_BUFFER = 1;
@@ -748,6 +754,47 @@ const Typing: React.FC<TypingProps> = ({
         storeSessionResult();
     }, [isFinished, keystrokeLog, isGuest, languageCode, typingStats, state, inputHistory]);
 
+    const getKeyLessonWordIndex = (row: number, col: number) => {
+        let index = 0;
+        for (let i = 0; i < row; i++) {
+            index += words[i].length;
+        }
+        return index + col;
+    }
+
+    const renderKeyLessonText = () => {
+        const content: React.ReactElement[] = [];
+        for (let i = 0; i < words.length; i++) {
+            const word = words[i];
+            content.push(
+                <div
+                    className="flex gap-2 flex-wrap" key={`line-${i}`}
+                >
+                    {word.split('').map((char, charIndex) => {
+                        const typedChar = userInput[getKeyLessonWordIndex(i, charIndex)];
+                        const isTyped = getKeyLessonWordIndex(i, charIndex) < userInput.length;
+                        const isCorrect = typedChar === char;
+
+                        return (
+                            <span
+                                key={`char-${i}-${charIndex}`}
+                                className={`px-5 py-5 aspect-square w-20 h-20 rounded-md flex justify-center items-center border-2 border-border transition-colors duration-150 ${!isTyped ? "" : isCorrect ? "border-correct text-correct" : "border-incorrect text-incorrect"}`}
+                            >
+                                {char}
+                            </span>
+                        );
+                    })}
+                </div>
+            )
+        }
+
+        return (
+            <div className="flex flex-col gap-2 justify-center items-center">
+                {content}
+            </div>
+        )
+    }
+
     if (loading) {
         return (
             <div className="w-full h-full flex justify-center items-center">
@@ -799,7 +846,7 @@ const Typing: React.FC<TypingProps> = ({
                             transition={{ duration: 0.3, ease: 'easeInOut' }}
                         >
                             <div
-                                className={`absolute inset-0 bg-accent/50 rounded-md mx-10 text-accent-foreground z-10 flex flex-col justify-center items-center gap-4 backdrop-blur-sm transition-opacity duration-300 ${isFocused ? 'opacity-0 pointer-events-none' : 'opacity-100 pointer-events-auto'}`}
+                                className={`absolute inset-0 bg-accent/50 rounded-md mx-10 text-accent-foreground z-30 flex flex-col justify-center items-center gap-4 backdrop-blur-sm transition-opacity duration-300 ${isFocused ? 'opacity-0 pointer-events-none' : 'opacity-100 pointer-events-auto'}`}
                                 onClick={() => setIsFocused(true)}
                             >
                                 Nhấn vào đây để tiếp tục gõ
@@ -843,7 +890,7 @@ const Typing: React.FC<TypingProps> = ({
                                         onMouseDown={(e) => e.preventDefault()}
                                         onDragStart={(e) => e.preventDefault()}
                                     >
-                                        {renderedTextMemo}
+                                        {lessonType === "KEY_LESSON" ? renderKeyLessonText() : renderedTextMemo}
                                     </div>
                                 </div>
                                 {/* Bottom extra space for overlays */}
@@ -900,10 +947,12 @@ const Typing: React.FC<TypingProps> = ({
                                         </Tooltip>
                                     )}
                                     <Tooltip text="Gõ lại với văn bản hiện tại" shortcut="Ctrl+R" side={lessonid ? (nextLessonId ? 'top' : 'right') : 'left'}>
-                                        <div className="p-2 cursor-pointer border-2 border-border rounded-md hover:bg-accent hover:text-accent-foreground transition-colors">
+                                        <div
+                                            className="p-2 cursor-pointer border-2 border-border rounded-md hover:bg-accent hover:text-accent-foreground transition-colors"
+                                            onClick={resetSession}
+                                        >
                                             <Icon
                                                 icon="ri:reset-left-fill" className="text-2xl"
-                                                onClick={resetSession}
                                             />
                                         </div>
                                     </Tooltip>
