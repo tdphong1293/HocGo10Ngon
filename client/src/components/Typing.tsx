@@ -379,22 +379,68 @@ const Typing: React.FC<TypingProps> = ({
         }
     }, [heldKey]);
 
+    // Set các giá trị về false khi click ra ngoài, chuyển tab, ẩn cửa sổ, hoặc khi cửa sổ mất focus
     useEffect(() => {
         const handleClickOutside = (e: MouseEvent) => {
             if (typingContainerRef.current && !typingContainerRef.current.contains(e.target as Node)) {
                 setIsFocused(false);
+                setActiveKeys([]);
+                if (timerRunning) {
+                    setTimerRunning(false);
+                }
+                if (heldKey) {
+                    setIsHoldingKey(false);
+                }
+            }
+        };
+
+        const handleBlur = () => {
+            setActiveKeys([]);
+            setIsFocused(false);
+            if (timerRunning) {
+                setTimerRunning(false);
+            }
+            if (heldKey) {
+                setIsHoldingKey(false);
+            }
+        }
+
+        const handleVisibilityChange = () => {
+            if (document.visibilityState !== 'visible') {
+                setActiveKeys([]);
+                setIsFocused(false);
+                if (timerRunning) {
+                    setTimerRunning(false);
+                }
+                if (heldKey) {
+                    setIsHoldingKey(false);
+                }
+            }
+        };
+
+        const handlePageHide = () => {
+            setActiveKeys([]);
+            setIsFocused(false);
+            if (timerRunning) {
+                setTimerRunning(false);
+            }
+            if (heldKey) {
+                setIsHoldingKey(false);
             }
         };
 
         document.addEventListener('mousedown', handleClickOutside);
-        return () => document.removeEventListener('mousedown', handleClickOutside);
-    }, []);
-
-    useEffect(() => {
-        const handleBlur = () => setActiveKeys([]);
+        document.addEventListener('visibilitychange', handleVisibilityChange);
+        window.addEventListener('pagehide', handlePageHide);
         window.addEventListener('blur', handleBlur);
-        return () => window.removeEventListener('blur', handleBlur);
-    }, []);
+
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
+            document.removeEventListener('visibilitychange', handleVisibilityChange);
+            window.removeEventListener('pagehide', handlePageHide);
+            window.removeEventListener('blur', handleBlur);
+        };
+    }, [heldKey, timerRunning]);
 
     // Global keyboard shortcuts and typing handlers
     useEffect(() => {
