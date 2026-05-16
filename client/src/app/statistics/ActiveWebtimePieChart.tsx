@@ -16,7 +16,7 @@ interface LabelProps {
 }
 
 const createLabelRenderer = (data: { name: string; value: number }[]) => {
-    return (props: LabelProps) => {
+    const labelRenderer = (props: LabelProps) => {
         const { value, index, midAngle = 0, outerRadius, cx, cy } = props;
         const dataEntry = data[index];
         const name = dataEntry?.name || '';
@@ -114,6 +114,8 @@ const createLabelRenderer = (data: { name: string; value: number }[]) => {
             </g>
         );
     };
+
+    return labelRenderer;
 };
 
 interface ActiveWebtimePieChartProps {

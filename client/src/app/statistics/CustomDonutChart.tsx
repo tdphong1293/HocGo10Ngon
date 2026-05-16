@@ -44,8 +44,6 @@ const CustomDonutChart: React.FC<CustomDonutChartProps> = ({
     ];
     const safeChartData = chartData ?? defaultChartData;
 
-    
-
     return (
         <div className="flex flex-col gap-2 bg-card border-2 border-border p-4">
             {chartName && <div className="text-2xl">{chartName}</div>}
@@ -67,7 +65,7 @@ const CustomDonutChart: React.FC<CustomDonutChartProps> = ({
                                     width="100%"
                                     className="absolute top-0 left-0 -rotate-90"
                                 >
-                                    // Vòng tròn nền
+                                    {/* Vòng tròn nền */}
                                     <circle
                                         stroke="currentColor"
                                         className="text-primary-200"
@@ -78,7 +76,7 @@ const CustomDonutChart: React.FC<CustomDonutChartProps> = ({
                                         cy="50%"
                                     />
 
-                                    // Vòng tròn tiến trình
+                                    {/* Vòng tròn tiến trình */}
                                     <circle
                                         stroke="currentColor"
                                         className="text-primary transition-all duration-300"
