@@ -2,7 +2,7 @@ import { Controller, Get, Post, Put, Patch, Delete, Body, Param, Res, Req, Unaut
 import { SessionService } from './session.service';
 import { Public } from '../auth/auth.guard';
 import type { AuthenticatedRequest } from '../auth/auth.guard';
-import { PracticeTypingTextDto } from './dto/practiceTypingText.dto';
+import { TypingTextDto } from './dto/typingText.dto';
 import { sessionDataDto } from './dto/sessionData.dto';
 
 @Controller('sessions')
@@ -18,8 +18,8 @@ export class SessionController {
     }
 
     @Public()
-    @Post('practice')
-    async getTypingText(@Body() textDto: PracticeTypingTextDto) {
+    @Post('text')
+    async getTypingText(@Body() textDto: TypingTextDto) {
         const { languageCode, mode } = textDto;
         const { totalWords, words, author, source } = await this.sessionService.getTypingText(languageCode, mode);
         return {

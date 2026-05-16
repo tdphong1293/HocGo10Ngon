@@ -42,9 +42,19 @@ const AdminNewLessonPage = () => {
         }
     };
 
+    const fetchLastOrder = async () => {
+        const response = await getLessonLastOrder(accessToken!, setAccessToken, () => signOut("Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại"));
+        if (response.ok) {
+            const { data: lastOrder } = await response.json();
+            setLastOrder(lastOrder);
+            setLessonOrder((lastOrder + 1).toString());
+        }
+    }
+
     useEffect(() => {
         if (authChecked && !isGuest) {
             fetchLanguages();
+            fetchLastOrder();
         }
     }, [authChecked, isGuest]);
 
@@ -111,20 +121,6 @@ const AdminNewLessonPage = () => {
             toast.warn("Chỉ ADMIN mới có quyền tạo lựa chọn mới.");
         }
     }
-
-    const fetchLastOrder = async () => {
-        if (isAuthenticated && accessToken && user && user.role === 'ADMIN') {
-            const response = await getLessonLastOrder(accessToken, setAccessToken, () => signOut("Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại"));
-            if (response.ok) {
-                const { data: lastOrder } = await response.json();
-                setLastOrder(lastOrder);
-                setLessonOrder((lastOrder + 1).toString());
-            }
-        }
-    }
-    useEffect(() => {
-        fetchLastOrder();
-    }, [isAuthenticated, accessToken, user]);
 
     const clearAllErrors = () => {
         setErrors({});

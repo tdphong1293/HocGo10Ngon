@@ -56,7 +56,7 @@ const LessonPage: React.FC<PageProps<"/lessons/[lessonid]">> = ({
         if (authChecked && !isGuest) {
             fetchLessonData();
         }
-    }, [isAuthenticated, isGuest]);
+    }, [authChecked, isGuest]);
 
     if (loading) {
         return (
@@ -66,7 +66,7 @@ const LessonPage: React.FC<PageProps<"/lessons/[lessonid]">> = ({
         );
     }
 
-    if (!authChecked || isGuest) {
+    if (!lessonData || !authChecked || isGuest) {
         return null;
     }
 
@@ -76,6 +76,7 @@ const LessonPage: React.FC<PageProps<"/lessons/[lessonid]">> = ({
             <Typing
                 words={words}
                 sessionType="LESSON"
+                lessonType={lessonData?.lessonType}
                 totalWords={words.length}
                 endMode={"length"}
                 heldKey={lessonData?.heldKey}

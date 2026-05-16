@@ -16,7 +16,7 @@ export interface TypingMode {
 }
 
 export const getTypingText = async (languageCode: string, mode: TypingMode) => {
-    return await fetch('/api/sessions/practice', {
+    return await fetch('/api/sessions/text', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',

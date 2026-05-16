@@ -37,6 +37,7 @@ export interface TypingStats {
 interface TypingProps {
     words: string[];
     sessionType: 'PRACTICE' | 'LESSON';
+    lessonType?: 'PRACTICE' | 'KEY_LESSON';
     totalWords?: number;
     author?: string | null;
     source?: string | null;
@@ -58,6 +59,7 @@ interface TypingProps {
 const Typing: React.FC<TypingProps> = ({
     words,
     sessionType,
+    lessonType,
     totalWords,
     author,
     source,
@@ -716,6 +718,7 @@ const Typing: React.FC<TypingProps> = ({
 
                 const data = {
                     sessionType,
+                    lessonType,
                     languageCode: languageCode,
                     lessonid: sessionType === 'LESSON' && lessonid ? lessonid : undefined,
                     modeName: state?.modeName,
@@ -751,6 +754,10 @@ const Typing: React.FC<TypingProps> = ({
                 <LoadingSpinner />
             </div>
         );
+    }
+
+    if (words.length <= 0 || !words) {
+        return null;
     }
 
     return (

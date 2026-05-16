@@ -138,13 +138,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
                 setIsAuthenticated(false);
                 setAccessToken(null);
                 setUser(null);
-                router.refresh();
                 if (!text || text.trim() === "" || text === "Đăng xuất thành công!") {
                     toast.success("Đăng xuất thành công!");
                 } else {
                     toast.info(text);
                 }
             }
+            router.push('/');
         } catch (error) {
             const errorMessage = error instanceof Error ? error.message : 'Lỗi đăng xuất, vui lòng thử lại sau ít phút';
             toast.error(errorMessage);

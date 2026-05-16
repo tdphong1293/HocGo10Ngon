@@ -1,4 +1,5 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
+import { IsOptional } from 'class-validator';
 import { HydratedDocument } from 'mongoose';
 
 export type SessionDocument = HydratedDocument<Session>;
@@ -15,6 +16,11 @@ export enum SessionType {
     LESSON = 'LESSON',
 }
 
+export enum LessonType {
+    PRACTICE = 'PRACTICE',
+    KEY_LESSON = 'KEY_LESSON',
+}
+
 @Schema({
     timestamps: true,
     collection: 'sessions'
@@ -28,6 +34,13 @@ export class Session {
         enum: Object.values(SessionType)
     })
     sessionType: SessionType;
+
+    
+    @Prop({
+        enum: Object.values(LessonType)
+    })
+    @IsOptional()
+    lessonType?: LessonType;
 
     @Prop({ required: true })
     languageCode: string;

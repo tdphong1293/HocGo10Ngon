@@ -1,6 +1,6 @@
 import { Type } from 'class-transformer';
 import { IsArray, IsBoolean, IsEnum, IsNotEmpty, IsNumber, IsObject, IsOptional, IsString, ValidateNested } from 'class-validator';
-import { SessionType } from 'src/modules/mongoose/schemas/session.schema';
+import { SessionType, LessonType } from 'src/modules/mongoose/schemas/session.schema';
 
 class KeystrokeDto {
     @IsString()
@@ -26,6 +26,10 @@ export class sessionDataDto {
     @IsEnum(SessionType)
     @IsNotEmpty()
     sessionType!: SessionType;
+
+    @IsEnum(LessonType)
+    @IsOptional()
+    lessonType?: LessonType;
 
     @IsString()
     @IsOptional()

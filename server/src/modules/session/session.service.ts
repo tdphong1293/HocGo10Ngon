@@ -251,7 +251,7 @@ export class SessionService {
             if (createdSession && lessonid) {
                 const isSuccess = await this.storeUserLesson(userid, lessonid);
                 if (!isSuccess) {
-                    const deletResult = await this.sessionModel.deleteOne({ _id: createdSession._id }).exec();
+                    await this.sessionModel.deleteOne({ _id: createdSession._id }).exec();
                     throw new InternalServerErrorException('Lỗi khi ghi nhận hoàn thành bài học cho người dùng');
                 }
             }
