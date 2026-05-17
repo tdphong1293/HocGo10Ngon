@@ -127,6 +127,8 @@ const Typing: React.FC<TypingProps> = ({
 
     const [wrongChar, setWrongChar] = useState<string | null>(null);
     const [isBackspaceTyped, setIsBackspaceTyped] = useState(false);
+    const wrongCharTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+    const backspaceTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
     const displayedText = useMemo(() => {
         if (lessonType === "KEY_LESSON") {
@@ -211,10 +213,34 @@ const Typing: React.FC<TypingProps> = ({
         setKeystrokeLog([]);
         setInputHistory('');
         setIsFinished(false);
+        setWrongChar(null);
+        setIsBackspaceTyped(false);
         setRenderedWordCount(BUFFER_WORDS); // Reset rendered word count
         setTextAnimationKey(key => key + 1);
         setVisibleStartLine(0);
         skipAnimationRef.current = true;
+        if (wrongCharTimeoutRef.current) {
+            clearTimeout(wrongCharTimeoutRef.current);
+            wrongCharTimeoutRef.current = null;
+        }
+        if (backspaceTimeoutRef.current) {
+            clearTimeout(backspaceTimeoutRef.current);
+            backspaceTimeoutRef.current = null;
+        }
+    }, []);
+
+    useEffect(() => {
+        // unmount cleanup
+        return () => {
+            if (wrongCharTimeoutRef.current) {
+                clearTimeout(wrongCharTimeoutRef.current);
+                wrongCharTimeoutRef.current = null;
+            }
+            if (backspaceTimeoutRef.current) {
+                clearTimeout(backspaceTimeoutRef.current);
+                backspaceTimeoutRef.current = null;
+            }
+        };
     }, []);
 
     useEffect(() => {
@@ -300,8 +326,12 @@ const Typing: React.FC<TypingProps> = ({
             if (!correct && lessonType === "KEY_LESSON") {
                 playSound("incorrect");
                 setWrongChar(char);
-                setTimeout(() => {
+                if (wrongCharTimeoutRef.current) {
+                    clearTimeout(wrongCharTimeoutRef.current);
+                }
+                wrongCharTimeoutRef.current = setTimeout(() => {
                     setWrongChar(null);
+                    wrongCharTimeoutRef.current = null;
                 }, 300);
                 isProcessingRef.current = false;
                 return;
@@ -327,8 +357,12 @@ const Typing: React.FC<TypingProps> = ({
             if (lessonType === "KEY_LESSON") {
                 playSound("correct")
                 setIsBackspaceTyped(true);
-                setTimeout(() => {
+                if (backspaceTimeoutRef.current) {
+                    clearTimeout(backspaceTimeoutRef.current);
+                }
+                backspaceTimeoutRef.current = setTimeout(() => {
                     setIsBackspaceTyped(false);
+                    backspaceTimeoutRef.current = null;
                 }, 2000);
                 isProcessingRef.current = false;
                 return;
@@ -804,6 +838,7 @@ const Typing: React.FC<TypingProps> = ({
         const wordIndex = getKeyLessonWordIndex(currenIndex);
         if (wordIndex >= words.length) return null;
         const word = words[wordIndex];
+        const keyLessonKey = `${wordIndex}-${textAnimationKey}`;
 
         return (
             <div className="w-full flex flex-col gap-2 items-center">
@@ -815,29 +850,38 @@ const Typing: React.FC<TypingProps> = ({
                         />
                     )}
                 </div>
-                <div className="flex gap-2 flex-wrap justify-center items-center">
-                    {word.split("").map((char, charIndex) => {
-                        const typedChar = userInput[getKeyLessonCharIndex(wordIndex, charIndex)];
-                        const isTyped = getKeyLessonCharIndex(wordIndex, charIndex) < userInput.length;
-                        const isCorrect = typedChar === char;
-                        const isActive = getKeyLessonCharIndex(wordIndex, charIndex) === currentIndex;
+                <AnimatePresence mode="wait" initial={true}>
+                    <motion.div
+                        className="flex gap-4 flex-wrap justify-center items-center"
+                        key={keyLessonKey}
+                        initial={{ opacity: 0, y: -30 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: 30 }}
+                        transition={{ duration: 0.5, ease: 'easeInOut' }}
+                    >
+                        {word.split("").map((char, charIndex) => {
+                            const typedChar = userInput[getKeyLessonCharIndex(wordIndex, charIndex)];
+                            const isTyped = getKeyLessonCharIndex(wordIndex, charIndex) < userInput.length;
+                            const isCorrect = typedChar === char;
+                            const isActive = getKeyLessonCharIndex(wordIndex, charIndex) === currentIndex;
 
-                        return (
-                            <div
-                                className={`flex flex-col ${textKeyGapMap[textSizeToUse]}`}
-                                key={`char-wrapper-${wordIndex}-${charIndex}`}
-                            >
+                            return (
                                 <div
-                                    key={`char-${wordIndex}-${charIndex}`}
-                                    className={`aspect-square ${textKeySizeMap[textSizeToUse]} rounded-md flex justify-center items-center border-2 border-border transition-colors duration-150 ${!isTyped ? "" : isCorrect ? "border-correct text-correct" : "border-incorrect text-incorrect"} ${isActive && wrongChar ? "border-incorrect text-incorrect " + textKeyMoveUpMap[textSizeToUse] + " transition-transform duration-300" : ""}`}
+                                    className={`flex flex-col ${textKeyGapMap[textSizeToUse]}`}
+                                    key={`char-wrapper-${wordIndex}-${charIndex}`}
                                 >
-                                    {isActive && wrongChar ? wrongChar : char}
+                                    <div
+                                        key={`char-${wordIndex}-${charIndex}`}
+                                        className={`aspect-square ${textKeySizeMap[textSizeToUse]} rounded-md flex justify-center items-center border-2 border-border transition-colors duration-150 ${!isTyped ? "" : isCorrect ? "border-correct text-correct" : "border-incorrect text-incorrect"} ${isActive && wrongChar ? "border-incorrect text-incorrect " + textKeyMoveUpMap[textSizeToUse] + " transition-transform duration-300" : ""}`}
+                                    >
+                                        {isActive && wrongChar ? wrongChar : char}
+                                    </div>
+                                    <div className={`h-1 w-full rounded-md ${isActive ? "bg-primary" : ""}`} />
                                 </div>
-                                <div className={`h-1 w-full rounded-md ${isActive ? "bg-primary" : ""}`} />
-                            </div>
-                        );
-                    })}
-                </div>
+                            );
+                        })}
+                    </motion.div>
+                </AnimatePresence>
             </div>
         );
     }
