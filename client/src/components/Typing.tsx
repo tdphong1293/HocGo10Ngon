@@ -4,7 +4,7 @@ import { useEffect, useRef, useState, useMemo, useCallback } from 'react';
 import Keyboard, { keyboardSizes } from '@/components/Keyboard';
 import { Icon } from '@iconify/react';
 import type { TextSize } from '@/config/typingUi';
-import { textSizeClass, wrongTextClass } from '@/config/typingUi';
+import { textSizeClass, wrongTextClass, textKeySizeMap, textKeyGapMap, textKeyMoveUpMap } from '@/config/typingUi';
 import TypingOptionMenu from '@/app/practice/TypingOptionMenu';
 import { AnimatePresence, motion } from 'framer-motion';
 import PostSessionStat from '@/app/practice/PostSessionStat';
@@ -124,6 +124,9 @@ const Typing: React.FC<TypingProps> = ({
     const soundRefs = useRef<Partial<Record<'correct' | 'incorrect', HTMLAudioElement>>>({});
     const lastSoundAtRef = useRef(0);
     const SOUND_MIN_INTERVAL_MS = 60;
+
+    const [wrongChar, setWrongChar] = useState<string | null>(null);
+    const [isBackspaceTyped, setIsBackspaceTyped] = useState(false);
 
     const displayedText = useMemo(() => {
         if (lessonType === "KEY_LESSON") {
@@ -294,6 +297,16 @@ const Typing: React.FC<TypingProps> = ({
             const expected = displayedText[index];
             const correct = expected === char;
 
+            if (!correct && lessonType === "KEY_LESSON") {
+                playSound("incorrect");
+                setWrongChar(char);
+                setTimeout(() => {
+                    setWrongChar(null);
+                }, 300);
+                isProcessingRef.current = false;
+                return;
+            }
+
             setUserInput(newValue);
             setCurrentIndex(newValue.length);
             setInputHistory(prev => prev + char);
@@ -311,6 +324,15 @@ const Typing: React.FC<TypingProps> = ({
 
         // Backspace
         if (key === "Backspace") {
+            if (lessonType === "KEY_LESSON") {
+                playSound("correct")
+                setIsBackspaceTyped(true);
+                setTimeout(() => {
+                    setIsBackspaceTyped(false);
+                }, 2000);
+                isProcessingRef.current = false;
+                return;
+            }
             if (heldKey && !isHoldingKey) {
                 isProcessingRef.current = false;
                 return;
@@ -702,10 +724,12 @@ const Typing: React.FC<TypingProps> = ({
                 <span className="text-sm font-bold">Time:</span>
                 <span className="text-lg">{elapsedTime}s {timeLimit ? ` / ${timeLimit}s` : ''}</span>
             </div>
-            <div className="flex flex-col text-right">
-                <span className="text-sm font-bold">Words:</span>
-                <span className="text-lg">{getCurrentWordIndex(currentIndex)} / {totalWordsToUse}</span>
-            </div>
+            {lessonType !== "KEY_LESSON" && (
+                <div className="flex flex-col text-right">
+                    <span className="text-sm font-bold">Words:</span>
+                    <span className="text-lg">{getCurrentWordIndex(currentIndex)} / {totalWordsToUse}</span>
+                </div>
+            )}
         </div>
     ), [typingStats, elapsedTime, timeLimit, currentIndex, totalWords, getCurrentWordIndex, totalWordsToUse]);
 
@@ -741,7 +765,7 @@ const Typing: React.FC<TypingProps> = ({
 
                 const response = await storeTypingSessionResult(accessToken, data, setAccessToken, () => signOut("Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại"));
                 if (response.ok) {
-                    if (data.WPM < 20 || data.accuracy < 80 || data.CPM < 100) {
+                    if ((data.WPM < 20 || data.accuracy < 80 || data.CPM < 100) && lessonType !== 'KEY_LESSON') {
                         toast.warn('Phiên gõ có WPM/CPM hoặc độ chính xác khá thấp sẽ xem như thất bại và không được tính vào thành tích của bạn');
                     }
                 }
@@ -754,7 +778,7 @@ const Typing: React.FC<TypingProps> = ({
         storeSessionResult();
     }, [isFinished, keystrokeLog, isGuest, languageCode, typingStats, state, inputHistory]);
 
-    const getKeyLessonWordIndex = (row: number, col: number) => {
+    const getKeyLessonCharIndex = (row: number, col: number) => {
         let index = 0;
         for (let i = 0; i < row; i++) {
             index += words[i].length;
@@ -762,37 +786,60 @@ const Typing: React.FC<TypingProps> = ({
         return index + col;
     }
 
-    const renderKeyLessonText = () => {
-        const content: React.ReactElement[] = [];
+    const getKeyLessonWordIndex = (charIndex: number) => {
+        let wordIndex = 0;
+        let currentIndex = 0;
         for (let i = 0; i < words.length; i++) {
             const word = words[i];
-            content.push(
-                <div
-                    className="flex gap-2 flex-wrap" key={`line-${i}`}
-                >
-                    {word.split('').map((char, charIndex) => {
-                        const typedChar = userInput[getKeyLessonWordIndex(i, charIndex)];
-                        const isTyped = getKeyLessonWordIndex(i, charIndex) < userInput.length;
+            if (charIndex < currentIndex + word.length) {
+                wordIndex = i;
+                break;
+            }
+            currentIndex += word.length;
+        }
+        return wordIndex;
+    }
+
+    const renderKeyLessonText = (currenIndex: number) => {
+        const wordIndex = getKeyLessonWordIndex(currenIndex);
+        if (wordIndex >= words.length) return null;
+        const word = words[wordIndex];
+
+        return (
+            <div className="w-full flex flex-col gap-2 items-center">
+                <div className="min-h-9">
+                    {isBackspaceTyped && (
+                        <Icon
+                            icon="ic:round-backspace"
+                            className="text-incorrect "
+                        />
+                    )}
+                </div>
+                <div className="flex gap-2 flex-wrap justify-center items-center">
+                    {word.split("").map((char, charIndex) => {
+                        const typedChar = userInput[getKeyLessonCharIndex(wordIndex, charIndex)];
+                        const isTyped = getKeyLessonCharIndex(wordIndex, charIndex) < userInput.length;
                         const isCorrect = typedChar === char;
+                        const isActive = getKeyLessonCharIndex(wordIndex, charIndex) === currentIndex;
 
                         return (
-                            <span
-                                key={`char-${i}-${charIndex}`}
-                                className={`px-5 py-5 aspect-square w-20 h-20 rounded-md flex justify-center items-center border-2 border-border transition-colors duration-150 ${!isTyped ? "" : isCorrect ? "border-correct text-correct" : "border-incorrect text-incorrect"}`}
+                            <div
+                                className={`flex flex-col ${textKeyGapMap[textSizeToUse]}`}
+                                key={`char-wrapper-${wordIndex}-${charIndex}`}
                             >
-                                {char}
-                            </span>
+                                <div
+                                    key={`char-${wordIndex}-${charIndex}`}
+                                    className={`aspect-square ${textKeySizeMap[textSizeToUse]} rounded-md flex justify-center items-center border-2 border-border transition-colors duration-150 ${!isTyped ? "" : isCorrect ? "border-correct text-correct" : "border-incorrect text-incorrect"} ${isActive && wrongChar ? "border-incorrect text-incorrect " + textKeyMoveUpMap[textSizeToUse] + " transition-transform duration-300" : ""}`}
+                                >
+                                    {isActive && wrongChar ? wrongChar : char}
+                                </div>
+                                <div className={`h-1 w-full rounded-md ${isActive ? "bg-primary" : ""}`} />
+                            </div>
                         );
                     })}
                 </div>
-            )
-        }
-
-        return (
-            <div className="flex flex-col gap-2 justify-center items-center">
-                {content}
             </div>
-        )
+        );
     }
 
     if (loading) {
@@ -846,7 +893,7 @@ const Typing: React.FC<TypingProps> = ({
                             transition={{ duration: 0.3, ease: 'easeInOut' }}
                         >
                             <div
-                                className={`absolute inset-0 bg-accent/50 rounded-md mx-10 text-accent-foreground z-30 flex flex-col justify-center items-center gap-4 backdrop-blur-sm transition-opacity duration-300 ${isFocused ? 'opacity-0 pointer-events-none' : 'opacity-100 pointer-events-auto'}`}
+                                className={`absolute inset-0 bg-accent/50 rounded-md mx-10 text-accent-foreground z-25 flex flex-col justify-center items-center gap-4 backdrop-blur-sm transition-opacity duration-300 ${isFocused ? 'opacity-0 pointer-events-none' : 'opacity-100 pointer-events-auto'}`}
                                 onClick={() => setIsFocused(true)}
                             >
                                 Nhấn vào đây để tiếp tục gõ
@@ -862,40 +909,51 @@ const Typing: React.FC<TypingProps> = ({
                             </div>
 
                             {/* Typing Area */}
-                            <div
-                                ref={scrollRef}
-                                className={`relative w-full flex justify-center items-start overflow-hidden ${textSizeClass[textSizeToUse]} select-none leading-loose`}
-                                style={{
-                                    height: `calc((${VISIBLE_LINES} + ${BOTTOM_EXTRA}) * 1lh)`
-                                }}
-                            >
+                            {lessonType !== "KEY_LESSON" ? (
                                 <div
-                                    className="w-full"
+                                    ref={scrollRef}
+                                    className={`relative w-full flex justify-center items-start overflow-hidden ${textSizeClass[textSizeToUse]} select-none leading-loose`}
                                     style={{
-                                        height: `calc(${VISIBLE_LINES} * 1lh)`,
-                                        overflow: 'hidden'
+                                        height: `calc((${VISIBLE_LINES} + ${BOTTOM_EXTRA}) * 1lh)`
                                     }}
                                 >
                                     <div
-                                        ref={contentWrapperRef}
-                                        className="w-full px-10 cursor-text whitespace-pre-wrap wrap-break-word"
+                                        className="w-full"
                                         style={{
-                                            fontFeatureSettings: '"liga" 0, "calt" 0',
-                                            lineHeight: 'inherit',
-                                            transform: lineHeightPx ? `translateY(-${visibleStartLine * lineHeightPx}px)` : undefined,
-                                            willChange: 'transform',
-                                            transition: skipAnimationRef.current ? 'none' : 'transform 180ms ease-out'
+                                            height: `calc(${VISIBLE_LINES} * 1lh)`,
+                                            overflow: 'hidden'
                                         }}
-                                        onClick={() => setIsFocused(true)}
-                                        onMouseDown={(e) => e.preventDefault()}
-                                        onDragStart={(e) => e.preventDefault()}
                                     >
-                                        {lessonType === "KEY_LESSON" ? renderKeyLessonText() : renderedTextMemo}
+                                        <div
+                                            ref={contentWrapperRef}
+                                            className="w-full px-10 cursor-text whitespace-pre-wrap wrap-break-word"
+                                            style={{
+                                                fontFeatureSettings: '"liga" 0, "calt" 0',
+                                                lineHeight: 'inherit',
+                                                transform: lineHeightPx ? `translateY(-${visibleStartLine * lineHeightPx}px)` : undefined,
+                                                willChange: 'transform',
+                                                transition: skipAnimationRef.current ? 'none' : 'transform 180ms ease-out'
+                                            }}
+                                            onClick={() => setIsFocused(true)}
+                                            onMouseDown={(e) => e.preventDefault()}
+                                            onDragStart={(e) => e.preventDefault()}
+                                        >
+                                            {renderedTextMemo}
+                                        </div>
                                     </div>
+                                    {/* Bottom extra space for overlays */}
+                                    <div aria-hidden style={{ height: `calc(${BOTTOM_EXTRA} * 1lh)` }} />
                                 </div>
-                                {/* Bottom extra space for overlays */}
-                                <div aria-hidden style={{ height: `calc(${BOTTOM_EXTRA} * 1lh)` }} />
-                            </div>
+                            ) : (
+                                <div
+                                    className={`w-full flex justify-center items-center overflow-hidden ${textSizeClass[textSizeToUse]} select-none leading-loose`}
+                                    style={{
+                                        height: `calc((${VISIBLE_LINES} + ${BOTTOM_EXTRA}) * 1lh)`
+                                    }}
+                                >
+                                    {renderKeyLessonText(currentIndex)}
+                                </div>
+                            )}
                         </motion.div>
 
                         {showKeyboardToUse && (
@@ -922,8 +980,8 @@ const Typing: React.FC<TypingProps> = ({
                         transition={{ duration: 0.5, ease: 'easeOut' }}
                         className="w-full"
                     >
-                        {keystrokeLog.length > 0 && (
-                            <>
+                        {keystrokeLog.length > 0 && lessonType !== "KEY_LESSON" ?
+                            (
                                 <PostSessionStat
                                     text={fullText}
                                     keystrokeLog={keystrokeLog}
@@ -932,58 +990,63 @@ const Typing: React.FC<TypingProps> = ({
                                     author={author}
                                     source={source}
                                 />
-                                <div className="flex justify-center gap-10 mt-6">
-                                    {lessonid && (
-                                        <Tooltip text="Quay về danh sách bài học" side="left">
-                                            <Link href={`/lessons`}>
-                                                <div
-                                                    className="p-2 cursor-pointer border-2 border-border rounded-md hover:bg-accent hover:text-accent-foreground transition-colors"
-                                                >
-                                                    <Icon
-                                                        icon="line-md:arrow-left" className="text-2xl"
-                                                    />
-                                                </div>
-                                            </Link>
-                                        </Tooltip>
-                                    )}
-                                    <Tooltip text="Gõ lại với văn bản hiện tại" shortcut="Ctrl+R" side={lessonid ? (nextLessonId ? 'top' : 'right') : 'left'}>
+                            ) : (
+                                <div className="w-full h-60 flex flex-col justify-center items-center gap-2">
+                                    <Icon icon="material-symbols:check-circle" className="text-6xl text-correct" />
+                                    <span className="text-3xl font-bold">Hoàn thành!</span>
+                                </div>
+                            )
+                        }
+                        <div className="flex justify-center gap-10 mt-6">
+                            {lessonid && (
+                                <Tooltip text="Quay về danh sách bài học" side="left">
+                                    <Link href={`/lessons`}>
                                         <div
                                             className="p-2 cursor-pointer border-2 border-border rounded-md hover:bg-accent hover:text-accent-foreground transition-colors"
-                                            onClick={resetSession}
                                         >
                                             <Icon
-                                                icon="ri:reset-left-fill" className="text-2xl"
+                                                icon="line-md:arrow-left" className="text-2xl"
                                             />
                                         </div>
-                                    </Tooltip>
-                                    {refreshText && (
-                                        <Tooltip text="Phiên gõ mới" shortcut="Ctrl+Enter" side={nextLessonId ? 'top' : 'right'}>
-                                            <div
-                                                className="p-2 cursor-pointer border-2 border-border rounded-md hover:bg-accent hover:text-accent-foreground transition-colors"
-                                                onClick={async () => { await refreshText?.(); }}
-                                            >
-                                                <Icon
-                                                    icon="ooui:next-ltr" className="text-2xl"
-                                                />
-                                            </div>
-                                        </Tooltip>
-                                    )}
-                                    {nextLessonId && (
-                                        <Tooltip text="Bài học tiếp theo" side="right">
-                                            <Link href={`/lessons/${nextLessonId}`}>
-                                                <div
-                                                    className="p-2 cursor-pointer border-2 border-border rounded-md hover:bg-accent hover:text-accent-foreground transition-colors"
-                                                >
-                                                    <Icon
-                                                        icon="line-md:arrow-right" className="text-2xl"
-                                                    />
-                                                </div>
-                                            </Link>
-                                        </Tooltip>
-                                    )}
+                                    </Link>
+                                </Tooltip>
+                            )}
+                            <Tooltip text="Gõ lại với văn bản hiện tại" shortcut="Ctrl+R" side={lessonid ? (nextLessonId ? 'top' : 'right') : 'left'}>
+                                <div
+                                    className="p-2 cursor-pointer border-2 border-border rounded-md hover:bg-accent hover:text-accent-foreground transition-colors"
+                                    onClick={resetSession}
+                                >
+                                    <Icon
+                                        icon="ri:reset-left-fill" className="text-2xl"
+                                    />
                                 </div>
-                            </>
-                        )}
+                            </Tooltip>
+                            {refreshText && (
+                                <Tooltip text="Phiên gõ mới" shortcut="Ctrl+Enter" side={nextLessonId ? 'top' : 'right'}>
+                                    <div
+                                        className="p-2 cursor-pointer border-2 border-border rounded-md hover:bg-accent hover:text-accent-foreground transition-colors"
+                                        onClick={async () => { await refreshText?.(); }}
+                                    >
+                                        <Icon
+                                            icon="ooui:next-ltr" className="text-2xl"
+                                        />
+                                    </div>
+                                </Tooltip>
+                            )}
+                            {nextLessonId && (
+                                <Tooltip text="Bài học tiếp theo" side="right">
+                                    <Link href={`/lessons/${nextLessonId}`}>
+                                        <div
+                                            className="p-2 cursor-pointer border-2 border-border rounded-md hover:bg-accent hover:text-accent-foreground transition-colors"
+                                        >
+                                            <Icon
+                                                icon="line-md:arrow-right" className="text-2xl"
+                                            />
+                                        </div>
+                                    </Link>
+                                </Tooltip>
+                            )}
+                        </div>
                     </motion.div>
                 )}
             </AnimatePresence>

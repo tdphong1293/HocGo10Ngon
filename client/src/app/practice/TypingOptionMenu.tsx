@@ -97,7 +97,7 @@ const TypingOptionMenu: React.FC<TypingOptionMenuProps> = ({
                     <motion.div
                         className="absolute mt-0.5 right-0
                                 bg-card shadow-lg rounded-lg p-4 border-2 border-border
-                                flex flex-col gap-5 z-20 w-100
+                                flex flex-col gap-5 z-40 w-100
                             "
                         initial={{ opacity: 0, height: 0 }}
                         animate={{ opacity: 1, height: "auto" }}

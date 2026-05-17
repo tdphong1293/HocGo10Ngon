@@ -77,7 +77,7 @@ const LessonPage: React.FC<PageProps<"/lessons/[lessonid]">> = ({
 
     return (
         <div className="p-4 flex flex-col gap-5 w-full h-full">
-            <span className="text-3xl font-bold">{`Bài học ${lessonData?.orderNumber}: ${lessonData?.title}`}</span>
+            <span className="text-3xl font-bold">{`${lessonData?.title}`}</span>
             <Typing
                 words={words}
                 sessionType="LESSON"

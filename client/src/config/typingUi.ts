@@ -16,4 +16,22 @@ export const wrongTextClass: Record<TextSize, string> = {
     'very-large': 'text-4xl translate-y-8',
 };
 
+export const textKeySizeMap: Record<TextSize, string> = {
+    normal: 'w-10 h-10',
+    large: 'w-20 h-20',
+    'very-large': 'w-28 h-28',
+};
+
+export const textKeyGapMap: Record<TextSize, string> = {
+    normal: 'gap-1',
+    large: 'gap-2',
+    'very-large': 'gap-2.5',
+}
+
+export const textKeyMoveUpMap: Record<TextSize, string> = {
+    normal: '-translate-y-1.5',
+    large: '-translate-y-2',
+    'very-large': '-translate-y-3',
+}
+
 export const keyboardSizeOptions: keyboardSizes[] = ['small', 'normal', 'large'];
