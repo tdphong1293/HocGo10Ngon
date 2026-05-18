@@ -10,8 +10,24 @@ export class LessonService {
         private prisma: PrismaService,
     ) { }
 
-    async getAllLessons() {
+    async getAllLessons(languageCode?: string, searchTitle?: string) {
+        const whereClause: any = {};
+
+        if (languageCode) {
+            whereClause.language = {
+                languageCode
+            };
+        }
+
+        if (searchTitle && searchTitle !== "") {
+            whereClause.title = {
+                contains: searchTitle,
+                mode: "insensitive",
+            };
+        }
+
         return await this.prisma.lesson.findMany({
+            where: whereClause,
             orderBy: {
                 orderNumber: 'asc',
             }
@@ -49,36 +65,6 @@ export class LessonService {
         }
     }
 
-    async getLessonsByLanguageCode(languageCode: string) {
-        return await this.prisma.lesson.findMany({
-            where: {
-                language: {
-                    languageCode
-                }
-            },
-            orderBy: {
-                orderNumber: 'asc',
-            }
-        });
-    }
-
-    async getLessonsByLanguageAndTitle(languageCode: string, searchTitle: string) {
-        return await this.prisma.lesson.findMany({
-            where: {
-                language: {
-                    languageCode
-                },
-                title: {
-                    contains: searchTitle,
-                    mode: "insensitive",
-                }
-            },
-            orderBy: {
-                orderNumber: 'asc',
-            }
-        });
-    }
-
     async getLessonLastOrder() {
         return await this.prisma.lesson.count();
     }
@@ -103,10 +89,21 @@ export class LessonService {
         }
 
         if (lesson.orderNumber === newOrder) {
-            return lesson;
+            return {
+                message: 'Thứ tự bài học không thay đổi',
+            }
         }
 
         await this.prisma.$transaction(async (prismaTransaction) => {
+            await prismaTransaction.lesson.update({
+                where: {
+                    lessonid
+                },
+                data: {
+                    orderNumber: 0, // Đặt tạm thời để tránh xung đột unique constraint
+                }
+            });
+
             if (newOrder > oldOrder) {
                 await prismaTransaction.lesson.updateMany({
                     where: {
@@ -150,6 +147,10 @@ export class LessonService {
                 }
             });
         });
+
+        return {
+            message: 'Cập nhật thứ tự bài học thành công',
+        }
     }
 
     async addLesson(data: NewLessonDto) {

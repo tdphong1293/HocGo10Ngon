@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import Input from '@/components/Input';
 import Button from '@/components/Button';
-import { getLessonsByLanguageCode, getLessonsByLanguageAndTitle } from '@/services/lesson.services';
+import { getAllLessons } from '@/services/lesson.services';
 import LessonItem from "@/components/LessonItem";
 import { useAuth } from "@/hooks/useAuth";
 import { useTheme } from "@/hooks/useTheme";
@@ -44,13 +44,21 @@ const AdminLessonsPage = () => {
     const [authChecked, setAuthChecked] = useState(false);
     const { languageCode } = useTheme();
 
-    const [searchLessonTitle, setSearchLessonTitle] = useState<string>("");
+    const [searchTitle, setSearchTitle] = useState<string>("");
     const [lessons, setLessons] = useState<any[]>([]);
     const [isReordering, setIsReordering] = useState<boolean>(false);
 
-    const fetchLessons = async (accessToken: string) => {
+    useEffect(() => {
+        const checkAuth = async () => {
+            const result = await requireAuth(true);
+            setAuthChecked(result);
+        };
+        checkAuth();
+    }, []);
+
+    const fetchLessons = async (accessToken: string, languageCode?: string, searchTitle?: string) => {
         try {
-            const response = await getLessonsByLanguageCode(accessToken, languageCode || "en", setAccessToken, () => signOut("Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại"));
+            const response = await getAllLessons(accessToken, languageCode, searchTitle, setAccessToken, () => signOut("Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại"));
             if (response.ok) {
                 const { data } = await response.json();
                 setLessons(data);
@@ -64,40 +72,18 @@ const AdminLessonsPage = () => {
     }
 
     useEffect(() => {
-        const checkAuth = async () => {
-            const result = await requireAuth(true);
-            setAuthChecked(result);
-        };
-        checkAuth();
-    }, []);
-
-    useEffect(() => {
         if (authChecked && !isGuest) {
             const timeoutId = setTimeout(() => {
-                if (searchLessonTitle === "") {
-                    fetchLessons(accessToken);
-                } else {
-                    const fetchLessonsByTitle = async () => {
-                        try {
-                            const response = await getLessonsByLanguageAndTitle(accessToken, languageCode || "en", searchLessonTitle, setAccessToken, () => signOut("Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại"));
-                            if (response.ok) {
-                                const { data } = await response.json();
-                                setLessons(data);
-                            }
-                            else {
-                                toast.error("Đã có lỗi xảy ra khi tải danh sách bài học");
-                            }
-                        } catch (error) {
-                            toast.error("Đã có lỗi xảy ra khi tải danh sách bài học");
-                        }
-                    }
-                    fetchLessonsByTitle();
-                }
+                fetchLessons(accessToken, languageCode, searchTitle);
             }, 300);
 
-            return () => clearTimeout(timeoutId);
+            return () => {
+                if (timeoutId) {
+                    clearTimeout(timeoutId);
+                }
+            };
         }
-    }, [authChecked, isGuest, searchLessonTitle, languageCode]);
+    }, [isGuest, authChecked, searchTitle, languageCode]);
 
     const handleDragEnd = async (event: any) => {
         const { active, over } = event;
@@ -116,8 +102,9 @@ const AdminLessonsPage = () => {
         try {
             const response = await updateLessonOrder(accessToken!, active.id, newOrderNumber, setAccessToken, () => signOut("Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại"));
             if (response.ok) {
-                toast.success("Cập nhật thứ tự thành công");
-                await fetchLessons(accessToken!);
+                const { data } = await response.json();
+                toast.success( data.message || "Cập nhật thứ tự thành công");
+                await fetchLessons(accessToken!, languageCode, searchTitle);
             }
             else {
                 const errorData = await response.json();
@@ -125,7 +112,7 @@ const AdminLessonsPage = () => {
             }
         } catch (error) {
             toast.error("Cập nhật thứ tự bài học thất bại");
-            await fetchLessons(accessToken!);
+            await fetchLessons(accessToken!, languageCode, searchTitle);
         }
     };
 
@@ -172,8 +159,8 @@ const AdminLessonsPage = () => {
                     <Input
                         label="Tìm kiếm theo tiêu đề bài học"
                         placeholder="Nhập tiêu đề bài học"
-                        value={searchLessonTitle}
-                        onChange={(val) => setSearchLessonTitle(val)}
+                        value={searchTitle}
+                        onChange={(val) => setSearchTitle(val)}
                         className="w-fit!"
                     />
                 </div>

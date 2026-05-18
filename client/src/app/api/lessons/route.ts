@@ -7,20 +7,18 @@ export async function GET(request: NextRequest) {
     const { searchParams } = request.nextUrl;
     const languageCode = searchParams.get('languageCode');
     const searchTitle = searchParams.get('searchTitle');
-    const validLanguageCode = languageCode && languageCode !== 'null' && languageCode !== 'undefined';
-    const validSearchTitle = searchTitle && searchTitle !== 'null' && searchTitle !== 'undefined';
 
     try {
         const access_token = request.headers.get('Authorization')?.split(' ')[1];
 
         let url = `${API_URL}/api/v1/lessons`;
-        if (validLanguageCode && validSearchTitle) {
+        if (languageCode && searchTitle) {
             url += `?languageCode=${languageCode}&searchTitle=${searchTitle}`;
         }
-        else if (validLanguageCode) {
+        else if (languageCode && !searchTitle) {
             url += `?languageCode=${languageCode}`;
         }
-        else if (validSearchTitle) {
+        else if (searchTitle && !languageCode) {
             url += `?searchTitle=${searchTitle}`;
         }
         const response = await fetch(url, {

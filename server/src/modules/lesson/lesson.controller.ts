@@ -13,15 +13,7 @@ export class LessonController {
 
     @Get()
     async getAllLessons(@Query('languageCode') languageCode?: string, @Query('searchTitle') searchTitle?: string) {
-        if (languageCode && searchTitle) {
-            return await this.lessonService.getLessonsByLanguageAndTitle(languageCode, searchTitle);
-        }
-        else if (languageCode) {
-            return await this.lessonService.getLessonsByLanguageCode(languageCode);
-        }
-        else {
-            return await this.lessonService.getAllLessons();
-        }
+        return await this.lessonService.getAllLessons(languageCode, searchTitle);
     }
 
     @Get('last-order')

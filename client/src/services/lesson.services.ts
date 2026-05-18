@@ -2,49 +2,24 @@ import { authFetch } from '@/lib/authFetch';
 
 export const getAllLessons = async (
     accessToken: string,
+    languageCode?: string,
+    searchTitle?: string,
     onAccessToken?: (token: string | null) => void,
     onFailed?: (text?: string) => Promise<void>
 ) => {
-    return await authFetch(
-        '/api/lessons',
-        {
-            method: 'GET',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-        },
-        { accessToken, onAccessToken, onFailed }
-    );
-}
+    let url = '/api/lessons';
+    if (languageCode && searchTitle) {
+        url += `?languageCode=${languageCode}&searchTitle=${searchTitle}`;
+    }
+    else if (languageCode && !searchTitle) {
+        url += `?languageCode=${languageCode}`;
+    }
+    else if (searchTitle && !languageCode) {
+        url += `?searchTitle=${searchTitle}`;
+    }
 
-export const getLessonsByLanguageCode = async (
-    accessToken: string, 
-    languageCode: string,
-    onAccessToken?: (token: string | null) => void,
-    onFailed?: (text?: string) => Promise<void>
-) => {
     return await authFetch(
-        `/api/lessons?languageCode=${languageCode}`,
-        {
-            method: 'GET',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-        },
-        { accessToken, onAccessToken, onFailed }
-    );
-}
-
-
-export const getLessonsByLanguageAndTitle = async (
-    accessToken: string, 
-    languageCode: string, 
-    searchTitle: string,
-    onAccessToken?: (token: string | null) => void,
-    onFailed?: (text?: string) => Promise<void>
-) => {
-    return await authFetch(
-        `/api/lessons?languageCode=${languageCode}&searchTitle=${searchTitle}`,
+        url,
         {
             method: 'GET',
             headers: {

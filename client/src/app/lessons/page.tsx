@@ -1,7 +1,7 @@
 'use client';
 import { useState, useEffect } from 'react';
 import Input from '@/components/Input';
-import { getLessonsByLanguageCode, getLessonsByLanguageAndTitle, getUserLesson } from '@/services/lesson.services';
+import { getAllLessons, getUserLesson } from '@/services/lesson.services';
 import LessonItem from "@/components/LessonItem";
 import { useAuth } from "@/hooks/useAuth";
 import { useTheme } from "@/hooks/useTheme";
@@ -15,7 +15,7 @@ const LessonsPage = () => {
     const isGuest = !isAuthenticated || !accessToken || !user;
     const [authChecked, setAuthChecked] = useState(false);
 
-    const [searchLessonTitle, setSearchLessonTitle] = useState<string>("");
+    const [searchTitle, setSearchTitle] = useState<string>("");
     const [lessons, setLessons] = useState<any[]>([]);
     const [learnedLessons, setLearnedLessons] = useState<Set<string>>(new Set());
 
@@ -29,9 +29,9 @@ const LessonsPage = () => {
 
     useEffect(() => {
         if (authChecked && !isGuest) {
-            const fetchLessons = async (accessToken: string) => {
+            const fetchLessons = async (accessToken: string, languageCode?: string, searchTitle?: string) => {
                 try {
-                    const response = await getLessonsByLanguageCode(accessToken, languageCode || "en", setAccessToken, () => signOut("Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại"));
+                    const response = await getAllLessons(accessToken, languageCode, searchTitle, setAccessToken, () => signOut("Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại"));
                     if (response.ok) {
                         const { data } = await response.json();
                         setLessons(data);
@@ -44,30 +44,9 @@ const LessonsPage = () => {
                 }
             }
 
-            const fetchLessonsByTitle = async () => {
-                try {
-                    const response = await getLessonsByLanguageAndTitle(accessToken, languageCode || "en", searchLessonTitle, setAccessToken, () => signOut("Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại"));
-                    if (response.ok) {
-                        const { data } = await response.json();
-                        setLessons(data);
-                    }
-                    else {
-                        toast.error("Đã có lỗi xảy ra khi tải danh sách bài học");
-                    }
-                } catch (error) {
-                    toast.error("Đã có lỗi xảy ra khi tải danh sách bài học");
-                }
-            }
-
-            let timeoutId: NodeJS.Timeout | undefined;
-
-            if (searchLessonTitle === "") {
-                fetchLessons(accessToken);
-            } else {
-                timeoutId = setTimeout(() => {
-                    fetchLessonsByTitle();
-                }, 300);
-            }
+            const timeoutId = setTimeout(() => {
+                fetchLessons(accessToken, languageCode, searchTitle);
+            }, 300);
 
             return () => {
                 if (timeoutId) {
@@ -75,7 +54,7 @@ const LessonsPage = () => {
                 }
             };
         }
-    }, [isGuest, authChecked, searchLessonTitle, languageCode]);
+    }, [isGuest, authChecked, searchTitle, languageCode]);
 
     useEffect(() => {
         if (authChecked && !isGuest) {
@@ -117,8 +96,8 @@ const LessonsPage = () => {
                     <Input
                         label="Tìm kiếm theo tiêu đề bài học"
                         placeholder="Nhập tiêu đề bài học"
-                        value={searchLessonTitle}
-                        onChange={(val) => setSearchLessonTitle(val)}
+                        value={searchTitle}
+                        onChange={(val) => setSearchTitle(val)}
                         className="w-fit!"
                     />
                 </div>
