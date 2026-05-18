@@ -605,5 +605,4 @@ export class StatService {
 
         return sessionAttempts.map((attempt) => attempt.isSuccess);
     }
-
 }
