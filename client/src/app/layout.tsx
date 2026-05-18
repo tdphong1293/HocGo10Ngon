@@ -17,7 +17,7 @@ import {
     Nunito,
     Ubuntu,
     Playfair_Display,
-    Work_Sans
+    Work_Sans,
 } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/contexts/ThemeContext";
@@ -191,8 +191,8 @@ export default function RootLayout({
                             {children}
                         </main>
                         <ToastContainer
-                            position="top-right"
-                            autoClose={5000}
+                            position="bottom-right"
+                            autoClose={8000}
                             hideProgressBar={false}
                             newestOnTop={false}
                             closeOnClick
