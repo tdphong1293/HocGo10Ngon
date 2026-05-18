@@ -58,7 +58,7 @@ export class StatService {
                                     $and: [
                                         { $gte: ["$createdAt", startOfDay] },
                                         { $lte: ["$createdAt", endOfDay] },
-                                        { $gte: ["$accuracy", 80] },
+                                        { $gte: ["$accuracy", 60] },
                                         { $gte: ["$WPM", 20] },
                                         { $gte: ["$CPM", 100] }
                                     ]
@@ -78,7 +78,7 @@ export class StatService {
                                         { $lte: ["$createdAt", endOfDay] },
                                         {
                                             $or: [
-                                                { $lt: ["$accuracy", 80] },
+                                                { $lt: ["$accuracy", 60] },
                                                 { $lt: ["$WPM", 20] },
                                                 { $lt: ["$CPM", 100] }
                                             ]
@@ -98,7 +98,7 @@ export class StatService {
                                     $and: [
                                         { $gte: ["$createdAt", startOfWeek] },
                                         { $lte: ["$createdAt", endOfWeek] },
-                                        { $gte: ["$accuracy", 80] },
+                                        { $gte: ["$accuracy", 60] },
                                         { $gte: ["$WPM", 20] },
                                         { $gte: ["$CPM", 100] }
                                     ]
@@ -118,7 +118,7 @@ export class StatService {
                                         { $lte: ["$createdAt", endOfWeek] },
                                         {
                                             $or: [
-                                                { $lt: ["$accuracy", 80] },
+                                                { $lt: ["$accuracy", 60] },
                                                 { $lt: ["$WPM", 20] },
                                                 { $lt: ["$CPM", 100] }
                                             ]
@@ -138,7 +138,7 @@ export class StatService {
                                     $and: [
                                         { $gte: ["$createdAt", lastWeekStart] },
                                         { $lte: ["$createdAt", lastWeekEnd] },
-                                        { $gte: ["$accuracy", 80] },
+                                        { $gte: ["$accuracy", 60] },
                                         { $gte: ["$WPM", 20] },
                                         { $gte: ["$CPM", 100] }
                                     ]
@@ -158,7 +158,7 @@ export class StatService {
                                         { $lte: ["$createdAt", lastWeekEnd] },
                                         {
                                             $or: [
-                                                { $lt: ["$accuracy", 80] },
+                                                { $lt: ["$accuracy", 60] },
                                                 { $lt: ["$WPM", 20] },
                                                 { $lt: ["$CPM", 100] }
                                             ]
@@ -176,7 +176,7 @@ export class StatService {
                             $cond: [
                                 {
                                     $and: [
-                                        { $gte: ["$accuracy", 80] },
+                                        { $gte: ["$accuracy", 60] },
                                         { $gte: ["$WPM", 20] },
                                         { $gte: ["$CPM", 100] }
                                     ]
@@ -192,7 +192,7 @@ export class StatService {
                             $cond: [
                                 {
                                     $or: [
-                                        { $lt: ["$accuracy", 80] },
+                                        { $lt: ["$accuracy", 60] },
                                         { $lt: ["$WPM", 20] },
                                         { $lt: ["$CPM", 100] }
                                     ]
@@ -213,9 +213,10 @@ export class StatService {
             {
                 $match: {
                     userid,
-                    accuracy: { $gte: 80 },
+                    accuracy: { $gte: 60 },
                     WPM: { $gte: 20 },
-                    CPM: { $gte: 100 }
+                    CPM: { $gte: 100 },
+                    lessonType: { $ne: 'KEY_LESSON' },
                 }
             },
             {
@@ -259,9 +260,10 @@ export class StatService {
             {
                 $match: {
                     userid,
-                    accuracy: { $gte: 80 },
+                    accuracy: { $gte: 60 },
                     WPM: { $gte: 20 },
                     CPM: { $gte: 100 },
+                    lessonType: { $ne: 'KEY_LESSON' },
                 },
             },
             {
@@ -320,9 +322,10 @@ export class StatService {
             {
                 $match: {
                     userid,
-                    accuracy: { $gte: 80 },
+                    accuracy: { $gte: 60 },
                     WPM: { $gte: 20 },
-                    CPM: { $gte: 100 }
+                    CPM: { $gte: 100 },
+                    lessonType: { $ne: 'KEY_LESSON' },
                 }
             },
             {
@@ -416,9 +419,10 @@ export class StatService {
             {
                 $match: {
                     userid,
-                    accuracy: { $gte: 80 },
+                    accuracy: { $gte: 60 },
                     WPM: { $gte: 20 },
-                    CPM: { $gte: 100 }
+                    CPM: { $gte: 100 },
+                    lessonType: { $ne: 'KEY_LESSON' },
                 },
             },
             {
@@ -538,7 +542,7 @@ export class StatService {
                         $cond: [
                             {
                                 $and: [
-                                    { $gte: ["$accuracy", 80] },
+                                    { $gte: ["$accuracy", 60] },
                                     { $gte: ["$WPM", 20] },
                                     { $gte: ["$CPM", 100] }
                                 ]
@@ -583,7 +587,7 @@ export class StatService {
                         $cond: [
                             {
                                 $and: [
-                                    { $gte: ["$accuracy", 80] },
+                                    { $gte: ["$accuracy", 60] },
                                     { $gte: ["$WPM", 20] },
                                     { $gte: ["$CPM", 100] }
                                 ]

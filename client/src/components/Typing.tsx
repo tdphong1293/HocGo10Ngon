@@ -685,19 +685,21 @@ const Typing: React.FC<TypingProps> = ({
             }
         }, 30);
 
-        if (endMode === 'time') {
-            if (timeLimit && (elapsedTime >= timeLimit || userInput.length >= fullTextLength)) {
-                setIsFinished(true);
-                setTimerRunning(false);
+        if (fullTextLength > 0) {
+            if (endMode === 'time') {
+                if (timeLimit && (elapsedTime >= timeLimit || userInput.length >= fullTextLength)) {
+                    setIsFinished(true);
+                    setTimerRunning(false);
+                }
+            }
+            else if (endMode === 'length') {
+                if (userInput.length >= fullTextLength) {
+                    setIsFinished(true);
+                    setTimerRunning(false);
+                }
             }
         }
-        else if (endMode === 'length') {
-            if (userInput.length >= fullTextLength) {
-                setIsFinished(true);
-                setTimerRunning(false);
-            }
-        }
-
+        
         return () => {
             if (scrollTimeoutRef.current) {
                 clearTimeout(scrollTimeoutRef.current);
@@ -799,7 +801,7 @@ const Typing: React.FC<TypingProps> = ({
 
                 const response = await storeTypingSessionResult(accessToken, data, setAccessToken, () => signOut("Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại"));
                 if (response.ok) {
-                    if ((data.WPM < 20 || data.accuracy < 80 || data.CPM < 100) && lessonType !== 'KEY_LESSON') {
+                    if ((data.WPM < 20 || data.accuracy < 60 || data.CPM < 100) && lessonType !== 'KEY_LESSON') {
                         toast.warn('Phiên gõ có WPM/CPM hoặc độ chính xác khá thấp sẽ xem như thất bại và không được tính vào thành tích của bạn');
                     }
                 }
