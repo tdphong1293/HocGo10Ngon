@@ -1,320 +1,144 @@
 'use client';
 
 import { useTheme } from '@/hooks/useTheme';
-import { TypingTestDemo } from '@/components/TypingTestDemo';
-import { ToastColorDemo } from '@/components/ToastSystem';
-import { FontTestDemo } from '@/components/FontTestDemo';
-import Keyboard from '@/components/Keyboard';
-import Input from '@/components/Input';
-import { useState } from 'react';
-import Switch from '@/components/Switch';
-import Textarea from '@/components/Textarea';
-import Select from '@/components/Select';
-import { RadioGroup, RadioGroupItem } from '@/components/RadioGroup';
+import Link from 'next/link'
 
-import {
-	DndContext,
-	closestCenter,
-	KeyboardSensor,
-	PointerSensor,
-	useSensor,
-	useSensors,
-} from '@dnd-kit/core';
-import {
-	arrayMove,
-	SortableContext,
-	sortableKeyboardCoordinates,
-	verticalListSortingStrategy,
-} from '@dnd-kit/sortable';
-
-import { Droppable } from '@/components/Droppable';
-import { Draggable } from '@/components/Draggable';
-import { SortableItem } from '@/components/SortableItem';
-
-export default function Home() {
+const Home = () => {
 	const { theme, font } = useTheme();
-	const [inputValue, setInputValue] = useState('');
-	const [switchState, setSwitchState] = useState(false);
-	const [selectedOption, setSelectedOption] = useState<string>('banana');
-	const [selectedRadio, setSelectedRadio] = useState<string>('option1');
-
-	const containers = ['A', 'B', 'C'];
-	const [parent, setParent] = useState(null);
-	const draggableMarkup = (
-		<Draggable id="draggable">Drag me</Draggable>
-	);
-
-	const [items, setItems] = useState([1, 2, 3]);
-	const sensors = useSensors(
-		useSensor(PointerSensor),
-		useSensor(KeyboardSensor, {
-			coordinateGetter: sortableKeyboardCoordinates,
-		})
-	);
-
-	const handleDragEnd = (event: any) => {
-		const { over } = event;
-
-		// If the item is dropped over a container, set it as the parent
-		// otherwise reset the parent to `null`
-		setParent(over ? over.id : null);
-	}
-
-	const handleDragEndSort = (event: any) => {
-		const { active, over } = event;
-
-		if (active.id !== over.id) {
-			setItems((items) => {
-				const oldIndex = items.indexOf(active.id);
-				const newIndex = items.indexOf(over.id);
-
-				return arrayMove(items, oldIndex, newIndex);
-			});
-		}
-	}
 
 	return (
-		<div className="min-h-screen p-8 pb-20 gap-16 sm:p-20">
-			<main className="flex flex-col gap-8 items-center">
-				<div className="text-center">
-					<h1 className="text-4xl font-bold text-foreground mb-4">
-						Typing Test Theme Showcase
-					</h1>
-					<p className="text-lg text-muted-foreground mb-8">
-						Experience beautiful themes and fonts optimized for typing tests
+		<div className="relative overflow-hidden bg-background">
+			<div className="pointer-events-none absolute inset-0 -z-10">
+				<div className="absolute inset-0 bg-[radial-gradient(circle_at_top,var(--tw-gradient-stops))] from-primary/15 via-transparent to-transparent"></div>
+				<div className="absolute -top-28 -right-32 h-72 w-72 rounded-full bg-accent/20 blur-3xl"></div>
+				<div className="absolute top-1/3 -left-32 h-80 w-80 rounded-full bg-secondary/15 blur-3xl"></div>
+				<div className="absolute bottom-0 right-1/4 h-64 w-64 rounded-full bg-primary/10 blur-3xl"></div>
+			</div>
+
+			<main className="relative mx-auto flex w-full max-w-6xl flex-col gap-20 px-6 pb-24 pt-16 sm:px-10 lg:px-12">
+				<section className="grid gap-12 lg:grid-cols-[1.1fr_0.9fr] lg:items-center">
+					<div className="space-y-6">
+						<div className="inline-flex items-center gap-5 rounded-full border border-border bg-card/60 px-4 py-2 text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
+							<span>Tập trung  </span>
+							<span>Đều nhịp  </span>
+							<span>Chính xác</span>
+						</div>
+						<h1 className="flex flex-wrap items-baseline gap-x-2 text-4xl font-semibold tracking-tight text-foreground sm:text-5xl lg:text-6xl">
+							<span>HocGo10Ngon</span>
+							<span className="text-muted-foreground">Học gõ 10 ngón hiệu quả</span>
+						</h1>
+						<p className="text-lg text-muted-foreground">
+							Luyện tập thông minh với bài học rõ ràng, phản hồi trực tiếp và
+							giao diện ít sao nhãng. Xây dựng trí nhớ cơ bắp, sau đó tăng tốc độ.
+						</p>
+						<div className="flex flex-wrap items-center gap-4">
+							<Link
+								className="rounded-full bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground shadow-sm transition hover:brightness-110"
+								href="/practice"
+							>
+								Bắt đầu luyện tập
+							</Link>
+						</div>
+						<div className="flex flex-wrap gap-3 text-xs text-muted-foreground">
+							<span className="rounded-full bg-secondary px-3 py-1">
+								Giao diện: <span className="font-semibold text-secondary-foreground capitalize">{theme}</span>
+							</span>
+							<span className="rounded-full bg-secondary px-3 py-1">
+								Phông chữ: <span className="font-semibold text-secondary-foreground capitalize">{font}</span>
+							</span>
+						</div>
+					</div>
+				</section>
+
+				<section className="grid gap-6 md:grid-cols-3">
+					<div className="rounded-2xl border border-border bg-card/60 p-6">
+						<div className="text-sm font-semibold text-foreground">Bài học theo lộ trình</div>
+						<p className="mt-3 text-sm text-muted-foreground">
+							Học phím mới theo từng bước, sau đó luyện bằng bài văn chỉ định
+							hoặc chuỗi phím mẫu.
+						</p>
+					</div>
+					<div className="rounded-2xl border border-border bg-card/60 p-6">
+						<div className="text-sm font-semibold text-foreground">Luyện tập theo chế độ</div>
+						<p className="mt-3 text-sm text-muted-foreground">
+							Nhiều chế độ gõ theo từ, theo thời gian hoặc theo đoạn văn, phù hợp với mọi trình độ.
+						</p>
+					</div>
+					<div className="rounded-2xl border border-border bg-card/60 p-6">
+						<div className="text-sm font-semibold text-foreground">Tùy biến giao diện</div>
+						<p className="mt-3 text-sm text-muted-foreground">
+							Đổi theme và font nhanh chóng để giữ tập trung và giảm mỏi mắt.
+						</p>
+					</div>
+				</section>
+
+				<section className="space-y-5">
+					<div className="text-xs uppercase tracking-[0.3em] text-muted-foreground">Cách hoạt động</div>
+					<h2 className="text-3xl font-semibold text-foreground">Hai nhánh học tập bổ trợ lẫn nhau</h2>
+					<p className="text-muted-foreground">
+						Bài học giúp bạn nắm kỹ thuật gõ đúng ngón, còn luyện tập giúp
+						củng cố kỹ năng bằng văn bản được chỉ định hoặc sinh tự động.
 					</p>
-					<div className="flex gap-4 items-center justify-center text-sm text-muted-foreground">
-						<span className="px-3 py-1 bg-secondary rounded-full">
-							Current Theme: <span className="font-medium text-secondary-foreground capitalize">{theme}</span>
-						</span>
-						<span className="px-3 py-1 bg-secondary rounded-full">
-							Current Font: <span className="font-medium text-secondary-foreground capitalize">{font}</span>
-						</span>
-					</div>
-				</div>
-
-				{/* Typing Test Demo */}
-				<div className="w-full max-w-4xl">
-					<TypingTestDemo />
-				</div>
-
-				{/* Font Test Demo */}
-				<div className="w-full max-w-4xl">
-					<FontTestDemo />
-				</div>
-
-				{/* Toast Color Demo */}
-				<div className="w-full max-w-4xl">
-					<ToastColorDemo />
-				</div>
-
-				{/* Feature Cards */}
-				<div className="grid grid-cols-1 md:grid-cols-3 gap-6 w-full max-w-4xl">
-					<div className="bg-card p-6 rounded-lg border border-border hover:border-border-hover transition-colors">
-						<h3 className="text-xl font-semibold text-card-foreground mb-3">Typing-Optimized Themes</h3>
-						<p className="text-muted-foreground mb-4">
-							7 beautiful themes with distinct colors for correct, incorrect, untyped, and current character states.
-						</p>
-						<div className="flex gap-2">
-							<div className="w-4 h-4 rounded-full bg-correct"></div>
-							<div className="w-4 h-4 rounded-full bg-incorrect"></div>
-							<div className="w-4 h-4 rounded-full bg-untyped"></div>
-							<div className="w-4 h-4 rounded-full bg-cursor"></div>
+					<div className="grid gap-4 md:grid-cols-3">
+						<div className="rounded-2xl border border-border bg-card/60 p-4">
+							<div className="text-sm font-semibold text-foreground">1. Học phím mới</div>
+							<p className="mt-2 text-sm text-muted-foreground">
+								Tập trung vào phím mới, tư thế tay và nhịp gõ chuẩn.
+							</p>
+						</div>
+						<div className="rounded-2xl border border-border bg-card/60 p-4">
+							<div className="text-sm font-semibold text-foreground">2. Luyện có chủ đích</div>
+							<p className="mt-2 text-sm text-muted-foreground">
+								Luyện tập theo bài học đã học để củng cố kỹ năng và xây dựng phản xạ gõ chính xác.
+							</p>
+						</div>
+						<div className="rounded-2xl border border-border bg-card/60 p-4">
+							<div className="text-sm font-semibold text-foreground">3. Luyện tập tự do</div>
+							<p className="mt-2 text-sm text-muted-foreground">
+								Chọn chế độ phù hợp để luyện theo mục tiêu cá nhân.
+							</p>
 						</div>
 					</div>
+				</section>
 
-					<div className="bg-card p-6 rounded-lg border border-border hover:border-border-hover transition-colors">
-						<h3 className="text-xl font-semibold text-card-foreground mb-3">Optimized Fonts</h3>
-						<p className="text-muted-foreground mb-4">
-							12 carefully selected fonts for optimal typing experience, including monospace options.
-						</p>
-						<div className="text-primary font-medium">The quick brown fox</div>
+				<section className="space-y-8">
+					<div className="flex flex-col gap-3">
+						<div className="text-xs uppercase tracking-[0.3em] text-muted-foreground">Chế độ luyện tập</div>
+						<h2 className="text-3xl font-semibold text-foreground">Bài học và luyện tập</h2>
 					</div>
-
-					<div className="bg-card p-6 rounded-lg border border-border hover:border-border-hover transition-colors">
-						<h3 className="text-xl font-semibold text-card-foreground mb-3">Smart Notifications</h3>
-						<p className="text-muted-foreground mb-4">
-							Context-aware toast notifications with theme-consistent colors for success, error, warning, and info states.
-						</p>
-						<div className="flex gap-1">
-							<div className="w-3 h-3 rounded bg-toast-success"></div>
-							<div className="w-3 h-3 rounded bg-toast-error"></div>
-							<div className="w-3 h-3 rounded bg-toast-warning"></div>
-							<div className="w-3 h-3 rounded bg-toast-info"></div>
+					<div className="grid gap-6 md:grid-cols-2">
+						<div className="rounded-2xl border border-border bg-card/60 p-6">
+							<div className="text-lg font-semibold text-foreground">Bài học</div>
+							<p className="mt-3 text-sm text-muted-foreground">
+								Học phím mới và luyện theo bài do người tạo chỉ định, từ chuỗi
+								phím đến đoạn văn.
+							</p>
+						</div>
+						<div className="rounded-2xl border border-border bg-card/60 p-6">
+							<div className="text-lg font-semibold text-foreground">Luyện tập</div>
+							<p className="mt-3 text-sm text-muted-foreground">
+								Tùy chọn chế độ luyện theo từ, theo thời gian hoặc theo đoạn văn,
+								phù hợp nhiều trình độ.
+							</p>
 						</div>
 					</div>
-				</div>
+				</section>
 
-				{/* Color Reference */}
-				<div className="w-full max-w-4xl">
-					<div className="bg-card p-6 rounded-lg border border-border">
-						<h3 className="text-lg font-semibold text-card-foreground mb-4">Color Reference</h3>
-						<div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-							<div className="space-y-2">
-								<h4 className="font-medium text-card-foreground">Typing States</h4>
-								<div className="space-y-1">
-									<div className="flex items-center gap-2">
-										<div className="w-3 h-3 rounded bg-correct"></div>
-										<span className="text-muted-foreground">Correct</span>
-									</div>
-									<div className="flex items-center gap-2">
-										<div className="w-3 h-3 rounded bg-incorrect"></div>
-										<span className="text-muted-foreground">Incorrect</span>
-									</div>
-									<div className="flex items-center gap-2">
-										<div className="w-3 h-3 rounded bg-untyped"></div>
-										<span className="text-muted-foreground">Untyped</span>
-									</div>
-									<div className="flex items-center gap-2">
-										<div className="w-3 h-3 rounded bg-cursor"></div>
-										<span className="text-muted-foreground">Cursor</span>
-									</div>
-								</div>
-							</div>
-
-							<div className="space-y-2">
-								<h4 className="font-medium text-card-foreground">Notifications</h4>
-								<div className="space-y-1">
-									<div className="flex items-center gap-2">
-										<div className="w-3 h-3 rounded bg-toast-success"></div>
-										<span className="text-muted-foreground">Success</span>
-									</div>
-									<div className="flex items-center gap-2">
-										<div className="w-3 h-3 rounded bg-toast-error"></div>
-										<span className="text-muted-foreground">Error</span>
-									</div>
-									<div className="flex items-center gap-2">
-										<div className="w-3 h-3 rounded bg-toast-warning"></div>
-										<span className="text-muted-foreground">Warning</span>
-									</div>
-									<div className="flex items-center gap-2">
-										<div className="w-3 h-3 rounded bg-toast-info"></div>
-										<span className="text-muted-foreground">Info</span>
-									</div>
-								</div>
-							</div>
-
-							<div className="space-y-2">
-								<h4 className="font-medium text-card-foreground">Interface</h4>
-								<div className="space-y-1">
-									<div className="flex items-center gap-2">
-										<div className="w-3 h-3 rounded bg-primary"></div>
-										<span className="text-muted-foreground">Primary</span>
-									</div>
-									<div className="flex items-center gap-2">
-										<div className="w-3 h-3 rounded bg-secondary"></div>
-										<span className="text-muted-foreground">Secondary</span>
-									</div>
-									<div className="flex items-center gap-2">
-										<div className="w-3 h-3 rounded bg-accent"></div>
-										<span className="text-muted-foreground">Accent</span>
-									</div>
-									<div className="flex items-center gap-2">
-										<div className="w-3 h-3 rounded bg-muted"></div>
-										<span className="text-muted-foreground">Muted</span>
-									</div>
-								</div>
-							</div>
-
-							<div className="space-y-2">
-								<h4 className="font-medium text-card-foreground">System</h4>
-								<div className="space-y-1">
-									<div className="flex items-center gap-2">
-										<div className="w-3 h-3 rounded bg-background border border-border"></div>
-										<span className="text-muted-foreground">Background</span>
-									</div>
-									<div className="flex items-center gap-2">
-										<div className="w-3 h-3 rounded bg-foreground"></div>
-										<span className="text-muted-foreground">Foreground</span>
-									</div>
-									<div className="flex items-center gap-2">
-										<div className="w-3 h-3 rounded bg-border"></div>
-										<span className="text-muted-foreground">Border</span>
-									</div>
-									<div className="flex items-center gap-2">
-										<div className="w-3 h-3 rounded bg-destructive"></div>
-										<span className="text-muted-foreground">Destructive</span>
-									</div>
-								</div>
-							</div>
-						</div>
-					</div>
-				</div>
-				<Keyboard activeKeys={['LShift', 'A']} />
-				<div className="w-full max-w-4xl bg-card p-6 rounded-lg border border-border">
-					<div className="text-lg font-semibold mb-4 text-card-foreground">Input demo</div>
-					<Input
-						value={inputValue}
-						onChange={(val) => setInputValue(val)}
-						placeholder="Type here..."
-						className=""
-						label="Test label"
-					/>
-				</div>
-				<Switch
-					state={switchState}
-					setState={setSwitchState}
-				/>
-				<Textarea
-					className="w-full max-w-4xl h-32 p-4 border border-border rounded-lg bg-background text-foreground"
-					placeholder="This is a textarea. Press Tab to insert a tab character."
-				/>
-				<Select
-					options={[
-						{ value: "apple", label: "Apple BUN 🍎 BANANA BUN BAN BAN ADFASDF SADF SADFS ADFSA DFS  " },
-						{ value: "banana", label: "Banana" },
-						{ value: "cherry", label: "Cherry" },
-					]}
-					placeholder="Choose fruit..."
-					value={selectedOption}
-					onChange={(v) => {
-						setSelectedOption(v);
-					}}
-				/>
-				<RadioGroup
-					name="example"
-					value={selectedRadio}
-					onValueChange={(v) => {
-						setSelectedRadio(v);
-					}}
-				>
-					<RadioGroupItem value="option1">Option 1</RadioGroupItem>
-					<RadioGroupItem value="option2">Option 2</RadioGroupItem>
-					<RadioGroupItem value="option3" disabled>Option 3 (Disabled)</RadioGroupItem>
-				</RadioGroup>
-				<div className="w-full max-w-4xl bg-card p-6 rounded-lg border border-border">
-					<DndContext onDragEnd={handleDragEnd}>
-						{parent === null ? draggableMarkup : null}
-
-						{containers.map((id) => (
-							// We updated the Droppable component so it would accept an `id`
-							// prop and pass it to `useDroppable`
-							<Droppable key={id} id={id}>
-								{parent === id ? draggableMarkup : 'Drop here'}
-							</Droppable>
-						))}
-					</DndContext>
-				</div>
-				<div className="w-full max-w-4xl bg-card p-6 rounded-lg border border-border">
-					<DndContext
-						sensors={sensors}
-						collisionDetection={closestCenter}
-						onDragEnd={handleDragEndSort}
-					>
-						<SortableContext
-							items={items}
-							strategy={verticalListSortingStrategy}
+				<section className="rounded-3xl border border-border bg-card/70 p-8 text-center">
+					<h2 className="text-3xl font-semibold text-foreground">Sẵn sàng bắt đầu luyện tập?</h2>
+					<p className="mt-3 text-muted-foreground">Tự tin gõ 10 ngón với phản hồi rõ ràng và tập trung cao.</p>
+					<div className="mt-6 flex flex-wrap items-center justify-center gap-4">
+						<Link
+							className="rounded-full bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground shadow-sm transition hover:brightness-110"
+							href="/practice"
 						>
-							{items.map(id => <SortableItem key={id} id={id} 
-							>Item {id}</SortableItem>)}
-						</SortableContext>
-					</DndContext>
-				</div>
-				<footer className="text-center text-muted-foreground">
-					<p>Click the customize button in the top right to change themes and fonts!</p>
-					<p className="text-xs mt-2">Font changes are applied instantly to the entire page</p>
-				</footer>
+							Bắt đầu bài luyện tập
+						</Link>
+					</div>
+				</section>
 			</main>
 		</div>
 	);
 }
+
+export default Home;

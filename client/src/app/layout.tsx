@@ -27,6 +27,7 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import { Bounce, ToastContainer } from "react-toastify";
 import Script from "next/script";
 import { SpeedInsights } from "@vercel/speed-insights/next"
+import Footer from "@/components/Footer";
 
 const geistSans = Geist({
     variable: "--font-geist",
@@ -179,7 +180,7 @@ export default function RootLayout({
                 `}</Script>
             </head>
             <body
-                className={`antialiased min-h-screen grid grid-rows-[auto_1fr]`}
+                className={`antialiased min-h-screen grid grid-rows-[auto_1fr_auto]`}
             >
                 <SpeedInsights />
                 <AuthProvider>
@@ -187,9 +188,10 @@ export default function RootLayout({
                         <Navbar
                             menuConfig={menuConfig}
                         />
-                        <main className="overflow-auto">
+                        <main className="min-h-screen">
                             {children}
                         </main>
+                        <Footer />
                         <ToastContainer
                             position="bottom-right"
                             autoClose={8000}

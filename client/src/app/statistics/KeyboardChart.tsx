@@ -51,14 +51,14 @@ const KeyboardChart: React.FC<KeyboardChartProps> = ({
             const { accuracy } = keyData;
             if (accuracy >= 90) return ' bg-primary-700/80';
             if (accuracy >= 80) return ' bg-primary-500';
-            return ' bg-primary-400/80';
+            return ' bg-primary-300/80';
         }
 
         if (chartMode === "speed") {
             const { avgLatency } = keyData;
             if (Math.round(avgLatency) <= 100) return ' bg-primary-700/80';
             if (Math.round(avgLatency) <= 200) return ' bg-primary-500';
-            return ' bg-primary-400/80';
+            return ' bg-primary-300/80';
         }
 
         return '';
@@ -77,7 +77,7 @@ const KeyboardChart: React.FC<KeyboardChartProps> = ({
                             <div className="w-8 h-8 border-2 border-border rounded-md"></div>
                         </Tooltip>
                         <Tooltip text={chartMode === "accuracy" ? "Độ chính xác < 70%" : "Tốc độ > 200ms"}>
-                            <div className="w-8 h-8 border-2 border-border rounded-md bg-primary-200"></div>
+                            <div className="w-8 h-8 border-2 border-border rounded-md bg-primary-300/80"></div>
                         </Tooltip>
                         <Tooltip text={chartMode === "accuracy" ? "Độ chính xác >= 70% và < 90%" : "Tốc độ > 100ms và <= 200ms"}>
                             <div className="w-8 h-8 border-2 border-border rounded-md bg-primary-500"></div>
