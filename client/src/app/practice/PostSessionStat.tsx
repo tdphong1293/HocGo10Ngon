@@ -39,7 +39,7 @@ const PostSessionStat: React.FC<PostSessionStatProps> = ({
         if (char === ' ') {
             return (
                 <span key={`s-${i}`} className={`inline-block w-[1ch] ${isCorrect ? 'bg-green-500/20' : 'bg-red-500/20'}`}>
-                    &nbsp;
+                    {" "}
                 </span>
             );
         }

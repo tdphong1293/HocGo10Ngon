@@ -1,3 +1,5 @@
+import Link from 'next/link';
+
 const Footer = () => {
     return (
         <footer className="border-t border-border bg-card/40">
@@ -14,16 +16,24 @@ const Footer = () => {
                         <div className="font-semibold text-foreground">Khám phá</div>
                         <ul className="space-y-1 text-muted-foreground">
                             <li>
-                                <a className="transition-colors hover:text-foreground" href="/practice">Luyện tập</a>
+                                <Link className="transition-colors hover:text-foreground" href="/practice">
+                                    Luyện tập
+                                </Link>
                             </li>
                             <li>
-                                <a className="transition-colors hover:text-foreground" href="/lessons">Bài học</a>
+                                <Link className="transition-colors hover:text-foreground" href="/lessons">
+                                    Bài học
+                                </Link>
                             </li>
                             <li>
-                                <a className="transition-colors hover:text-foreground" href="/statistics">Thống kê</a>
+                                <Link className="transition-colors hover:text-foreground" href="/statistics">
+                                    Thống kê
+                                </Link>
                             </li>
                             <li>
-                                <a className="transition-colors hover:text-foreground" href="/about">Về chúng tôi</a>
+                                <Link className="transition-colors hover:text-foreground" href="/about">
+                                    Về chúng tôi
+                                </Link>
                             </li>
                         </ul>
                     </div>
@@ -32,35 +42,35 @@ const Footer = () => {
                         <div className="font-semibold text-foreground">Nguồn cảm hứng</div>
                         <ul className="space-y-1 text-muted-foreground">
                             <li>
-                                <a
+                                <Link
                                     className="transition-colors hover:text-foreground"
                                     href="https://monkeytype.com/"
                                     target="_blank"
                                     rel="noreferrer"
                                 >
                                     Monkeytype
-                                </a>
+                                </Link>
                             </li>
                             <li>
-                                <a
+                                <Link
                                     className="transition-colors hover:text-foreground"
                                     href="https://www.typingclub.com/"
                                     target="_blank"
                                     rel="noreferrer"
                                 >
                                     TypingClub
-                                </a>
+                                </Link>
                             </li>
                         </ul>
                         <div className="pt-1 text-xs font-semibold text-foreground">Gợi ý luyện burst</div>
-                        <a
+                        <Link
                             className="text-xs text-muted-foreground transition-colors hover:text-foreground"
                             href="https://www.burst-type.pro/"
                             target="_blank"
                             rel="noreferrer"
                         >
                             Burst Type
-                        </a>
+                        </Link>
                     </div>
                 </div>
 
