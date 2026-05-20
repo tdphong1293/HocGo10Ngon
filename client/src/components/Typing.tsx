@@ -56,6 +56,13 @@ interface TypingProps {
     refreshText?: () => Promise<void>;
 }
 
+const clearTimeoutRef = (ref: { current: NodeJS.Timeout | null }) => {
+    if (ref.current) {
+        clearTimeout(ref.current);
+        ref.current = null;
+    }
+};
+
 const Typing: React.FC<TypingProps> = ({
     words,
     sessionType,
@@ -205,6 +212,7 @@ const Typing: React.FC<TypingProps> = ({
     const resetSession = useCallback(() => {
         setUserInput('');
         setCurrentIndex(0);
+        setIsFinished(false);
         setStartTime(null);
         setElapsedTime(0);
         setErrorCount(0);
@@ -212,34 +220,27 @@ const Typing: React.FC<TypingProps> = ({
         setTimerRunning(false);
         setKeystrokeLog([]);
         setInputHistory('');
-        setIsFinished(false);
         setWrongChar(null);
         setIsBackspaceTyped(false);
         setRenderedWordCount(BUFFER_WORDS); // Reset rendered word count
         setTextAnimationKey(key => key + 1);
         setVisibleStartLine(0);
         skipAnimationRef.current = true;
-        if (wrongCharTimeoutRef.current) {
-            clearTimeout(wrongCharTimeoutRef.current);
-            wrongCharTimeoutRef.current = null;
-        }
-        if (backspaceTimeoutRef.current) {
-            clearTimeout(backspaceTimeoutRef.current);
-            backspaceTimeoutRef.current = null;
+        clearTimeoutRef(wrongCharTimeoutRef);
+        clearTimeoutRef(backspaceTimeoutRef);
+        const mainEl = document.querySelector('main');
+        if (mainEl && mainEl.scrollHeight > mainEl.clientHeight) {
+            mainEl.scrollTo({ top: 0, behavior: 'smooth' });
+        } else {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
         }
     }, []);
 
     useEffect(() => {
         // unmount cleanup
         return () => {
-            if (wrongCharTimeoutRef.current) {
-                clearTimeout(wrongCharTimeoutRef.current);
-                wrongCharTimeoutRef.current = null;
-            }
-            if (backspaceTimeoutRef.current) {
-                clearTimeout(backspaceTimeoutRef.current);
-                backspaceTimeoutRef.current = null;
-            }
+            clearTimeoutRef(wrongCharTimeoutRef);
+            clearTimeoutRef(backspaceTimeoutRef);
         };
     }, []);
 
@@ -326,9 +327,7 @@ const Typing: React.FC<TypingProps> = ({
             if (!correct && lessonType === "KEY_LESSON") {
                 playSound("incorrect");
                 setWrongChar(char);
-                if (wrongCharTimeoutRef.current) {
-                    clearTimeout(wrongCharTimeoutRef.current);
-                }
+                clearTimeoutRef(wrongCharTimeoutRef);
                 wrongCharTimeoutRef.current = setTimeout(() => {
                     setWrongChar(null);
                     wrongCharTimeoutRef.current = null;
@@ -357,9 +356,7 @@ const Typing: React.FC<TypingProps> = ({
             if (lessonType === "KEY_LESSON") {
                 playSound("correct")
                 setIsBackspaceTyped(true);
-                if (backspaceTimeoutRef.current) {
-                    clearTimeout(backspaceTimeoutRef.current);
-                }
+                clearTimeoutRef(backspaceTimeoutRef);
                 backspaceTimeoutRef.current = setTimeout(() => {
                     setIsBackspaceTyped(false);
                     backspaceTimeoutRef.current = null;
@@ -443,54 +440,37 @@ const Typing: React.FC<TypingProps> = ({
         }
     }, [heldKey]);
 
+    const deactivateFocus = useCallback(() => {
+        setActiveKeys([]);
+        setIsFocused(false);
+        if (timerRunning) {
+            setTimerRunning(false);
+        }
+        if (heldKey) {
+            setIsHoldingKey(false);
+        }
+    }, [heldKey, timerRunning]);
+
     // Set các giá trị về false khi click ra ngoài, chuyển tab, ẩn cửa sổ, hoặc khi cửa sổ mất focus
     useEffect(() => {
         const handleClickOutside = (e: MouseEvent) => {
             if (typingContainerRef.current && !typingContainerRef.current.contains(e.target as Node)) {
-                setIsFocused(false);
-                setActiveKeys([]);
-                if (timerRunning) {
-                    setTimerRunning(false);
-                }
-                if (heldKey) {
-                    setIsHoldingKey(false);
-                }
+                deactivateFocus();
             }
         };
 
         const handleBlur = () => {
-            setActiveKeys([]);
-            setIsFocused(false);
-            if (timerRunning) {
-                setTimerRunning(false);
-            }
-            if (heldKey) {
-                setIsHoldingKey(false);
-            }
+            deactivateFocus();
         }
 
         const handleVisibilityChange = () => {
             if (document.visibilityState !== 'visible') {
-                setActiveKeys([]);
-                setIsFocused(false);
-                if (timerRunning) {
-                    setTimerRunning(false);
-                }
-                if (heldKey) {
-                    setIsHoldingKey(false);
-                }
+                deactivateFocus();
             }
         };
 
         const handlePageHide = () => {
-            setActiveKeys([]);
-            setIsFocused(false);
-            if (timerRunning) {
-                setTimerRunning(false);
-            }
-            if (heldKey) {
-                setIsHoldingKey(false);
-            }
+            deactivateFocus();
         };
 
         document.addEventListener('mousedown', handleClickOutside);
@@ -504,10 +484,11 @@ const Typing: React.FC<TypingProps> = ({
             window.removeEventListener('pagehide', handlePageHide);
             window.removeEventListener('blur', handleBlur);
         };
-    }, [heldKey, timerRunning]);
+    }, [deactivateFocus]);
 
     // Global keyboard shortcuts and typing handlers
     useEffect(() => {
+        const focusSoon = () => window.setTimeout(() => setIsFocused(true), 10);
         const handleGlobalKeyDown = (e: KeyboardEvent) => {
             const target = e.target as HTMLElement;
             const isTypingElsewhere =
@@ -522,17 +503,13 @@ const Typing: React.FC<TypingProps> = ({
             if (e.ctrlKey && !e.shiftKey && !e.altKey && key === 'Enter') {
                 e.preventDefault();
                 refreshText?.();
-                setTimeout(() => {
-                    setIsFocused(true);
-                }, 10);
+                focusSoon();
                 return;
             }
             if (e.ctrlKey && !e.shiftKey && !e.altKey && key.toLowerCase() === 'r') {
                 e.preventDefault();
                 resetSession();
-                setTimeout(() => {
-                    setIsFocused(true);
-                }, 10);
+                focusSoon();
                 return;
             }
             if (isFocused && !isFinished) {
@@ -564,69 +541,203 @@ const Typing: React.FC<TypingProps> = ({
         };
     }, [refreshText, resetSession, isFocused, isFinished, handleKeyDown, handleKeyUp]);
 
-    const renderCharacter = (char: string, index: number) => {
-        const typedChar = userInput[index];
-        const expectedChar = char;
+    const getBooleanChar = (char: string, index: number) => {
+        if (index >= userInput.length) return -1;
+        return userInput[index] === char ? 1 : 0;
+    }
 
-        const isTyped = index < userInput.length;
-        const isCorrect = typedChar === expectedChar;
-        const isActive = index === currentIndex;
+    const isWhitespaceChar = (ch: string | undefined) => ch === ' ' || ch === '\t' || ch === '\n';
 
-        const renderSymbol = (c: string) => {
-            if (c === ' ') return ' ';
-            if (c === '\n')
-                return <Icon icon="fluent:arrow-enter-left-24-regular" className="inline-block align-middle" />;
-            if (c === '\t')
-                return <Icon icon="fluent:keyboard-tab-24-regular" className="inline-block align-middle" />;
-            return c;
-        };
+    const renderSymbol = (c: string) => {
+        if (c === ' ') return ' ';
+        if (c === '\n')
+            return <Icon icon="fluent:arrow-enter-left-20-regular" className="inline-block align-middle" />;
+        if (c === '\t')
+            return <Icon icon="fluent:keyboard-tab-20-regular" className="inline-block align-middle" />;
+        return c;
+    };
 
-        if (isActive) {
-            return (
-                <span key={index} ref={cursorRef} className="typing-cursor">
-                    {renderSymbol(expectedChar)}
-                </span>
-            );
-        }
+    const getClassName = (booleanChar: number) => {
+        if (booleanChar === 1) return "text-correct ";
+        if (booleanChar === 0) return "text-incorrect ";
+        if (booleanChar === -1) return "text-untyped ";
+        return "";
+    };
 
-        if (hintModeToUse && isTyped && !isCorrect) {
-            return (
-                <span key={index} className="relative">
-                    <span className="text-incorrect">{renderSymbol(expectedChar)}</span>
-                    <span className={`absolute text-accent-foreground/30 left-1/2 -translate-x-1/2 top-1/2 ${wrongTextClass[textSizeToUse]}`}>
-                        {renderSymbol(typedChar)}
-                    </span>
-                </span>
-            );
-        }
+    const hintOverlayClassName = `absolute text-accent-foreground/30 left-1/2 -translate-x-1/2 top-1/2 ${wrongTextClass[textSizeToUse]}`;
 
-        const className = !isTyped
-            ? 'transition-colors duration-150 text-untyped'
-            : isCorrect
-                ? 'transition-colors duration-150 text-correct'
-                : 'transition-colors duration-150 text-incorrect';
-
-        return (
-            <span key={index} className={className}>
-                {renderSymbol(expectedChar)}
+    const renderIncorrectSpan = (key: string, expectedText: string, typedText: string) => (
+        <span key={key} className="relative">
+            <span className={getClassName(0)}>
+                {renderSymbol(expectedText)}
             </span>
-        );
+            {hintModeToUse && (
+                <span className={hintOverlayClassName}>
+                    {renderSymbol(typedText)}
+                </span>
+            )}
+        </span>
+    );
+
+    const renderColoredSpan = (key: string, booleanChar: number, text: string) => (
+        <span key={key} className={getClassName(booleanChar)}>
+            {renderSymbol(text)}
+        </span>
+    );
+
+    const collectWhitespaceIndices = (start: number, end: number, includeTyped: boolean) => {
+        const indices: number[] = [];
+        for (let i = start; i <= end; i++) {
+            const expected = displayedText[i];
+            const typed = userInput[i];
+            if (isWhitespaceChar(expected) || (includeTyped && isWhitespaceChar(typed))) {
+                indices.push(i);
+            }
+        }
+        return indices;
+    };
+
+    const renderIncorrectWhitespace = (index: number, ch: string) => (
+        <span
+            key={`ws-${index}`}
+            className="relative"
+        >
+            <span className={getClassName(0)}>
+                {renderSymbol(ch)}
+            </span>
+            {hintModeToUse && (
+                <span
+                    className={hintOverlayClassName}
+                >
+                    {renderSymbol(userInput[index] ?? '')}
+                </span>
+            )}
+        </span>
+    );
+
+    const renderIncorrectChunk = (start: number, end: number) => {
+        const whiteSpaceIndex = collectWhitespaceIndices(start, end, true);
+
+        const content = [];
+        let segmentStart = start;
+        for (const wsIndex of whiteSpaceIndex) {
+            if (segmentStart <= wsIndex - 1) {
+                content.push(
+                    renderIncorrectSpan(
+                        `seg-${segmentStart}-${wsIndex - 1}`,
+                        displayedText.slice(segmentStart, wsIndex),
+                        userInput.slice(segmentStart, wsIndex)
+                    )
+                );
+            }
+            content.push(renderIncorrectWhitespace(wsIndex, displayedText[wsIndex]));
+            if (displayedText[wsIndex] === "\n") {
+                content.push(<br key={`br-${wsIndex}`} />);
+            }
+            segmentStart = wsIndex + 1;
+        }
+
+        if (segmentStart <= end) {
+            content.push(
+                renderIncorrectSpan(
+                    `seg-${segmentStart}-${end}`,
+                    displayedText.slice(segmentStart, end + 1),
+                    userInput.slice(segmentStart, end + 1)
+                )
+            );
+        }
+
+        return content;
+    };
+
+    const renderCorrectUntypedChunk = (start: number, end: number, booleanChar: number) => {
+        const whiteSpaceIndex = collectWhitespaceIndices(start, end, false);
+
+        const content = [];
+        let segmentStart = start;
+        for (const wsIndex of whiteSpaceIndex) {
+            if (segmentStart <= wsIndex - 1) {
+                content.push(
+                    renderColoredSpan(
+                        `seg-${segmentStart}-${wsIndex - 1}`,
+                        booleanChar,
+                        displayedText.slice(segmentStart, wsIndex)
+                    )
+                );
+            }
+            content.push(
+                renderColoredSpan(`ws-${wsIndex}`, booleanChar, displayedText[wsIndex])
+            );
+            if (displayedText[wsIndex] === "\n") {
+                content.push(<br key={`br-${wsIndex}`} />);
+            }
+            segmentStart = wsIndex + 1;
+        }
+
+        if (segmentStart <= end) {
+            content.push(
+                renderColoredSpan(
+                    `seg-${segmentStart}-${end}`,
+                    booleanChar,
+                    displayedText.slice(segmentStart, end + 1)
+                )
+            );
+        }
+
+        return content;
+    }
+
+    const renderSegment = (start: number, end: number, booleanChar: number): React.ReactNode => {
+        if (start > end) return null;
+
+        if (booleanChar === 1 || booleanChar === -1) {
+            return renderCorrectUntypedChunk(start, end, booleanChar);
+        }
+
+        if (booleanChar === 0) {
+            return renderIncorrectChunk(start, end);
+        }
+
+        return null;
     };
 
     const renderText = () => {
-        const content: React.ReactElement[] = [];
-        for (let i = 0; i < displayedText.length; i++) {
+        const content: React.ReactNode[] = [];
+        let i = 0;
+
+        while (i < displayedText.length) {
             const ch = displayedText[i];
-            if (ch === '\n') {
+
+            const booleanChar = getBooleanChar(ch, i);
+            let end = i;
+            while (end + 1 < displayedText.length) {
+                const nextChar = displayedText[end + 1];
+                if (nextChar === '\n') break;
+                const nextBoolean = getBooleanChar(nextChar, end + 1);
+                if (nextBoolean !== booleanChar) break;
+                end += 1;
+            }
+
+            if (currentIndex >= i && currentIndex <= end) {
+                if (currentIndex > i) {
+                    content.push(renderSegment(i, currentIndex - 1, booleanChar));
+                }
                 content.push(
-                    <span key={`nl-${i}`} className="inline-flex items-center">
-                        {renderCharacter('\n', i)}
+                    <span key={`cursor-${currentIndex}`} ref={cursorRef} className="typing-cursor">
+                        {renderSymbol(displayedText[currentIndex])}
                     </span>
                 );
-                content.push(<br key={`br-${i}`} />);
-                continue;
+                if (displayedText[currentIndex] === "\n") {
+                    content.push(<br key={`br-${currentIndex}`} />);
+                }
+                if (currentIndex < end) {
+                    content.push(renderSegment(currentIndex + 1, end, booleanChar));
+                }
+            } else {
+                content.push(renderSegment(i, end, booleanChar));
             }
-            content.push(renderCharacter(ch, i));
+
+            i = end + 1;
         }
 
         return (
@@ -699,7 +810,7 @@ const Typing: React.FC<TypingProps> = ({
                 }
             }
         }
-        
+
         return () => {
             if (scrollTimeoutRef.current) {
                 clearTimeout(scrollTimeoutRef.current);
@@ -874,7 +985,7 @@ const Typing: React.FC<TypingProps> = ({
                                 >
                                     <div
                                         key={`char-${wordIndex}-${charIndex}`}
-                                        className={`aspect-square ${textKeySizeMap[textSizeToUse]} rounded-md flex justify-center items-center border-2 border-border transition-colors duration-150 ${!isTyped ? "" : isCorrect ? "border-correct text-correct" : "border-incorrect text-incorrect"} ${isActive && wrongChar ? "border-incorrect text-incorrect " + textKeyMoveUpMap[textSizeToUse] + " transition-transform duration-300" : ""}`}
+                                        className={`aspect-square ${textKeySizeMap[textSizeToUse]} rounded-md flex justify-center items-center border-2 border-border ${!isTyped ? "" : isCorrect ? "border-correct text-correct" : "border-incorrect text-incorrect"} ${isActive && wrongChar ? "border-incorrect text-incorrect " + textKeyMoveUpMap[textSizeToUse] + " transition-transform duration-300" : ""}`}
                                     >
                                         {isActive && wrongChar ? wrongChar : char}
                                     </div>
@@ -972,7 +1083,7 @@ const Typing: React.FC<TypingProps> = ({
                                     >
                                         <div
                                             ref={contentWrapperRef}
-                                            className="w-full px-10 cursor-text whitespace-pre-wrap wrap-break-word"
+                                            className="w-full px-10 cursor-text wrap-break-word"
                                             style={{
                                                 fontFeatureSettings: '"liga" 0, "calt" 0',
                                                 lineHeight: 'inherit',

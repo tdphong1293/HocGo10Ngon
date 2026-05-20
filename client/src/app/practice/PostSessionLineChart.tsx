@@ -358,6 +358,7 @@ const PostSessionLineChart: React.FC<PostSessionLineChartProps> = ({
                     name="Burst"
                     yAxisId="left"
                     hide={hiddenLines.has('burst')}
+                    isAnimationActive={false}
                 />
 
                 <Line
@@ -370,6 +371,7 @@ const PostSessionLineChart: React.FC<PostSessionLineChartProps> = ({
                     strokeOpacity={0.85}
                     yAxisId="left"
                     hide={hiddenLines.has('raw')}
+                    isAnimationActive={false}
                 />
 
                 <Line
@@ -381,6 +383,7 @@ const PostSessionLineChart: React.FC<PostSessionLineChartProps> = ({
                     name="WPM"
                     yAxisId="left"
                     hide={hiddenLines.has('wpm')}
+                    isAnimationActive={false}
                 />
 
                 <Line

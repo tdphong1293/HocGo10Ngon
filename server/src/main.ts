@@ -6,10 +6,13 @@ import { ConfigService } from '@nestjs/config';
 import cookieParser from 'cookie-parser';
 import { DatabaseService } from './modules/mongoose/database.service';
 import { sessionModeData } from '../mongoose/seed';
+import bodyParser from 'body-parser';
 
 async function bootstrap() {
 	const app = await NestFactory.create(AppModule);
 	const configService = app.get(ConfigService);
+	app.use(bodyParser.json({ limit: '1mb' }));
+	app.use(bodyParser.urlencoded({ limit: '1mb', extended: true }));
 	app.use(cookieParser());
 	app.useGlobalPipes(
 		new ValidationPipe({

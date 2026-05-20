@@ -27,6 +27,7 @@ const PracticePage = ({ }) => {
                 setSource={setSource}
             />
             <Typing
+                key={`${state?.modeName ?? 'none'}-${endMode ?? 'none'}-${timeLimit ?? 'none'}-${totalWords}`}
                 words={words}
                 sessionType="PRACTICE"
                 totalWords={totalWords}

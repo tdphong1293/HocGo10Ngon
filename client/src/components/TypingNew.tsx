@@ -1077,7 +1077,7 @@ const Typing: React.FC<TypingProps> = ({
                             exit={{ opacity: 0, scale: 0.9 }}
                             transition={{ duration: 0.3, ease: 'easeInOut' }}
                         >
-                            {/* <div
+                            <div
                                 className={`absolute inset-0 bg-accent/50 rounded-md mx-10 text-accent-foreground z-25 flex flex-col justify-center items-center gap-4 backdrop-blur-sm transition-opacity duration-300 ${isFocused ? 'opacity-0 pointer-events-none' : 'opacity-100 pointer-events-auto'}`}
                                 onClick={() => setIsFocused(true)}
                             >
@@ -1091,7 +1091,7 @@ const Typing: React.FC<TypingProps> = ({
                                     <span className="w-10 h-10 bg-primary/20 rounded-md flex justify-center items-center border-2 border-primary-foreground text-primary-foreground animate-bounce">{heldKey}</span>
                                     để tiếp tục
                                 </div>
-                            </div> */}
+                            </div>
 
                             {/* Typing Area */}
                             {lessonType !== "KEY_LESSON" ? (
