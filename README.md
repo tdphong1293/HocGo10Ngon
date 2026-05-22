@@ -84,7 +84,6 @@ Create .env files in client and server as needed. Example keys you may need:
 - server: `npm run start:dev`, `npm run build`, `npm run lint`, `npm run start:prod`
 
 ## Demo
-- Live demo: (add link)
-
+- Live demo: https://youtu.be/tsmtnBI0PIE
 ## Contact
 If you want to learn more about the project or my contributions, feel free to reach out.
