@@ -80,8 +80,8 @@ Create .env files in client and server as needed. Example keys you may need:
 - API_BASE_URL
 
 ## Scripts
-- client: `npm run dev`, `npm run build`, `npm run lint`
-- server: `npm run start:dev`, `npm run build`, `npm run lint`
+- client: `npm run dev`, `npm run build`, `npm run lint`, `npm run start`
+- server: `npm run start:dev`, `npm run build`, `npm run lint`, `npm run start:prod`
 
 ## Demo
 - Live demo: (add link)

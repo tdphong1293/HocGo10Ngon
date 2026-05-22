@@ -10,6 +10,7 @@ services:
       MONGODB_INITDB_ROOT_PASSWORD: ${MONGO_PASSWORD}
     volumes:
       - hocgo10ngon_mongo_data:/data/db
+      - hocgo10ngon_mongo_config:/data/configdb
 
   postgres:
     image: postgres:17.6-alpine3.22
@@ -35,5 +36,6 @@ services:
 
 volumes:
   hocgo10ngon_mongo_data:
+  hocgo10ngon_mongo_config:
   hocgo10ngon_postgres_data:
   hocgo10ngon_redis_data:
