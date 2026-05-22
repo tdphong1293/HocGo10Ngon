@@ -102,13 +102,13 @@ const PostSessionStat: React.FC<PostSessionStatProps> = ({
                     {author && (
                         <div className="flex gap-2 items-end">
                             <span className="">Tác giả:</span>
-                            <span className="text-3xl font-bold">{author}</span>
+                            <span className="text-2xl font-bold">{author}</span>
                         </div>
                     )}
                     {source && (
                         <div className="flex gap-2 items-end">
                             <span className="">Nguồn:</span>
-                            <span className="text-3xl font-bold">{source}</span>
+                            <span className="text-2xl font-bold">{source}</span>
                         </div>
                     )}
                 </div>
