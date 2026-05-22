@@ -95,15 +95,6 @@ export class LessonService {
         }
 
         await this.prisma.$transaction(async (prismaTransaction) => {
-            await prismaTransaction.lesson.update({
-                where: {
-                    lessonid
-                },
-                data: {
-                    orderNumber: 0, // Đặt tạm thời để tránh xung đột unique constraint
-                }
-            });
-
             if (newOrder > oldOrder) {
                 await prismaTransaction.lesson.updateMany({
                     where: {

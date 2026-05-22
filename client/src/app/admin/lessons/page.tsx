@@ -180,7 +180,7 @@ const AdminLessonsPage = () => {
                         strategy={rectSortingStrategy}
                     >
                         <div
-                            className="flex gap-x-8 gap-y-4 flex-wrap items-center"
+                            className="grid grid-cols-[repeat(auto-fill,minmax(160px,1fr))] gap-x-8 gap-y-4"
                         >
                             {lessons && lessons.length > 0 ? (
                                 lessons.map((lesson: any) => {
