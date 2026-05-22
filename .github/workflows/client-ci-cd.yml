@@ -1,0 +1,47 @@
+name: Client CI/CD
+
+on:
+  push:
+    branches: [ main, dev ]
+    paths:
+      - 'client/**'
+  pull_request:
+    branches: [ main, dev ]
+    paths:
+      - 'client/**'
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22.20.0'
+          cache: 'npm'
+          cache-dependency-path: './client/package-lock.json' # Cache theo đúng file của client
+
+      - name: Install dependencies
+        run: npm ci
+        working-directory: ./client # Bắt buộc chạy lệnh bên trong folder client
+
+      - name: Run Linter / Tests
+        run: npm test --if-present
+        working-directory: ./client
+
+      - name: Build project
+        run: npm run build
+        working-directory: ./client
+
+  # BƯỚC CD (DEPLOY): Chỉ chạy sau khi bước Build ở trên thành công và là nhánh main
+  deploy:
+    needs: build-and-test
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy to Hosting (Ví dụ: Vercel/Netlify)
+        run: echo "Viết lệnh deploy Client của bạn vào đây (Sử dụng các Action của bên thứ 3)"
