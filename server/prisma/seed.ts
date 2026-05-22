@@ -229,6 +229,53 @@ async function main() {
             source: 'Pride and Prejudice',
             author: 'Jane Austen',
         },
+        {
+            text: 'There was no possibility of taking a walk that day. We had been wandering, indeed, in the leafless shrubbery an hour in the morning; but since dinner the cold winter wind had brought with it clouds so sombre, and a rain so penetrating, that further outdoor exercise was now out of the question.',
+            source: 'Jane Eyre',
+            author: 'Charlotte Brontë',
+        },
+
+        {
+            text: 'Call me Ishmael. Some years ago—never mind how long precisely—having little or no money in my purse, and nothing particular to interest me on shore, I thought I would sail about a little and see the watery part of the world.',
+            source: 'Moby-Dick',
+            author: 'Herman Melville',
+        },
+
+        {
+            text: 'It is a melancholy truth that even great men have their poor relations. The Scarlett family of South Carolina had an aunt in Charleston whose husband had been governor of the state, and whose son had married a lady of wealth and position.',
+            source: 'The Gilded Age',
+            author: 'Mark Twain',
+        },
+
+        {
+            text: 'Alice was beginning to get very tired of sitting by her sister on the bank, and of having nothing to do. Once or twice she had peeped into the book her sister was reading, but it had no pictures or conversations in it.',
+            source: 'Alice\'s Adventures in Wonderland',
+            author: 'Lewis Carroll',
+        },
+
+        {
+            text: 'In another moment down went Alice after it, never once considering how in the world she was to get out again. The rabbit-hole went straight on like a tunnel for some way, and then dipped suddenly down.',
+            source: 'Alice\'s Adventures in Wonderland',
+            author: 'Lewis Carroll',
+        },
+
+        {
+            text: 'It was the best of times, it was the worst of times, it was the age of wisdom, it was the age of foolishness, it was the epoch of belief, it was the epoch of incredulity.',
+            source: 'A Tale of Two Cities',
+            author: 'Charles Dickens',
+        },
+
+        {
+            text: 'The little room was almost dark, for the day was cloudy. Through the window could be seen the tops of trees tossing in the wind. A fire burned faintly upon the hearth, and the quiet ticking of a clock sounded from the corner.',
+            source: 'The Secret Garden',
+            author: 'Frances Hodgson Burnett',
+        },
+
+        {
+            text: 'Dorothy lived in the midst of the great Kansas prairies, with Uncle Henry, who was a farmer, and Aunt Em, who was the farmer\'s wife. Their house was small, for the lumber to build it had to be carried by wagon many miles.',
+            source: 'The Wonderful Wizard of Oz',
+            author: 'L. Frank Baum',
+        },
     ];
 
     const paragraphData = paragraphs.map(({ text, source, author }) => ({
@@ -253,7 +300,7 @@ async function main() {
             lessonHandType: LessonHandType.BOTH_HANDS,
             lessonType: LessonType.KEY_LESSON,
             languageid: englishLanguage.languageid,
-            lessonContent: 'fj fj ff jj ff jj jf jf',
+            lessonContent: 'fj fj ff jj \n ff jj jf jf',
         },
         {
             title: 'Luyện tập phím f & j',
@@ -271,7 +318,7 @@ async function main() {
             lessonHandType: LessonHandType.BOTH_HANDS,
             lessonType: LessonType.KEY_LESSON,
             languageid: englishLanguage.languageid,
-            lessonContent: 'dk dk dd kk dd kk kd kd',
+            lessonContent: 'dk dk dd kk \n dd kk kd kd',
         },
         {
             title: 'Luyện tập phím d & k',
@@ -298,7 +345,7 @@ async function main() {
             lessonHandType: LessonHandType.BOTH_HANDS,
             lessonType: LessonType.KEY_LESSON,
             languageid: englishLanguage.languageid,
-            lessonContent: 'sl sl ss ll ss ll ls ls ll ss llll ssss',
+            lessonContent: 'sl sl ss ll ss \n ll ls ls ll ss \n llll ssss',
         },
         {
             title: 'Luyện tập phím s & l',
@@ -325,7 +372,7 @@ async function main() {
             lessonHandType: LessonHandType.BOTH_HANDS,
             lessonType: LessonType.KEY_LESSON,
             languageid: englishLanguage.languageid,
-            lessonContent: 'a; a; aa ;; aa ;; ;a ;a ;a; a;a ;a; a;a ;a; aa;; ;;aa ;a;a',
+            lessonContent: 'a; a; aa ;; \n aa ;; ;a ;a \n ;a; a;a ;a; a;a \n ;a; aa;; ;;aa ;a;a',
         },
         {
             title: 'Luyện tập phím a & ;',

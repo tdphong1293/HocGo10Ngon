@@ -175,9 +175,9 @@ const AdminSingleLessonPage: React.FC<PageProps<"/admin/lessons/[lessonid]">> = 
             setErrors(prev => ({ ...prev, lessonTitle: "Tiêu đề bài học không được để trống." }));
             isValid = false;
         }
-        const textRegex = /^[a-zA-ZÀ-ỹ0-9\s.,'"!?()-_]{1,100}$/u;
+        const textRegex = /^[\p{L}\p{N}\p{P}\p{S}\p{Zs}]{1,100}$/u;
         if (!textRegex.test(lessonTitle)) {
-            setErrors(prev => ({ ...prev, lessonTitle: "Tiêu đề bài học chỉ được chứa chữ cái, số, khoảng trắng và các ký tự: . , ' \" ! ? ( ) - _, tối đa 100 ký tự." }));
+            setErrors(prev => ({ ...prev, lessonTitle: "Tiêu đề bài học chỉ được chứa chữ cái, số, khoảng trắng và các ký tự bàn phím, tối đa 100 ký tự." }));
             isValid = false;
         }
         const orderNum = parseInt(lessonOrder, 10);
