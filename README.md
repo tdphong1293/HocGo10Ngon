@@ -1,6 +1,6 @@
 # HocGo10Ngon
 
-A full-stack typing practice and learning platform built with Next.js and NestJS. This project combines interactive typing lessons, personalization, and admin tooling to track progress and improve typing skills. I am using this project as part of my internship portfolio.
+A full-stack typing practice and learning platform built with Next.js and NestJS. This project combines interactive typing lessons, personalization, and admin tooling to track progress and improve typing skills.
 
 ## Project Highlights
 - Interactive typing practice with real-time feedback and audio cues
@@ -12,8 +12,7 @@ A full-stack typing practice and learning platform built with Next.js and NestJS
 ## Tech Stack
 - Frontend: Next.js (App Router), React, TypeScript, CSS
 - Backend: NestJS, TypeScript
-- Database: Prisma (schema and seed scripts), MongoDB utilities
-- Tooling: ESLint, PostCSS
+- Database: PostgreSQL Prisma ORM, MongoDB, Redis
 
 ## Architecture
 - client: Next.js application (UI, pages, components)
@@ -50,7 +49,7 @@ npm run start:dev
 The backend uses multiple data stores:
 - Postgres for relational data via Prisma
 - MongoDB for session-related data via Mongoose
-- Redis for caching
+- Redis for reset password key caching
 
 The Docker Compose file is in server/docker-compose.yml and provisions MongoDB, Postgres, and Redis.
 
