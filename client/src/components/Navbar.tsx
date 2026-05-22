@@ -145,6 +145,7 @@ const Navbar: React.FC<NavbarProps> = ({
                                             <div
                                                 className=""
                                                 onClick={async () => {
+                                                    setIsHovered(false);
                                                     await signOut();
                                                 }}
                                             >
