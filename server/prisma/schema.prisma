@@ -116,7 +116,7 @@ enum LessonType {
 model Lesson {
     lessonid      String       @id @default(cuid())
     title         String
-    orderNumber   Int          @unique
+    orderNumber   Int          
     rowType       RowType?
     lessonHandType    LessonHandType
     lessonType    LessonType
